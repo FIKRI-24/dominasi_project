@@ -1,0 +1,621 @@
+/* Base Styles */
+:root {
+  --primary: #3498db;
+  --secondary: #2c3e50;
+  --light: #ffffff;
+  --dark: #2c3e50;
+  --accent: #e74c3c;
+  --background: #f9fbfd;
+  --card-bg: #ffffff;
+  --text: #333333;
+  --text-light: #6c757d;
+  --border: #eeeeee;
+  --shadow: rgba(0, 0, 0, 0.08);
+  --highlight: #e3f2fd;
+}
+
+.materi-container {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: var(--text);
+  line-height: 1.6;
+  background-color: var(--background);
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* Hero Section */
+.materi-hero {
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  color: var(--light);
+  padding: 5rem 0;
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.materi-title {
+  font-size: 2.8rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  animation: fadeInDown 0.8s ease-out;
+}
+
+.materi-subtitle {
+  font-size: 1.4rem;
+  opacity: 0.9;
+  animation: fadeInUp 0.8s ease-out;
+}
+
+/* Cards */
+.materi-content {
+  padding-bottom: 5rem;
+}
+
+.materi-card {
+  background: var(--card-bg);
+  border-radius: 12px;
+  box-shadow: 0 5px 20px var(--shadow);
+  margin-bottom: 2.5rem;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.materi-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+}
+
+.highlight-card {
+  border-left: 5px solid var(--primary);
+}
+
+.card-header {
+  background: #f8f9fa;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+}
+
+.card-icon {
+  font-size: 1.8rem;
+  color: var(--primary);
+  margin-right: 1rem;
+}
+
+.card-title {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: var(--dark);
+  margin: 0;
+}
+
+.card-body {
+  padding: 2rem;
+}
+
+/* Graph Visualizations */
+.graph-visual {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 2rem 0;
+  position: relative;
+}
+
+.graph-visual-small {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 1rem 0;
+  position: relative;
+}
+
+.node {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--primary);
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+  margin: 0 10px;
+  position: relative;
+  z-index: 2;
+}
+
+.node.dominating {
+  background-color: var(--accent);
+}
+
+.edge {
+  width: 40px;
+  height: 2px;
+  background-color: var(--primary);
+  position: relative;
+}
+
+.edge.diagonal {
+  transform: rotate(45deg);
+  width: 30px;
+  position: absolute;
+  top: 50%;
+  left: 60%;
+}
+
+.edge.undirected {
+  background-color: var(--primary);
+}
+
+.edge.directed {
+  background-color: var(--primary);
+  position: relative;
+}
+
+.edge.directed::after {
+  content: '';
+  position: absolute;
+  right: -5px;
+  top: -4px;
+  width: 0;
+  height: 0;
+  border-left: 6px solid var(--primary);
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+}
+
+.edge.weighted {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--dark);
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.caption {
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--text-light);
+  margin-top: 0.5rem;
+}
+
+/* Section 1 Styles */
+.applications-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+.application-item {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 1.5rem;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.application-item:hover {
+  background: #e9f5ff;
+  transform: translateY(-3px);
+}
+
+.app-icon {
+  font-size: 2rem;
+  color: var(--primary);
+  margin-bottom: 1rem;
+}
+
+.application-item h4 {
+  margin: 0.5rem 0;
+  color: var(--dark);
+}
+
+.application-item p {
+  color: var(--text-light);
+  font-size: 0.95rem;
+}
+
+.formula-box {
+  background: #f0f7ff;
+  border-left: 4px solid var(--primary);
+  padding: 1.5rem;
+  border-radius: 0 8px 8px 0;
+  margin: 2rem 0;
+}
+
+.formula {
+  font-size: 1.8rem;
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+  color: var(--dark);
+  text-align: center;
+  margin: 1rem 0;
+}
+
+.real-world-analogy {
+  background-color: var(--highlight);
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin: 2rem 0;
+}
+
+.real-world-analogy h3 {
+  margin-top: 0;
+  color: var(--dark);
+}
+
+/* Section 2 Styles */
+.graph-types {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+.graph-type {
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+  border-top: 3px solid var(--primary);
+}
+
+.type-title {
+  font-size: 1.2rem;
+  color: var(--dark);
+  margin-top: 0;
+}
+
+.type-badge {
+  display: inline-block;
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-top: 0.8rem;
+}
+
+.undirected { background: #e3f2fd; color: #1565c0; }
+.directed { background: #e8f5e9; color: #2e7d32; }
+.simple { background: #f3e5f5; color: #7b1fa2; }
+.weighted { background: #fff8e1; color: #ff8f00; }
+
+.sub-section-title {
+  font-size: 1.4rem;
+  color: var(--dark);
+  margin: 2rem 0 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--border);
+}
+
+.special-graphs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.special-graph {
+  background: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 8px;
+}
+
+.special-graph h4 {
+  margin-top: 0;
+  color: var(--primary);
+}
+
+.graph-properties {
+  margin: 2rem 0;
+}
+
+.graph-properties ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.graph-properties li {
+  padding: 0.5rem 0;
+  border-bottom: 1px dashed var(--border);
+}
+
+.graph-properties li:last-child {
+  border-bottom: none;
+}
+
+.graph-properties strong {
+  color: var(--primary);
+}
+
+/* Section 3 Styles */
+.analogy-box {
+  display: flex;
+  background: var(--highlight);
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin: 1.5rem 0;
+  align-items: center;
+}
+
+.analogy-icon {
+  font-size: 2.5rem;
+  color: var(--primary);
+  margin-right: 1.5rem;
+  flex-shrink: 0;
+}
+
+.domination-definition {
+  margin: 2rem 0;
+}
+
+.definition-box {
+  background: #f5f5f5;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border-left: 4px solid var(--primary);
+}
+
+.domination-example {
+  margin: 2rem 0;
+}
+
+.domination-examples {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.example {
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+  border-top: 3px solid var(--primary);
+}
+
+.gamma-value {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--primary);
+  margin: 0.5rem 0;
+}
+
+.domination-applications {
+  margin: 3rem 0 1rem;
+}
+
+.domination-applications h3 {
+  color: var(--dark);
+}
+
+.applications-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin: 1.5rem 0;
+}
+
+.app-item {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 1.5rem;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.app-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.app-item h4 {
+  margin: 0.5rem 0;
+  color: var(--dark);
+}
+
+/* Section 4 Styles */
+.variations-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.variation {
+  background: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border-left: 4px solid var(--primary);
+}
+
+.variation h3 {
+  color: var(--dark);
+  margin-top: 0;
+}
+
+.advanced-topics {
+  margin: 3rem 0 1rem;
+}
+
+.advanced-topics h3 {
+  color: var(--dark);
+}
+
+.topic-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin: 1.5rem 0;
+}
+
+.topic-card {
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+  border-top: 3px solid var(--primary);
+}
+
+.topic-card h4 {
+  margin-top: 0;
+  color: var(--primary);
+}
+
+/* Additional Sections */
+.materi-2 {
+  margin-top: 3rem;
+}
+
+.card .sub-variation {
+  background-color: #f9f9f9;
+  border-left: 4px solid var(--primary);
+  padding: 1rem;
+  margin-top: 1rem;
+  border-radius: 10px;
+}
+
+.card .sub-variation h4 {
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+}
+
+.card .sub-variation p {
+  margin: 0;
+  color: #555;
+}
+
+.sub-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin: 1.5rem 0;
+}
+
+.sub-card {
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+  border-top: 3px solid var(--primary);
+}
+
+.sub-card h4 {
+  margin-top: 0;
+  color: var(--primary);
+}
+
+.case-study {
+  background-color: var(--highlight);
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin: 2rem 0;
+}
+
+.case-study h3 {
+  margin-top: 0;
+  color: var(--dark);
+}
+
+.case-study ul {
+  padding-left: 1.5rem;
+}
+
+/* Animations */
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .materi-title {
+    font-size: 2.2rem;
+  }
+  
+  .materi-subtitle {
+    font-size: 1.2rem;
+  }
+  
+  .card-header {
+    padding: 1.2rem;
+  }
+  
+  .card-title {
+    font-size: 1.5rem;
+  }
+  
+  .analogy-box {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .analogy-icon {
+    margin-right: 0;
+    margin-bottom: 1rem;
+  }
+  
+  .graph-visual {
+    flex-direction: column;
+  }
+  
+  .edge.diagonal {
+    transform: rotate(90deg);
+    position: relative;
+    top: 0;
+    left: 0;
+    margin: 10px 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .materi-hero {
+    padding: 3rem 0;
+  }
+  
+  .materi-title {
+    font-size: 1.8rem;
+  }
+  
+  .card-body {
+    padding: 1.5rem;
+  }
+  
+  .graph-types, .special-graphs, .domination-examples {
+    grid-template-columns: 1fr;
+  }
+  
+  .node {
+    width: 30px;
+    height: 30px;
+    font-size: 0.8rem;
+  }
+  
+  .edge {
+    width: 20px;
+  }
+}

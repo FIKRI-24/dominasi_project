@@ -1,0 +1,101 @@
+/* Graph Examples Page Styles */
+.main-title {
+    margin-top: 45px;
+  text-align: center;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background-color: #5048f7;
+  border-radius: 8px;
+}
+
+.main-title h1 {
+  font-size: 2.2rem;
+  color: #1c242b;
+  margin-bottom: 0.5rem;
+}
+
+.main-title p {
+  font-size: 1.1rem;
+  color: #f0f2f2;
+}
+
+.graph-examples {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.5rem;
+  margin-top: 200px;
+}
+
+.graph-card {
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.graph-card.active {
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.graph-header {
+  background: #f8fafc;
+  padding: 1rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.graph-header h3 {
+  margin: 0;
+  color: #1e293b;
+}
+
+.graph-content {
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+}
+
+.graph-diagram {
+  margin-bottom: 1.5rem;
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 1rem;
+  display: flex;
+  justify-content: center;
+}
+
+.graph-info p {
+  margin: 0.5rem 0;
+  line-height: 1.6;
+}
+
+
+.domination-explanation {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px dashed #e2e8f0;
+}
+
+.domination-explanation h4 {
+  margin-bottom: 0.5rem;
+  color: #1e40af;
+}
+
+@media (max-width: 768px) {
+  .graph-examples {
+    grid-template-columns: 1fr;
+  }
+  
+  .graph-content {
+    flex-direction: column;
+  }
+  
+  .graph-diagram {
+    margin-right: 0;
+    margin-bottom: 1rem;
+  }
+}
