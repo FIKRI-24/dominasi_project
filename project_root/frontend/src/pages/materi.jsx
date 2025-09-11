@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Navbar from '../../components/navbar';
+import Navbar from '../../components/navbar.module.jsx';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faBrain, faNetworkWired, faRoute, faShieldAlt,

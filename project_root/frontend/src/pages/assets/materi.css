@@ -1,17 +1,20 @@
 /* Base Styles */
 :root {
-  --primary: #3498db;
-  --secondary: #2c3e50;
-  --light: #ffffff;
-  --dark: #2c3e50;
-  --accent: #e74c3c;
-  --background: #f9fbfd;
-  --card-bg: #ffffff;
-  --text: #333333;
-  --text-light: #6c757d;
-  --border: #eeeeee;
-  --shadow: rgba(0, 0, 0, 0.08);
-  --highlight: #e3f2fd;
+  /* Warna disesuaikan dengan tema Beranda */
+  --primary: #1e40af;       /* Biru tua dari Beranda */
+  --secondary: #514ae2;     /* Ungu-biru dari Beranda */
+  --accent: #4cc9f0;         /* Biru muda/cyan dari Beranda */
+  --dark: #1e1e24;           /* Abu-abu sangat gelap dari Beranda */
+  --light: #f8f9fa;         /* Putih keabuan dari Beranda */
+  
+  /* Variabel turunan untuk konsistensi */
+  --background: #f8f9fa;     /* Latar belakang halaman, diambil dari --light */
+  --card-bg: #ffffff;        /* Kartu tetap putih untuk kontras */
+  --text: #1e1e24;           /* Teks utama, diambil dari --dark */
+  --text-light: #6b7280;     /* Abu-abu untuk teks sekunder */
+  --border: #e5e7eb;         /* Warna border yang lembut */
+  --shadow: rgba(30, 64, 175, 0.1); /* Bayangan lembut berbasis warna primer */
+  --highlight: #eef2ff;       /* Latar belakang highlight berbasis warna primer */
 }
 
 .materi-container {

@@ -5,11 +5,11 @@
 
 /* ===== ROOT & GLOBAL ===== */
 :root {
-  --primary: #4361ee;
-  --secondary: #3f37c9;
-  --accent: #4cc9f0;
-  --dark: #1e1e24;
-  --light: #f8f9fa;
+  --primary: #1e40af;       /* Biru tua dari Beranda */
+  --secondary: #514ae2;     /* Ungu-biru dari Beranda */
+  --accent: #38bdf8;         /* Biru muda/cyan dari Beranda */
+  --dark: #1e1e24;           /* Abu-abu sangat gelap dari Beranda */
+  --light: #f8f9fa; 
 }
 
 html, body, #root {
@@ -34,36 +34,10 @@ body {
   flex-direction: column;
 }
 
-/* ===== NAVBAR ===== */
-.navbar {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-}
-
-.navbar .navbar-item,
-.navbar .navbar-burger {
-  color: var(--primary);
-}
-
-.navbar .navbar-item.has-text-weight-bold {
-  color: var(--secondary);
-}
-
-.navbar .navbar-item:hover,
-.navbar-item.is-active {
-  background-color: transparent !important;
-  color: var(--accent) !important;
-}
-
-/* ===== HERO ===== */
+/* ===== HERO (Halaman Beranda) ===== */
 .hero {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+  /* Gradient diperbarui dengan warna baru */
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%); 
   position: relative;
   overflow: hidden;
   min-height: 100vh;
@@ -79,14 +53,15 @@ body {
   padding: 3rem 1rem;
 }
 
-/* ===== FEATURES ===== */
+/* ===== FEATURES (Halaman Beranda) ===== */
 .feature-box {
   transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.6);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  box-shadow: 0 8px 32px 0 rgba(67, 97, 238, 0.15);
+  /* Shadow disesuaikan dengan warna baru */
+  box-shadow: 0 8px 32px 0 rgba(30, 64, 175, 0.15); 
   height: 100%;
   position: relative;
   overflow: hidden;
@@ -96,14 +71,16 @@ body {
 
 .feature-box:hover {
   transform: translateY(-10px);
-  box-shadow: 0 15px 35px rgba(67, 97, 238, 0.2);
+  /* Shadow hover disesuaikan */
+  box-shadow: 0 15px 35px rgba(30, 64, 175, 0.2); 
 }
 
 .feature-box .title {
-  color: var(--secondary);
+  /* Warna judul disesuaikan */
+  color: var(--primary); 
 }
 
-/* ===== BUTTONS ===== */
+/* ===== BUTTONS (Global & Halaman Beranda) ===== */
 .button.is-light {
   background-color: white;
   color: var(--primary);
@@ -129,7 +106,7 @@ body {
   border-width: 2px;
 }
 
-/* ===== FLOATING NODES ===== */
+/* ===== EFEK VISUAL (Halaman Beranda) ===== */
 .floating-nodes {
   position: fixed;
   width: 100%;
@@ -143,7 +120,8 @@ body {
 .node {
   position: absolute;
   border-radius: 50%;
-  background: rgba(67, 97, 238, 0.1);
+  /* Warna node disesuaikan */
+  background: rgba(30, 64, 175, 0.1); 
   animation: float 20s infinite ease-in-out;
 }
 
@@ -156,17 +134,18 @@ body {
   }
 }
 
-/* ===== GLOW EFFECT ===== */
 .glow {
   animation: glow 2s infinite alternate;
 }
 
 @keyframes glow {
   from {
-    box-shadow: 0 0 8px rgba(255, 255, 255, 0.6), 0 0 12px rgba(67, 97, 238, 0.4);
+    /* Warna glow disesuaikan */
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.6), 0 0 12px rgba(30, 64, 175, 0.4); 
   }
   to {
-    box-shadow: 0 0 20px rgba(255, 255, 255, 1), 0 0 30px rgba(67, 97, 238, 0.7);
+    /* Warna glow disesuaikan */
+    box-shadow: 0 0 20px rgba(255, 255, 255, 1), 0 0 30px rgba(30, 64, 175, 0.7); 
   }
 }
 
