@@ -1,5 +1,3 @@
-/* src/components/Navbar.module.css */
-
 .navbar {
   background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(12px);
@@ -11,29 +9,43 @@
   align-items: center;
   position: sticky;
   top: 0;
-  z-index: 1050; /* Higher z-index */
+  z-index: 1050;
   width: 100%;
   transition: all 0.2s ease-out;
+
+  /* Anti override */
+  font-family: 'Inter', sans-serif !important;
+  font-size: 1rem !important;
+  line-height: 1.5 !important;
 }
 
+/* Pastikan semua child Navbar ikut konsisten */
+.navbar * {
+  font-family: inherit !important;
+  font-size: inherit !important;
+  line-height: inherit !important;
+  box-sizing: border-box;
+}
+
+/* Brand */
 .navBrand {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-weight: 700;
-  font-size: 1.25rem;
-  color: #1e40af;
-  text-decoration: none;
+  font-weight: 700 !important;
+  font-size: 1.25rem !important;
+  color: #1e40af !important;
+  text-decoration: none !important;
   transition: all 0.2s ease-out;
 }
 
 .navBrand:hover {
   transform: scale(1.02);
-  color: #2563eb;
+  color: #2563eb !important;
 }
 
 .brandIcon {
-  color: #2563eb;
+  color: #2563eb !important;
   transition: transform 0.3s ease;
 }
 
@@ -41,6 +53,7 @@
   transform: rotate(15deg);
 }
 
+/* Menu Desktop */
 .navMenu {
   display: flex;
   gap: 0.5rem;
@@ -48,10 +61,10 @@
 }
 
 .navLink {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #4a5568;
-  text-decoration: none;
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  color: #4a5568 !important;
+  text-decoration: none !important;
   padding: 0.6rem 1rem;
   border-radius: 8px;
   transition: all 0.2s ease-out;
@@ -61,32 +74,33 @@
 }
 
 .navLink:hover {
-  background-color: #f1f5f9;
-  color: #2563eb;
+  background-color: #f1f5f9 !important;
+  color: #2563eb !important;
 }
 
 .navLinkActive {
-  background-color: #2563eb;
-  color: white;
+  background-color: #2563eb !important;
+  color: white !important;
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
 }
 
 .navLinkActive:hover {
-  background-color: #1e40af;
-  color: white;
+  background-color: #1e40af !important;
+  color: white !important;
 }
 
-/* --- Hamburger & Mobile Menu --- */
+/* Hamburger */
 .hamburger {
-  display: none; /* Hidden on desktop */
+  display: none;
   background: transparent;
   border: none;
   cursor: pointer;
-  z-index: 10001; /* Above overlay */
+  z-index: 10001;
   padding: 0.5rem;
-  color: #2563eb;
+  color: #2563eb !important;
 }
 
+/* Mobile Menu */
 .mobileMenuOverlay {
   position: fixed;
   top: 0;
@@ -118,10 +132,10 @@
   align-items: center;
   gap: 1rem;
   padding: 1.25rem 1.5rem;
-  color: #e5e7eb;
-  text-decoration: none;
-  font-size: 1.25rem;
-  font-weight: 600;
+  color: #e5e7eb !important;
+  text-decoration: none !important;
+  font-size: 1rem !important;
+  font-weight: 600 !important;
   border-radius: 12px;
   transition: all 0.2s ease-out;
   transform: translateX(-30px);
@@ -137,17 +151,17 @@
 }
 
 .mobileLink:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-  color: white;
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  color: white !important;
 }
 
 .mobileLinkActive {
-  background-color: #2563eb;
-  color: white;
+  background-color: #2563eb !important;
+  color: white !important;
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
 }
 
-/* --- Responsive Breakpoints --- */
+/* Responsive */
 @media (max-width: 1023px) {
   .navMenu {
     display: none;
@@ -162,6 +176,6 @@
     padding: 0.75rem 1rem;
   }
   .brandText {
-    display: none; /* Hide brand text on very small screens */
+    display: none;
   }
 }

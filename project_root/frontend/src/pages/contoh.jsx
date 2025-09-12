@@ -46,17 +46,19 @@ const cssStyles = `
 .mainTitle h1 {
   font-size: clamp(2rem, 5vw, 2.8rem);
   font-weight: 700;
-  color: var(--secondary-color);
+  color: var(--primary); /* pakai warna biru primary */
   margin-bottom: 0.5rem;
 }
 
 .mainTitle p {
   font-size: clamp(1rem, 2.5vw, 1.1rem);
-  color: var(--text-light);
+  color: var(--primary); /* pakai warna biru primary juga */
+  font-weight: 500; /* agak tebal biar jelas */
   max-width: 650px;
   margin: auto;
   line-height: 1.6;
 }
+
 
 /* --- Grid for the Cards --- */
 .graphGrid {

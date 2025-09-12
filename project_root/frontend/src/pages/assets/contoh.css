@@ -9,16 +9,7 @@
   border-radius: 8px;
 }
 
-.main-title h1 {
-  font-size: 2.2rem;
-  color: #1c242b;
-  margin-bottom: 0.5rem;
-}
 
-.main-title p {
-  font-size: 1.1rem;
-  color: #f0f2f2;
-}
 
 .graph-examples {
   display: grid;

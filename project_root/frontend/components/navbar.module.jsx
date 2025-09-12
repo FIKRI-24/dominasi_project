@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faProjectDiagram, faHome, faBook, faPlayCircle, faPenFancy, faTasks, faBars, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { NavLink, useLocation } from 'react-router-dom';
-import styles from './Navbar.module.css'; // Menggunakan CSS Module
+import styles from './Navbar.module.css'; 
 
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -18,7 +18,7 @@ const Navbar = () => {
   useEffect(() => {
     document.body.style.overflow = isMobileMenuOpen ? 'hidden' : 'unset';
     return () => {
-      document.body.style.overflow = 'unset'; // Cleanup
+      document.body.style.overflow = 'unset'; 
     };
   }, [isMobileMenuOpen]);
 
@@ -41,7 +41,7 @@ const Navbar = () => {
       <nav className={styles.navbar}>
         <NavLink className={styles.navBrand} to="/">
           <FontAwesomeIcon icon={faProjectDiagram} className={styles.brandIcon} />
-          <span className={styles.brandText}>GraphTheoryEdu</span>
+          <span className={styles.brandText}>GraphTheory</span>
         </NavLink>
 
         {/* Desktop Menu */}
