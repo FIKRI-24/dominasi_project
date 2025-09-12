@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 
 // --- Placeholder Navbar Component ---
 // Ganti ini dengan komponen Navbar Anda yang sebenarnya.
@@ -283,13 +284,13 @@ const Beranda = () => {
                     <h1 className="hero-title">Selamat Datang di Pembelajaran Teori Graf</h1>
                     <p className="hero-subtitle">Jelajahi dunia simpul dan sisi melalui materi, contoh, dan visualisasi yang interaktif dan menyenangkan.</p>
                     <div className="hero-buttons">
-                        <a href="/materi" className="hero-button primary">
-                            Mulai Belajar <Icon icon="arrow-right" />
-                        </a>
-                        <a href="/coba" className="hero-button secondary">
-                            Coba Editor Graf
-                        </a>
-                    </div>
+    <Link to="/materi" className="hero-button primary">
+        Mulai Belajar <Icon icon="arrow-right" />
+    </Link>
+    <Link to="/coba" className="hero-button secondary">
+        Coba Editor Graf
+    </Link>
+</div>
                 </div>
             </section>
         </div>
