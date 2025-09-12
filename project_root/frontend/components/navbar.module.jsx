@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faProjectDiagram, faHome, faBook, faPlayCircle, faPenFancy, faTasks, faBars, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { NavLink, useLocation } from 'react-router-dom';
-import styles from './Navbar.module.css'; 
+import styles from './navbar.module.css'; 
 
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
