@@ -39,141 +39,273 @@ const Coba = () => {
   const [activeTab, setActiveTab] = useState('panduan');
   const [isExpanded, setIsExpanded] = useState(false);
 
-  // Enhanced graph data with correct calculations
+  // Enhanced graph data - sesuai dengan Gambar di Bab II PDF
   const GRAPHS = {
-    PATH: {
-      name: "Graf Lintasan (P8)",
+    GAMBAR_II1: {
+      name: "Gambar II.1 - Graf G",
+      nodes: [
+        { id: 'v1', x: 0.5, y: 0.3 },
+        { id: 'v2', x: 0.25, y: 0.6 },
+        { id: 'v3', x: 0.4, y: 0.7 },
+        { id: 'v4', x: 0.6, y: 0.7 },
+        { id: 'v5', x: 0.75, y: 0.6 }
+      ],
+      edges: [
+        ['v1','v2'],['v2','v3'],['v3','v4'],['v4','v5'],['v5','v1'],
+        ['v1','v3'],['v1','v4']
+      ],
+      metricDimension: 2,
+      dominationNumber: 2,
+      possibleSolutions: [['v1', 'v3']],
+      description: "Graf G dengan 5 titik dan 7 sisi. |G|=5, ||G||=7, δ(G)=2, Δ(G)=4",
+      hint: "Titik v1 bertetangga dengan v2, v3, v4, v5 sehingga N(v1) = {v2, v3, v4, v5}"
+    },
+    GAMBAR_II3: {
+      name: "Gambar II.3 - Graf dengan Diameter 4 dan Radius 3",
+      nodes: [
+        { id: 'v1', x: 0.1, y: 0.5 },
+        { id: 'v2', x: 0.25, y: 0.5 },
+        { id: 'v3', x: 0.4, y: 0.5 },
+        { id: 'v4', x: 0.55, y: 0.3 },
+        { id: 'v5', x: 0.55, y: 0.7 },
+        { id: 'v6', x: 0.7, y: 0.3 },
+        { id: 'v7', x: 0.7, y: 0.7 },
+        { id: 'v8', x: 0.85, y: 0.5 }
+      ],
+      edges: [
+        ['v1','v2'],['v2','v3'],['v3','v4'],['v3','v5'],
+        ['v4','v6'],['v5','v7'],['v6','v8'],['v7','v8']
+      ],
+      metricDimension: 3,
+      dominationNumber: 3,
+      possibleSolutions: [['v2', 'v4', 'v7']],
+      description: "Graf dengan diameter 4 dan radius 3. ecc(v1)=4, ecc(v2)=3, diam(G)=4, rad(G)=3",
+      hint: "Diameter adalah jarak maksimum antar dua titik. Radius adalah eksentrisitas minimum."
+    },
+    GAMBAR_II12: {
+      name: "Gambar II.12 - Graf dengan Dimensi Metrik 2",
+      nodes: [
+        { id: 'v1', x: 0.25, y: 0.3 },
+        { id: 'v2', x: 0.4, y: 0.3 },
+        { id: 'v3', x: 0.55, y: 0.3 },
+        { id: 'v4', x: 0.7, y: 0.3 },
+        { id: 'v5', x: 0.5, y: 0.6 },
+        { id: 'v6', x: 0.35, y: 0.6 }
+      ],
+      edges: [
+        ['v1','v2'],['v2','v3'],['v3','v4'],['v3','v5'],['v2','v6']
+      ],
+      metricDimension: 2,
+      dominationNumber: 2,
+      possibleSolutions: [['v3', 'v5']],
+      description: "Graf G dengan dimensi metrik β(G) = 2. W = {v3, v5} adalah himpunan pembeda minimum",
+      hint: "Representasi: r(v1|W)=(1,2), r(v2|W)=(1,1), r(v3|W)=(0,2), r(v4|W)=(1,3), r(v5|W)=(2,0), r(v6|W)=(2,1)"
+    },
+    GAMBAR_II19: {
+      name: "Gambar II.19 - Graf dengan γ(G)=6, β(G)=4, γM(G)=7",
+      nodes: [
+        ...Array.from({length: 12}, (_, i) => ({
+          id: `v${i+1}`,
+          x: 0.5 + 0.4 * Math.cos((i * 2 * Math.PI) / 12),
+          y: 0.5 + 0.4 * Math.sin((i * 2 * Math.PI) / 12)
+        })),
+        { id: 'v13', x: 0.7, y: 0.25 },
+        { id: 'v14', x: 0.85, y: 0.4 },
+        { id: 'v15', x: 0.85, y: 0.6 },
+        { id: 'v16', x: 0.7, y: 0.75 },
+        { id: 'v17', x: 0.92, y: 0.5 }
+      ],
+      edges: [
+        ...Array.from({length: 11}, (_, i) => [`v${i+1}`, `v${i+2}`]),
+        ['v12', 'v1'],
+        ['v13','v14'],['v14','v15'],['v15','v16'],['v16','v13'],
+        ['v12','v13'],['v1','v17'],['v17','v14']
+      ],
+      metricDimension: 4,
+      dominationNumber: 6,
+      possibleSolutions: [['v3', 'v6', 'v8', 'v10', 'v12', 'v15', 'v16']],
+      description: "Graf dengan γ(G)=6, β(G)=4, γM(G)=7. Contoh dimana γM(G) > max{γ(G), β(G)}",
+      hint: "D = {v3,v6,v8,v10,v12,v16} adalah himpunan dominasi minimum. R = {v6,v12,v15,v16} adalah himpunan pembeda minimum."
+    },
+    LINTASAN_P8: {
+      name: "Graf Lintasan P₈",
       nodes: Array.from({length: 8}, (_, i) => ({
-        id: `V${i+1}`, 
+        id: `v${i+1}`, 
         x: 0.12 + (i * 0.096), 
         y: 0.5
       })),
-      edges: Array.from({length: 7}, (_, i) => [`V${i+1}`, `V${i+2}`]),
-      metricDimension: 2,
-      possibleSolutions: [
-        ['V1', 'V8'],
-        ['V1', 'V7'],
-        ['V2', 'V8']
-      ],
-      description: "Graf linear dengan simpul berurutan. Dimensi metrik = 2",
-      hint: "Pilih dua simpul di ujung-ujung yang berbeda untuk membedakan semua simpul."
+      edges: Array.from({length: 7}, (_, i) => [`v${i+1}`, `v${i+2}`]),
+      metricDimension: 1,
+      dominationNumber: 3,
+      possibleSolutions: [['v1'], ['v8']],
+      description: "Graf lintasan dengan 8 titik. β(Pn) = 1, γ(P₈) = ⌈8/3⌉ = 3",
+      hint: "Untuk lintasan, satu titik ujung sudah cukup sebagai himpunan pembeda."
     },
-    CYCLE: {
-      name: "Graf Siklus (C8)",
+    SIKLUS_C8: {
+      name: "Graf Siklus C₈",
       nodes: Array.from({length: 8}, (_, i) => ({
-        id: `V${i+1}`,
+        id: `v${i+1}`,
         x: 0.5 + 0.35 * Math.cos((i * 2 * Math.PI) / 8),
         y: 0.5 + 0.35 * Math.sin((i * 2 * Math.PI) / 8)
       })),
       edges: [
-        ...Array.from({length: 7}, (_, i) => [`V${i+1}`, `V${i+2}`]),
-        ['V8', 'V1']
+        ...Array.from({length: 7}, (_, i) => [`v${i+1}`, `v${i+2}`]),
+        ['v8', 'v1']
       ],
-      metricDimension: 3,
+      metricDimension: 2,
+      dominationNumber: 3,
       possibleSolutions: [
-        ['V1', 'V3', 'V6'],
-        ['V1', 'V4', 'V7'],
-        ['V2', 'V4', 'V7'],
-        ['V1', 'V3', 'V5']
+        ['v1', 'v3'], ['v2', 'v5'], ['v3', 'v6']
       ],
-      description: "Graf melingkar dengan 8 simpul. Dimensi metrik = 3",
-      hint: "Pilih tiga simpul yang tersebar merata di sekeliling lingkaran."
+      description: "Graf siklus dengan 8 titik. β(Cn) = 2 untuk n ≥ 3, γ(C₈) = ⌈8/3⌉ = 3",
+      hint: "Dua titik yang tidak berseberangan diperlukan untuk membedakan semua titik."
     },
-    STAR: {
-      name: "Graf Bintang (S10)",
+    BINTANG_K1_7: {
+      name: "Graf Bintang K₁,₇",
       nodes: [
-        { id: 'C', x: 0.5, y: 0.5 },
-        ...Array.from({length: 9}, (_, i) => ({
-          id: `V${i+1}`,
-          x: 0.5 + 0.35 * Math.cos((i * 2 * Math.PI) / 9),
-          y: 0.5 + 0.35 * Math.sin((i * 2 * Math.PI) / 9)
+        { id: 'c', x: 0.5, y: 0.5 },
+        ...Array.from({length: 7}, (_, i) => ({
+          id: `v${i+1}`,
+          x: 0.5 + 0.35 * Math.cos((i * 2 * Math.PI) / 7),
+          y: 0.5 + 0.35 * Math.sin((i * 2 * Math.PI) / 7)
         }))
       ],
-      edges: Array.from({length: 9}, (_, i) => ['C', `V${i+1}`]),
-      metricDimension: 9,
+      edges: Array.from({length: 7}, (_, i) => ['c', `v${i+1}`]),
+      metricDimension: 6,
+      dominationNumber: 1,
       possibleSolutions: [
-        ['V1', 'V2', 'V3', 'V4', 'V5', 'V6', 'V7', 'V8', 'V9']
+        ['v1', 'v2', 'v3', 'v4', 'v5', 'v6']
       ],
-      description: "Graf bintang dengan pusat C dan 9 daun. Dimensi metrik = 9",
-      hint: "Semua simpul daun diperlukan untuk membedakan satu sama lain (simpul pusat tidak membantu)."
+      description: "Graf bintang dengan 1 pusat dan 7 daun. γ(K₁,n) = 1, β(K₁,n) = n-1, γM(K₁,n) = n",
+      hint: "Titik pusat mendominasi semua, tapi n-1 daun diperlukan sebagai pembeda."
     },
-    WHEEL: {
-      name: "Graf Roda (W6)",
+    LENGKAP_K5: {
+      name: "Graf Lengkap K₅",
+      nodes: Array.from({length: 5}, (_, i) => ({
+        id: `v${i+1}`,
+        x: 0.5 + 0.3 * Math.cos((i * 2 * Math.PI) / 5 - Math.PI/2),
+        y: 0.5 + 0.3 * Math.sin((i * 2 * Math.PI) / 5 - Math.PI/2)
+      })),
+      edges: [
+        ['v1','v2'],['v1','v3'],['v1','v4'],['v1','v5'],
+        ['v2','v3'],['v2','v4'],['v2','v5'],
+        ['v3','v4'],['v3','v5'],
+        ['v4','v5']
+      ],
+      metricDimension: 4,
+      dominationNumber: 1,
+      possibleSolutions: [
+        ['v1', 'v2', 'v3', 'v4'], ['v2', 'v3', 'v4', 'v5']
+      ],
+      description: "Graf lengkap dengan 5 titik. γ(Kn) = 1, β(Kn) = n-1, γM(Kn) = n-1",
+      hint: "Satu titik mendominasi semua, tapi hampir semua titik diperlukan untuk membedakan."
+    },
+    BIPARTIT_K3_3: {
+      name: "Graf Bipartit Lengkap K₃,₃",
       nodes: [
-        { id: 'C', x: 0.5, y: 0.5 },
+        { id: 'u1', x: 0.3, y: 0.25 },
+        { id: 'u2', x: 0.3, y: 0.5 },
+        { id: 'u3', x: 0.3, y: 0.75 },
+        { id: 'v1', x: 0.7, y: 0.25 },
+        { id: 'v2', x: 0.7, y: 0.5 },
+        { id: 'v3', x: 0.7, y: 0.75 }
+      ],
+      edges: [
+        ['u1','v1'],['u1','v2'],['u1','v3'],
+        ['u2','v1'],['u2','v2'],['u2','v3'],
+        ['u3','v1'],['u3','v2'],['u3','v3']
+      ],
+      metricDimension: 4,
+      dominationNumber: 2,
+      possibleSolutions: [['u1', 'v1']],
+      description: "Graf bipartit lengkap K₃,₃. γ(Km,n) = 2 (m,n≥2), β(Km,n) = m+n-2, γM = n-2",
+      hint: "Satu titik dari setiap partisi membentuk himpunan dominasi minimum."
+    },
+    RODA_W6: {
+      name: "Graf Roda W₆",
+      nodes: [
+        { id: 'c', x: 0.5, y: 0.5 },
         ...Array.from({length: 6}, (_, i) => ({
-          id: `V${i+1}`,
+          id: `v${i+1}`,
           x: 0.5 + 0.32 * Math.cos((i * 2 * Math.PI) / 6),
           y: 0.5 + 0.32 * Math.sin((i * 2 * Math.PI) / 6)
         }))
       ],
       edges: [
-        ...Array.from({length: 6}, (_, i) => ['C', `V${i+1}`]),
-        ...Array.from({length: 5}, (_, i) => [`V${i+1}`, `V${i+2}`]),
-        ['V6', 'V1']
+        ...Array.from({length: 6}, (_, i) => ['c', `v${i+1}`]),
+        ...Array.from({length: 5}, (_, i) => [`v${i+1}`, `v${i+2}`]),
+        ['v6', 'v1']
       ],
       metricDimension: 2,
+      dominationNumber: 1,
       possibleSolutions: [
-        ['C', 'V1'], ['C', 'V2'], ['C', 'V3'],
-        ['C', 'V4'], ['C', 'V5'], ['C', 'V6']
+        ['c', 'v1'], ['c', 'v2'], ['c', 'v3']
       ],
-      description: "Graf roda dengan pusat dan rim 6 simpul. Dimensi metrik = 2",
-      hint: "Pusat dan salah satu simpul rim sudah cukup untuk membedakan semua simpul."
+      description: "Graf roda dengan pusat c dan rim 6 titik. β(Wn) bergantung pada n, γ(Wn) = 1",
+      hint: "Pusat dan satu titik rim sudah cukup untuk membedakan semua titik."
     },
-    COMPLETE: {
-      name: "Graf Lengkap (K5)",
-      nodes: Array.from({length: 5}, (_, i) => ({
-        id: `V${i+1}`,
-        x: 0.5 + 0.3 * Math.cos((i * 2 * Math.PI) / 5),
-        y: 0.5 + 0.3 * Math.sin((i * 2 * Math.PI) / 5)
+    POHON_T: {
+      name: "Gambar II.17 - Pohon T dengan β(T)=6",
+      nodes: [
+        { id: 'v5', x: 0.3, y: 0.3 },
+        { id: 'v1', x: 0.15, y: 0.2 },
+        { id: 'v2', x: 0.2, y: 0.35 },
+        { id: 'v3', x: 0.25, y: 0.2 },
+        { id: 'v4', x: 0.35, y: 0.2 },
+        { id: 'v8', x: 0.4, y: 0.35 },
+        { id: 'v6', x: 0.45, y: 0.3 },
+        { id: 'v9', x: 0.45, y: 0.45 },
+        { id: 'v10', x: 0.5, y: 0.5 },
+        { id: 'v11', x: 0.55, y: 0.45 },
+        { id: 'v7', x: 0.6, y: 0.3 },
+        { id: 'v18', x: 0.65, y: 0.35 },
+        { id: 'v12', x: 0.5, y: 0.6 },
+        { id: 'v13', x: 0.55, y: 0.65 },
+        { id: 'v14', x: 0.6, y: 0.7 },
+        { id: 'v15', x: 0.65, y: 0.65 },
+        { id: 'v16', x: 0.7, y: 0.7 },
+        { id: 'v17', x: 0.45, y: 0.65 },
+        { id: 'v19', x: 0.75, y: 0.5 },
+        { id: 'v20', x: 0.8, y: 0.45 },
+        { id: 'v21', x: 0.8, y: 0.55 }
+      ],
+      edges: [
+        ['v5','v1'],['v5','v2'],['v5','v3'],['v5','v4'],['v5','v8'],
+        ['v6','v8'],['v6','v9'],['v6','v7'],
+        ['v9','v10'],['v10','v11'],['v10','v12'],
+        ['v7','v18'],
+        ['v12','v13'],['v12','v17'],
+        ['v13','v14'],['v13','v15'],
+        ['v15','v16'],
+        ['v19','v7'],['v19','v20'],['v19','v21']
+      ],
+      metricDimension: 6,
+      dominationNumber: 5,
+      possibleSolutions: [['v1', 'v4', 'v8', 'v11', 'v16', 'v18']],
+      description: "Pohon T dengan σ(T)=11, ex(T)=5, β(T)=6. Titik mayor: v5, v6, v7, v13, v19",
+      hint: "β(T) = σ(T) - ex(T) = 11 - 5 = 6. Titik terminal digunakan sebagai himpunan pembeda."
+    },
+    GRAF_2_LINTASAN: {
+      name: "Gambar II.18 - Graf 2-Lintasan dengan 14 titik",
+      nodes: Array.from({length: 14}, (_, i) => ({
+        id: `v${i+1}`,
+        x: 0.08 + (i * 0.06),
+        y: 0.5
       })),
       edges: [
-        ['V1','V2'],['V1','V3'],['V1','V4'],['V1','V5'],
-        ['V2','V3'],['V2','V4'],['V2','V5'],
-        ['V3','V4'],['V3','V5'],
-        ['V4','V5']
+        ...Array.from({length: 13}, (_, i) => [`v${i+1}`, `v${i+2}`]),
+        ...Array.from({length: 12}, (_, i) => [`v${i+1}`, `v${i+3}`])
       ],
-      metricDimension: 4,
-      possibleSolutions: [
-        ['V1', 'V2', 'V3', 'V4'], ['V1', 'V2', 'V3', 'V5'],
-        ['V1', 'V2', 'V4', 'V5'], ['V1', 'V3', 'V4', 'V5'],
-        ['V2', 'V3', 'V4', 'V5']
-      ],
-      description: "Graf lengkap dengan 5 simpul. Dimensi metrik = 4",
-      hint: "Hampir semua simpul diperlukan karena semua simpul sangat mirip dalam graf lengkap."
-    },
-    PETERSEN: {
-      name: "Graf Petersen",
-      nodes: [
-        // Outer pentagon
-        { id: 'O1', x: 0.5 + 0.35 * Math.cos(0), y: 0.5 + 0.35 * Math.sin(0) },
-        { id: 'O2', x: 0.5 + 0.35 * Math.cos(2*Math.PI/5), y: 0.5 + 0.35 * Math.sin(2*Math.PI/5) },
-        { id: 'O3', x: 0.5 + 0.35 * Math.cos(4*Math.PI/5), y: 0.5 + 0.35 * Math.sin(4*Math.PI/5) },
-        { id: 'O4', x: 0.5 + 0.35 * Math.cos(6*Math.PI/5), y: 0.5 + 0.35 * Math.sin(6*Math.PI/5) },
-        { id: 'O5', x: 0.5 + 0.35 * Math.cos(8*Math.PI/5), y: 0.5 + 0.35 * Math.sin(8*Math.PI/5) },
-        // Inner star
-        { id: 'I1', x: 0.5 + 0.17 * Math.cos(3*Math.PI/10), y: 0.5 + 0.17 * Math.sin(3*Math.PI/10) },
-        { id: 'I2', x: 0.5 + 0.17 * Math.cos(7*Math.PI/10), y: 0.5 + 0.17 * Math.sin(7*Math.PI/10) },
-        { id: 'I3', x: 0.5 + 0.17 * Math.cos(11*Math.PI/10), y: 0.5 + 0.17 * Math.sin(11*Math.PI/10) },
-        { id: 'I4', x: 0.5 + 0.17 * Math.cos(15*Math.PI/10), y: 0.5 + 0.17 * Math.sin(15*Math.PI/10) },
-        { id: 'I5', x: 0.5 + 0.17 * Math.cos(19*Math.PI/10), y: 0.5 + 0.17 * Math.sin(19*Math.PI/10) },
-      ],
-      edges: [
-        ['O1','O2'],['O2','O3'],['O3','O4'],['O4','O5'],['O5','O1'],
-        ['I1','I3'],['I3','I5'],['I5','I2'],['I2','I4'],['I4','I1'],
-        ['O1','I1'],['O2','I2'],['O3','I3'],['O4','I4'],['O5','I5']
-      ],
-      metricDimension: 3,
-      possibleSolutions: [
-        ['O1', 'I2', 'I5'], ['O1', 'O3', 'I2'], ['I1', 'I2', 'O3']
-      ],
-      description: "Graf Petersen yang terkenal. Dimensi metrik = 3",
-      hint: "Pilih simpul dari bagian yang berbeda (luar dan dalam) untuk membedakan struktur yang kompleks."
+      metricDimension: 2,
+      dominationNumber: 5,
+      possibleSolutions: [['v2', 'v7'], ['v3', 'v8']],
+      description: "Graf k-lintasan dengan k=2 dan 14 titik. β(G)=k=2, γM(G)=γ(G)",
+      hint: "Untuk k-lintasan, vi dan vj dominasi jika |i-j| ≤ k. Dimensi metrik β(G) = k."
     }
   };
 
   // State
-  const [currentGraph, setCurrentGraph] = useState('PATH');
+  const [currentGraph, setCurrentGraph] = useState('GAMBAR_II1');
   const [selectedNodes, setSelectedNodes] = useState(new Set());
   const [zoom, setZoom] = useState(1);
   const [feedback, setFeedback] = useState({ 
@@ -261,7 +393,7 @@ const Coba = () => {
       
       // Draw node label
       ctx.fillStyle = '#ffffff'; 
-      ctx.font = `bold ${Math.min(nodeRadius * 0.7, 14)}px Inter, sans-serif`;
+      ctx.font = `bold ${Math.min(nodeRadius * 0.65, 12)}px Inter, sans-serif`;
       ctx.textAlign = 'center'; 
       ctx.textBaseline = 'middle'; 
       ctx.fillText(node.id, x, y);
@@ -404,7 +536,7 @@ const Coba = () => {
       setFeedback({ 
         message: '❌ Tidak Ada Pilihan', 
         type: 'incorrect', 
-        explanation: 'Silakan pilih beberapa simpul terlebih dahulu.', 
+        explanation: 'Silakan pilih beberapa simpul terlebih dahulu untuk membentuk himpunan pembeda.', 
         correctAnswer: [], 
         showDistances: false 
       });
@@ -422,33 +554,33 @@ const Coba = () => {
       if (selectedSize === targetSize) {
         feedbackData = { 
           ...feedbackData, 
-          message: '🎉 SEMPURNA! Jawaban Optimal!', 
+          message: '🎉 SEMPURNA! Himpunan Pembeda Optimal!', 
           type: 'correct', 
-          explanation: `Luar biasa! Anda menemukan metric basis optimal (${targetSize} simpul).`, 
+          explanation: `Luar biasa! Anda menemukan himpunan pembeda (resolving set) dengan ${targetSize} simpul. Ini adalah dimensi metrik β(G) = ${targetSize}.`, 
         };
       } else if (selectedSize < targetSize) {
         feedbackData = { 
           ...feedbackData, 
           message: '🤔 Hasil Tidak Biasa', 
           type: 'partial', 
-          explanation: `Aneh! Himpunan Anda valid dengan ukuran ${selectedSize}, tapi teori mengatakan minimal ${targetSize}.`, 
+          explanation: `Himpunan Anda valid dengan ukuran ${selectedSize}, tapi teori mengatakan dimensi metrik minimal ${targetSize}. Periksa kembali.`, 
         };
       } else {
         feedbackData = { 
           ...feedbackData, 
-          message: '✅ Benar, Tapi Belum Optimal', 
+          message: '✅ Valid, Tapi Belum Optimal', 
           type: 'partial', 
-          explanation: `Resolving set Anda valid, tapi bisa diperkecil. Target optimal adalah ${targetSize} simpul.`, 
+          explanation: `Himpunan pembeda Anda valid, tapi bisa diperkecil menjadi ${targetSize} simpul untuk mencapai β(G).`, 
         };
       } 
       setHighlightedNodes(new Set(selectedNodes));
     } else {
-      const examples = duplicateGroups.slice(0, 2).map(([rep, nodes]) => `simpul {${nodes.join(', ')}}`).join(' dan ');
+      const examples = duplicateGroups.slice(0, 2).map(([rep, nodes]) => `{${nodes.join(', ')}}`).join(' dan ');
       feedbackData = { 
         ...feedbackData, 
-        message: '❌ Belum Benar', 
+        message: '❌ Belum Membentuk Himpunan Pembeda', 
         type: 'incorrect', 
-        explanation: `Himpunan Anda belum bisa membedakan semua simpul, contohnya: ${examples}.\n\n${graphData.hint}`, 
+        explanation: `Himpunan Anda belum bisa membedakan semua simpul. Simpul dengan representasi sama: ${examples}.\n\n💡 ${graphData.hint}`, 
         showDistances: false, 
       };
       const duplicateNodes = duplicateGroups.flatMap(([_, nodes]) => nodes); 
@@ -476,9 +608,9 @@ const Coba = () => {
       setSelectedNodes(solution); 
       setHighlightedNodes(solution);
       setFeedback({ 
-        message: '💡 Contoh Solusi Optimal', 
+        message: '💡 Contoh Himpunan Pembeda Optimal', 
         type: 'info', 
-        explanation: `Ini adalah salah satu solusi optimal dengan ${graphData.metricDimension} simpul.`, 
+        explanation: `Ini adalah salah satu himpunan pembeda minimum dengan β(G) = ${graphData.metricDimension} simpul. ${graphData.description}`, 
         correctAnswer: Array.from(solution), 
         showDistances: true 
       });
@@ -500,7 +632,11 @@ const Coba = () => {
     return nodes.map(node => {
       const distances = selectedArray.map(selId => allDistances.get(selId).get(node.id));
       return { node: node.id, distances, representation: `(${distances.join(',')})` };
-    }).sort((a,b) => a.node.localeCompare(b.node, undefined, {numeric: true}));
+    }).sort((a,b) => {
+      const aNum = parseInt(a.node.replace(/\D/g, '')) || 0;
+      const bNum = parseInt(b.node.replace(/\D/g, '')) || 0;
+      return aNum - bNum;
+    });
   }, [feedback.showDistances, selectedNodes, currentGraph, bfs]);
 
   const zoomIn = () => setZoom(prev => Math.min(prev + 0.1, 2));
@@ -514,50 +650,63 @@ const Coba = () => {
         <div className="header">
           <h1 className="judul-heading">
             <FontAwesomeIcon icon={faProjectDiagram} className="icon" />
-            Interactive Graph Theory Lab
+            visualisasi Graf
           </h1>
           <p className="subtitle">
-            Eksplorasi konsep Resolving Set dan Metric Dimension melalui graf interaktif
+            Eksplorasi diagram-diagram dari Bab II: Himpunan Dominasi dan Dimensi Matrix
           </p>
         </div>
         
         <div className="main-content">
           <div className="control-panel">
-          <div className="control-card">
-  <label htmlFor="graph-type" style={{color: '#334155', fontWeight: '600', fontSize: '0.9rem'}}>
-    Pilih Jenis Graf:
-  </label>
-  <select 
-    id="graph-type"
-    value={currentGraph}
-    onChange={handleGraphChange}
-    className="graph-type-selector"
-    style={{
-      width: '100%', 
-      padding: '0.75rem', 
-      borderRadius: '8px', 
-      border: '1px solid #cbd5e1', 
-      fontSize: '1rem', 
-      backgroundColor: '#f8fafc',
-      color: '#334155' // Menambahkan warna teks yang kontras
-    }}
-  >
-    <option value="PATH">Lintasan (P8) - Dimensi: 2</option>
-    <option value="CYCLE">Siklus (C8) - Dimensi: 3</option>
-    <option value="STAR">Bintang (S10) - Dimensi: 9</option>
-    <option value="WHEEL">Roda (W6) - Dimensi: 2</option>
-    <option value="COMPLETE">Lengkap (K5) - Dimensi: 4</option>
-    <option value="PETERSEN">Petersen - Dimensi: 3</option>
-  </select>
-</div>
+            <div className="control-card">
+              <label htmlFor="graph-type" style={{color: '#334155', fontWeight: '600', fontSize: '0.9rem'}}>
+                Pilih Graf 
+              </label>
+              <select 
+                id="graph-type"
+                value={currentGraph}
+                onChange={handleGraphChange}
+                className="graph-type-selector"
+                style={{
+                  width: '100%', 
+                  padding: '0.75rem', 
+                  borderRadius: '8px', 
+                  border: '1px solid #cbd5e1', 
+                  fontSize: '0.95rem', 
+                  backgroundColor: '#f8fafc',
+                  color: '#334155'
+                }}
+              >
+                <optgroup label="Gambar dari Bab II PDF">
+                  <option value="GAMBAR_II1">Gambar II.1 - Graf G (|G|=5, ||G||=7)</option>
+                  <option value="GAMBAR_II3">Gambar II.3 - Graf diam=4, rad=3</option>
+                  <option value="GAMBAR_II12">Gambar II.12 - Graf β(G)=2</option>
+                  <option value="GAMBAR_II19">Gambar II.19 - Graf γ=6, β=4, γM=7</option>
+                  <option value="POHON_T">Gambar II.17 - Pohon T (β(T)=6)</option>
+                  <option value="GRAF_2_LINTASAN">Gambar II.18 - Graf 2-Lintasan</option>
+                </optgroup>
+                <optgroup label="Graf Khusus">
+                  <option value="LINTASAN_P8">Lintasan P₈ (β=1)</option>
+                  <option value="SIKLUS_C8">Siklus C₈ (β=2)</option>
+                  <option value="BINTANG_K1_7">Bintang K₁,₇ (γ=1, β=6)</option>
+                  <option value="LENGKAP_K5">Lengkap K₅ (γ=1, β=4)</option>
+                  <option value="BIPARTIT_K3_3">Bipartit K₃,₃ (γ=2, β=4)</option>
+                  <option value="RODA_W6">Roda W₆ (β=2)</option>
+                </optgroup>
+              </select>
+            </div>
             
             <div className="control-card">
-              <h3>{GRAPHS[currentGraph].name}</h3>
-              <p>{GRAPHS[currentGraph].description}</p>
-              <p className="target-info">
+              <h3 style={{fontSize: '1.1rem', marginBottom: '0.5rem'}}>{GRAPHS[currentGraph].name}</h3>
+              <p style={{fontSize: '0.9rem', lineHeight: '1.5'}}>{GRAPHS[currentGraph].description}</p>
+              <div className="target-info" style={{marginTop: '1rem'}}>
                 <strong><FontAwesomeIcon icon={faBullseye} /> Target:</strong> 
-                Temukan resolving set dengan <strong>{GRAPHS[currentGraph].metricDimension} simpul</strong>
-              </p>
+                <div style={{marginTop: '0.5rem'}}>
+                  <span style={{display: 'block'}}>• Dimensi Metrik β(G) = <strong>{GRAPHS[currentGraph].metricDimension}</strong></span>
+                  <span style={{display: 'block'}}>• Bilangan Dominasi γ(G) = <strong>{GRAPHS[currentGraph].dominationNumber}</strong></span>
+                </div>
+              </div>
             </div>
             
             <div className="control-card">
@@ -566,7 +715,7 @@ const Coba = () => {
                   <FontAwesomeIcon icon={faEraser} /> Reset
                 </button>
                 <button onClick={checkAnswer} className="action-btn check-btn">
-                  <FontAwesomeIcon icon={faCheck} /> Cek Jawaban
+                  <FontAwesomeIcon icon={faCheck} /> Cek
                 </button>
                 <button onClick={showSolution} className="action-btn solution-btn">
                   <FontAwesomeIcon icon={faLightbulb} /> Solusi
@@ -591,7 +740,11 @@ const Coba = () => {
                 <h4>Simpul Terpilih ({selectedNodes.size})</h4>
                 {selectedNodes.size > 0 ? (
                   <div className="selected-nodes-list">
-                    {Array.from(selectedNodes).sort().map(node => (
+                    {Array.from(selectedNodes).sort((a,b) => {
+                      const aNum = parseInt(a.replace(/\D/g, '')) || 0;
+                      const bNum = parseInt(b.replace(/\D/g, '')) || 0;
+                      return aNum - bNum;
+                    }).map(node => (
                       <span key={node} className="node-tag selected">
                         {node}
                       </span>
@@ -605,19 +758,19 @@ const Coba = () => {
           </div>
           
           <div className="visualization">
-  <div className="canvas-container" style={{ minHeight: '300px', position: 'relative' }}>
-    <canvas
-      ref={canvasRef}
-      onClick={handleCanvasClick}
-      style={{ 
-        cursor: 'pointer',
-        width: '100%',
-        height: '100%',
-        display: 'block'
-      }}
-    />
-  </div>
-</div>
+            <div className="canvas-container" style={{ minHeight: '300px', position: 'relative' }}>
+              <canvas
+                ref={canvasRef}
+                onClick={handleCanvasClick}
+                style={{ 
+                  cursor: 'pointer',
+                  width: '100%',
+                  height: '500px',
+                  display: 'block'
+                }}
+              />
+            </div>
+          </div>
         </div>
         
         {feedback.message && (
@@ -653,7 +806,7 @@ const Coba = () => {
                   
                   {feedback.correctAnswer.length > 0 && (
                     <div className="correct-answer">
-                      <h4>💡 Contoh Solusi Optimal:</h4>
+                      <h4>💡 Contoh Himpunan Pembeda Minimum:</h4>
                       <div className="solution-nodes">
                         {feedback.correctAnswer.map(node => (
                           <span key={node} className="node-tag correct">{node}</span>
@@ -664,16 +817,23 @@ const Coba = () => {
 
                   {getDistanceTable() && (
                     <div className="distance-table">
-                      <h4>📊 Tabel Representasi Jarak:</h4>
+                      <h4>📊 Tabel Representasi Jarak (Vektor Jarak):</h4>
+                      <p style={{fontSize: '0.9rem', marginBottom: '1rem', color: '#64748b'}}>
+                        Representasi r(v|W) = (d(v,w₁), d(v,w₂), ...) untuk setiap simpul v terhadap himpunan W
+                      </p>
                       <div className="table-container">
                         <table>
                           <thead>
                             <tr>
                               <th>Simpul</th>
-                              {Array.from(selectedNodes).sort().map(selNode => (
+                              {Array.from(selectedNodes).sort((a,b) => {
+                                const aNum = parseInt(a.replace(/\D/g, '')) || 0;
+                                const bNum = parseInt(b.replace(/\D/g, '')) || 0;
+                                return aNum - bNum;
+                              }).map(selNode => (
                                 <th key={selNode}>d(-, {selNode})</th>
                               ))}
-                              <th>Representasi</th>
+                              <th>Representasi r(v|W)</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -707,7 +867,7 @@ const Coba = () => {
           <div className="tab-header" onClick={() => setShowInfoPanel(!showInfoPanel)}>
             <h3>
               <FontAwesomeIcon icon={faInfoCircle} />
-              Informasi Graf & Panduan
+              Informasi Konsep dari Bab II
             </h3>
             <button className="toggle-panel-btn">
               {showInfoPanel ? <FontAwesomeIcon icon={faChevronUp} /> : <FontAwesomeIcon icon={faChevronDown} />}
@@ -721,10 +881,10 @@ const Coba = () => {
                   <FontAwesomeIcon icon={faQuestionCircle} /> Panduan
                 </button>
                 <button className={`tab-btn ${activeTab === 'teori' ? 'active' : ''}`} onClick={() => setActiveTab('teori')}>
-                  <FontAwesomeIcon icon={faBook} /> Teori
+                  <FontAwesomeIcon icon={faBook} /> Definisi
                 </button>
                 <button className={`tab-btn ${activeTab === 'strategi' ? 'active' : ''}`} onClick={() => setActiveTab('strategi')}>
-                  <FontAwesomeIcon icon={faCogs} /> Strategi
+                  <FontAwesomeIcon icon={faCogs} /> Teorema
                 </button>
               </div>
 
@@ -735,23 +895,32 @@ const Coba = () => {
                       <div className="instruction-card">
                         <div className="instruction-number">1</div>
                         <h4>Pilih Graf</h4>
-                        <p>Gunakan menu dropdown untuk memilih jenis graf yang ingin dieksplorasi.</p>
+                        <p>Pilih graf dari dropdown. Tersedia diagram dari Gambar II.1 hingga II.19 sesuai PDF Bab II.</p>
                       </div>
                       <div className="instruction-card">
                         <div className="instruction-number">2</div>
                         <h4>Pilih Simpul</h4>
-                        <p>Klik langsung pada simpul di area visualisasi untuk memilihnya sebagai bagian dari resolving set.</p>
+                        <p>Klik simpul untuk membentuk himpunan pembeda atau himpunan dominasi.</p>
                       </div>
                       <div className="instruction-card">
                         <div className="instruction-number">3</div>
-                        <h4>Cek Jawaban</h4>
-                        <p>Tekan tombol "Cek Jawaban" untuk memvalidasi apakah pilihan Anda sudah optimal.</p>
+                        <h4>Cek Validitas</h4>
+                        <p>Klik "Cek" untuk memvalidasi apakah himpunan Anda adalah himpunan pembeda yang valid.</p>
                       </div>
                       <div className="instruction-card">
                         <div className="instruction-number">4</div>
-                        <h4>Analisis Hasil</h4>
-                        <p>Perhatikan feedback dan tabel jarak untuk memahami konsep di balik jawaban Anda.</p>
+                        <h4>Lihat Tabel Jarak</h4>
+                        <p>Analisis tabel representasi jarak untuk memahami konsep dimensi metrik β(G).</p>
                       </div>
+                    </div>
+                    
+                    <div style={{marginTop: '2rem', padding: '1rem', background: '#f0f9ff', borderRadius: '8px', borderLeft: '4px solid #3b82f6'}}>
+                      <h4 style={{margin: '0 0 0.5rem 0', color: '#1e40af'}}>💡 Tips Visualisasi</h4>
+                      <ul style={{margin: 0, paddingLeft: '1.5rem', lineHeight: '1.8'}}>
+                        <li>Simpul berwarna <span style={{color: '#ef4444', fontWeight: 'bold'}}>merah</span> = simpul yang Anda pilih</li>
+                        <li>Simpul berwarna <span style={{color: '#10b981', fontWeight: 'bold'}}>hijau</span> = simpul dengan representasi sama (perlu diperbaiki)</li>
+                        <li>Gunakan zoom untuk melihat lebih detail pada graf yang kompleks</li>
+                      </ul>
                     </div>
                   </div>
                 )}
@@ -759,30 +928,81 @@ const Coba = () => {
                 {activeTab === 'teori' && (
                   <div className="tab-panel">
                     <div className="theory-definition">
-                      <h4>Resolving Set</h4>
-                      <p>Sebuah himpunan simpul $S \subseteq V$ di mana setiap pasang simpul yang berbeda di dalam graf, $u, v \in V$, memiliki representasi jarak yang unik terhadap himpunan $S$. Artinya, tidak ada dua simpul yang "terlihat" sama dari sudut pandang himpunan $S$.</p>
+                      <h4>🎯 Himpunan Dominasi</h4>
+                      <p>Himpunan D ⊆ V disebut <strong>himpunan dominasi</strong> dari graf G jika untuk setiap titik v ∈ V − D bertetangga dengan suatu titik di D.</p>
+                      <p style={{marginTop: '0.5rem'}}><strong>Bilangan Dominasi γ(G):</strong> Kardinalitas terkecil dari himpunan dominasi di G.</p>
+                      <p style={{fontSize: '0.85rem', fontStyle: 'italic', color: '#64748b'}}>Contoh: Pada graf bintang K₁,n, γ(K₁,n) = 1 (titik pusat mendominasi semua).</p>
                     </div>
+                    
                     <div className="theory-definition">
-                      <h4>Metric Dimension ($dim(G)$)</h4>
-                      <p>Ukuran (kardinalitas) minimum dari sebuah resolving set. Ini adalah jumlah simpul paling sedikit yang dibutuhkan untuk bisa membedakan semua simpul lain di dalam graf.</p>
+                      <h4>📏 Himpunan Pembeda (Resolving Set)</h4>
+                      <p>Himpunan W ⊆ V disebut <strong>himpunan pembeda</strong> jika r(x|W) ≠ r(y|W) untuk setiap dua titik berbeda x, y ∈ V.</p>
+                      <p style={{marginTop: '0.5rem'}}>Representasi: r(v|W) = (d(v,w₁), d(v,w₂), ..., d(v,wₖ))</p>
+                      <p style={{fontSize: '0.85rem', fontStyle: 'italic', color: '#64748b'}}>Vektor jarak dari titik v ke setiap anggota W.</p>
                     </div>
+                    
                     <div className="theory-definition">
-                      <h4>Representasi Jarak</h4>
-                      <p>Untuk sebuah simpul $v$ dan resolving set $S = \$, representasinya adalah sebuah vektor (atau tuple) yang berisi jarak terpendek dari $v$ ke setiap anggota $S$, yaitu: $r(v|S) = (d(v,s_1), d(v,s_2), ..., d(v,s_k))$.</p>
+                      <h4>📐 Dimensi Metrik β(G)</h4>
+                      <p><strong>Dimensi metrik</strong> dari G adalah bilangan bulat terkecil k sedemikian sehingga G mempunyai himpunan pembeda dengan k anggota.</p>
+                     
+                      <p style={{fontSize: '0.85rem', fontStyle: 'italic', color: '#64748b'}}>
+                        Contoh: β(Pn) = 1, β(Cn) = 2, β(Kn) = n-1
+                      </p>
+                    </div>
+                    
+                    <div className="theory-definition">
+                      <h4>🎯📏 Himpunan Dominasi-Lokasi-Metrik</h4>
+                      <p>Himpunan S yang sekaligus merupakan <strong>himpunan dominasi DAN himpunan pembeda</strong>.</p>
+                      <p style={{marginTop: '0.5rem'}}><strong>Bilangan Dominasi-Lokasi-Metrik γM(G):</strong> Kardinalitas minimum dari himpunan dominasi-lokasi-metrik.</p>
+                      <p style={{marginTop: '0.5rem', padding: '0.5rem', background: '#fef3c7', borderRadius: '4px'}}>
+                        <strong>Batas (Brigham et al., 2003):</strong><br/>
+                        {/* max{γ(G), β(G)} ≤ γM(G) ≤ min{γ(G) + β(G), n  } */}
+                      </p>
                     </div>
                   </div>
                 )}
                 
                 {activeTab === 'strategi' && (
                   <div className="tab-panel">
-                    <ul className="strategy-list">
-                      <li><strong>Graf Lintasan:</strong> Pilih dua simpul di kedua ujung lintasan.</li>
-                      <li><strong>Graf Siklus:</strong> Pilih simpul-simpul yang posisinya tersebar dan tidak simetris.</li>
-                      <li><strong>Graf Bintang:</strong> Hampir selalu membutuhkan semua simpul daun (leaves), bukan simpul pusat.</li>
-                      <li><strong>Graf Roda:</strong> Kombinasi simpul pusat dengan salah satu simpul di lingkaran luar biasanya sudah cukup.</li>
-                      <li><strong>Graf Lengkap ($K_n$):</strong> Karena semua simpul terhubung, Anda memerlukan $n-1$ simpul untuk membedakan semuanya.</li>
-                      <li><strong>Graf Petersen:</strong> Cobalah kombinasi simpul dari lingkaran luar dan bintang dalam untuk memecah simetri.</li>
-                    </ul>
+                    <h4 style={{marginBottom: '1rem', color: '#1e40af'}}>📚 Teorema Penting dari Bab II</h4>
+                    
+                    <div style={{marginBottom: '1.5rem', padding: '1rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0'}}>
+                      <h5 style={{margin: '0 0 0.5rem 0', color: '#0f172a'}}>Teorema II.6 (Chartrand et al., 2000)</h5>
+                      <ul style={{margin: 0, paddingLeft: '1.5rem', lineHeight: '1.8'}}>
+                        <li>β(G) = 1 ⟺ G ≅ Pn (hanya graf lintasan)</li>
+                        <li>β(G) = n−1 ⟺ G ≅ Kn (graf lengkap)</li>
+                        <li>β(Cn) = 2 untuk n ≥ 3</li>
+                      </ul>
+                    </div>
+                    
+                    <div style={{marginBottom: '1.5rem', padding: '1rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0'}}>
+                      <h5 style={{margin: '0 0 0.5rem 0', color: '#0f172a'}}>Teorema II.11 (Dimensi Metrik Pohon)</h5>
+                      <p style={{margin: 0}}>Jika T adalah pohon bukan lintasan, maka:</p>
+                      <p style={{margin: '0.5rem 0 0 0', fontWeight: 'bold', color: '#3b82f6'}}>β(T) = σ(T) − ex(T)</p>
+                      <p style={{fontSize: '0.85rem', color: '#64748b', margin: '0.5rem 0 0 0'}}>
+                        σ(T) = total derajat terminal, ex(T) = banyak titik mayor eksterior
+                      </p>
+                    </div>
+                    
+                    <div style={{marginBottom: '1.5rem', padding: '1rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0'}}>
+                      <h5 style={{margin: '0 0 0.5rem 0', color: '#0f172a'}}>Teorema II.18 & II.19 (Henning & Oellermann, 2004)</h5>
+                      {/* <p style={{margin: '0 0 0.5rem 0'}}>γM(G) = n−1 ⟺ G ∈ {K₁,n₋₁, Kn}</p> */}
+                      <p style={{margin: 0}}>γM(G) = n−2 ⟺ G ∈ ⋃⁷ᵢ₌₁ Fᵢ (7 keluarga graf khusus)</p>
+                    </div>
+                    
+                    <div style={{marginBottom: '1.5rem', padding: '1rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0'}}>
+                      <h5 style={{margin: '0 0 0.5rem 0', color: '#0f172a'}}>Teorema II.20 (Pohon)</h5>
+                      <p style={{margin: 0, fontWeight: 'bold', color: '#3b82f6'}}>γM(T) = γ(T) + ℓ'(T) − |S'(T)|</p>
+                      <p style={{fontSize: '0.85rem', color: '#64748b', margin: '0.5rem 0 0 0'}}>
+                        ℓ'(T) = banyak titik pendan bertetangga dengan titik pendukung kuat<br/>
+                        S'(T) = himpunan titik pendukung kuat
+                      </p>
+                    </div>
+                    
+                    <div style={{padding: '1rem', background: '#fef3c7', borderRadius: '8px', border: '1px solid #fbbf24'}}>
+                      <h5 style={{margin: '0 0 0.5rem 0', color: '#92400e'}}>💡 Sifat Titik Kembar (Teorema II.5)</h5>
+                      <p style={{margin: 0}}>Jika S adalah himpunan dengan p ≥ 2 titik kembar pada graf G, maka setiap himpunan pembeda harus memuat <strong>p−1 titik dari S</strong>.</p>
+                    </div>
                   </div>
                 )}
               </div>
@@ -822,7 +1042,7 @@ const Coba = () => {
         .subtitle { 
           font-size: 1.2rem; 
           color: #475569; 
-          max-width: 600px;
+          max-width: 700px;
           margin: 0 auto;
           line-height: 1.6;
         }
@@ -831,7 +1051,6 @@ const Coba = () => {
           color: #3b82f6;
         }
 
-        /* Main Layout */
         .main-content { 
           display: flex; 
           gap: 2rem; 
@@ -871,7 +1090,6 @@ const Coba = () => {
           }
         }
 
-        /* Control Panel Styles */
         .control-card { 
           background: #ffffff; 
           padding: 1.5rem; 
@@ -910,9 +1128,6 @@ const Coba = () => {
           padding: 0.75rem 1rem; 
           border-radius: 6px; 
           margin-top: 1rem; 
-          display: flex; 
-          align-items: center; 
-          gap: 0.5rem; 
           font-size: 0.9rem;
         }
         
@@ -1029,7 +1244,6 @@ const Coba = () => {
           font-size: 0.9rem;
         }
         
-        /* Visualization Styles */
         .canvas-container { 
           flex-grow: 1; 
           position: relative; 
@@ -1046,7 +1260,6 @@ const Coba = () => {
           border-radius: 16px;
         }
         
-        /* Feedback Section */
         .feedback-section { 
           margin-bottom: 2.5rem; 
         }
@@ -1116,7 +1329,6 @@ const Coba = () => {
           border-left: 5px solid #3b82f6; 
         }
 
-        /* Table & Tags */
         .table-container { 
           overflow-x: auto; 
           margin: 1rem 0; 
@@ -1173,7 +1385,6 @@ const Coba = () => {
           font-size: 0.85rem;
         }
         
-        /* Info Tabs Container */
         .info-tabs-container {
             background: #ffffff;
             border-radius: 16px;
@@ -1256,7 +1467,6 @@ const Coba = () => {
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Styles for content inside tabs */
         .instruction-grid { 
           display: grid; 
           grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); 
@@ -1327,26 +1537,25 @@ const Coba = () => {
           color: #374151;
         }
 
-        .strategy-list { 
-          list-style: none; 
-          padding: 0; 
-        }
-        
-        .strategy-list li { 
-          background: #f8fafc; 
-          padding: 1rem 1.5rem; 
-          border-radius: 8px; 
-          margin-bottom: 0.75rem; 
-          border-left: 4px solid #3b82f6; 
-          color: #374151;
-          line-height: 1.6;
-        }
-        
-        .strategy-list li strong {
-          color: #1e3a8a;
+        .correct-answer {
+          margin-top: 1.5rem;
+          padding: 1rem;
+          background: #f0fdf4;
+          border-radius: 8px;
+          border: 1px solid #86efac;
         }
 
-        /* Responsive */
+        .correct-answer h4 {
+          margin: 0 0 0.75rem 0;
+          color: #166534;
+        }
+
+        .solution-nodes {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.5rem;
+        }
+
         @media (max-width: 1024px) {
             .content-wrapper { padding: 1.5rem 1rem; }
             .main-content { flex-direction: column; }
