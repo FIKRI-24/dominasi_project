@@ -7,6 +7,7 @@ import Contoh from './pages/contoh';
 import Coba from './pages/coba';
 import Latihan from './pages/latihan';
 import Login from './pages/login';
+import Admin from './pages/admin';
 
 
 
@@ -20,6 +21,7 @@ function App() {
         <Route path="/coba" element={<Coba />} />
         <Route path="/latihan" element={<Latihan />} />
          <Route path="/login" element={<Login />} />
+         <Route path="/admin" element={<Admin />} />
       </Routes>
     </Router>
   );

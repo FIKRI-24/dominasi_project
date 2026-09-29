@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faArrowLeft, 
@@ -33,83 +33,48 @@ const Latihan = () => {
     const [maxStreak, setMaxStreak] = useState(0);
     const [xpPoints, setXpPoints] = useState(0);
     
+    // API state
+    const [packages, setPackages] = useState([]);
+    const [apiLoading, setApiLoading] = useState(true);
+    const [apiError, setApiError] = useState(null);
+    const [activeQuestions, setActiveQuestions] = useState([]);
+    const [questionsLoading, setQuestionsLoading] = useState(false);
+    
     // End screen state
     const [showResults, setShowResults] = useState(false);
 
-    const questionPackages = {
-        1: {
-          title: "Dasar Graph Matrix",
-          icon: "📊",
-          difficulty: "Beginner",
-          description: "Pelajari cara merepresentasikan jaringan menggunakan baris dan kolom matriks.",
-          questions: [
-            { question: "Dalam adjacency matrix, apa arti dari nilai 1 pada posisi (i,j)?", options: ["Tidak ada edge antara vertex i dan j", "Ada edge antara vertex i dan j", "Vertex i dan j adalah vertex yang sama", "Terdapat loop pada vertex i"], correct: 1, explanation: "Nilai 1 pada posisi (i,j) dalam adjacency matrix melambangkan adanya keterhubungan langsung (sisi/edge) antara titik i dan titik j." },
-            { question: "Berapa jumlah edge dalam graf jika adjacency matrix berukuran 4×4 memiliki 6 nilai 1?", options: ["6", "3", "12", "Tidak dapat ditentukan"], correct: 1, explanation: "Untuk graf sederhana tak berarah, setiap edge dihitung 2 kali (simetris di atas dan bawah diagonal utama) dalam adjacency matrix, sehingga 6/2 = 3 edge." },
-            { question: "Adjacency matrix untuk graf tak berarah memiliki sifat:", options: ["Asimetris", "Simetris", "Diagonal utama selalu 0", "B dan C benar"], correct: 3, explanation: "Pada graf tak berarah, matriks ketetanggaan selalu simetris (A = A^T), dan jika tidak memiliki loop, diagonal utamanya bernilai 0." },
-            { question: "Jika graf tak berarah memiliki adjacency matrix dengan trace = 2 (menggunakan konvensi derajat di mana tiap loop bernilai 2 pada diagonal), berapa jumlah loop pada graf tersebut?", options: ["2", "1", "5", "0"], correct: 1, explanation: "Trace adalah jumlahan elemen pada diagonal utama. Berdasarkan konvensi derajat pada graf tak berarah, setiap loop menyumbang nilai 2 pada diagonal utama agar jumlahan baris sama dengan derajat simpul. Dengan trace = 2, terdapat 2/2 = 1 loop." },
-            { question: "Incidence matrix memiliki dimensi:", options: ["n × n (n = jumlah vertex)", "m × m (m = jumlah edge)", "n × m (n = vertex, m = edge)", "Selalu square matrix"], correct: 2, explanation: "Incidence matrix menghubungkan simpul dengan sisi, sehingga dimensinya adalah jumlah simpul (n) × jumlah sisi (m)." },
-            { question: "Dalam incidence matrix, jumlah nilai 1 pada setiap kolom adalah:", options: ["1", "2", "Tergantung degree vertex", "Tidak tetap"], correct: 1, explanation: "Setiap kolom melambangkan satu edge, dan setiap edge selalu menghubungkan tepat 2 titik ujung (kecuali loop), sehingga kolom selalu berisi tepat dua nilai 1." },
-            { question: "Path matrix P^k menunjukkan:", options: ["Jumlah path dengan panjang tepat k", "Jumlah path dengan panjang maksimal k", "Shortest path antara dua vertex", "Semua path yang mungkin"], correct: 0, explanation: "Perkalian matriks ketetanggaan A^k memberikan jumlah jalur (walk/path) dengan panjang tepat k langkah antar simpul." },
-            { question: "Jika A adalah adjacency matrix, maka A² memberikan informasi tentang:", options: ["Path dengan panjang 1", "Path dengan panjang 2", "Jumlah total path", "Degree setiap vertex"], correct: 1, explanation: "Sesuai teori eksponen matriks ketetanggaan, nilai pada matriks A² menunjukkan jumlah lintasan (walk) dengan panjang tepat 2 langkah." },
-            { question: "Degree matrix D memiliki nilai non-zero hanya pada:", options: ["Diagonal utama", "Baris pertama", "Kolom pertama", "Semua posisi"], correct: 0, explanation: "Degree matrix adalah matriks diagonal di mana nilai derajat setiap titik hanya diletakkan pada diagonal utama (d_ii = deg(v_i))." },
-            { question: "Laplacian matrix L dihitung dengan rumus:", options: ["L = A + D", "L = D - A", "L = A - D", "L = D × A"], correct: 1, explanation: "Laplacian matrix L didefinisikan secara akademis dengan mengurangkan matriks ketetanggaan dari matriks derajat: L = D - A." }
-          ]
-        },
-        2: {
-            title: "Aplikasi Graph Matrix",
-            icon: "🔬",
-            difficulty: "Intermediate",
-            description: "Analisis karakteristik spektral dan sifat jaringan menggunakan komputasi matriks.",
-            questions: [
-                { question: "Untuk menentukan apakah graf terhubung, kita dapat menggunakan:", options: ["Adjacency matrix saja", "Powers of adjacency matrix", "Incidence matrix saja", "Degree matrix saja"], correct: 1, explanation: "Dengan menjumlahkan perpangkatan matriks ketetanggaan dari A^0 hingga A^(n-1), kita mendapatkan matriks keterjangkauan untuk melihat konektivitas graf." },
-                { question: "Eigenvalue terbesar dari adjacency matrix disebut:", options: ["Spectral radius", "Chromatic number", "Independence number", "Domination number"], correct: 0, explanation: "Nilai eigen (eigenvalue) terbesar dari suatu matriks ketetanggaan graf disebut sebagai radius spektral (spectral radius)." },
-                { question: "Jika adjacency matrix A memiliki rank r, maka jumlah komponen terhubung tak terisolasi (memiliki sisi) pada graf tersebut maksimal:", options: ["r vertex", "r edge", "r komponen terhubung", "Tidak ada hubungan"], correct: 2, explanation: "Setiap komponen terhubung yang memiliki sisi menyumbang rank minimal 2 pada adjacency matrix (rank(A) >= 2c). Maka, jumlah komponen terhubung tak terisolasi dibatasi maksimal sebanyak r (bahkan secara ketat maksimal r/2) komponen." },
-                { question: "Untuk graf bipartit, adjacency matrix dapat ditulis dalam bentuk:", options: ["Block diagonal", "Upper triangular", "[[0, B], [B^T, 0]]", "Lower triangular"], correct: 2, explanation: "Graf bipartit membagi simpul menjadi dua himpunan independen, sehingga relasi ketetanggaannya hanya ada antar himpunan yang membentuk struktur matriks blok [[0, B], [B^T, 0]]." },
-                { question: "Jumlah triangles dalam graf dapat dihitung dengan:", options: ["trace(A)", "trace(A²)", "trace(A³)/6", "trace(A³)/3"], correct: 2, explanation: "trace(A³) menghitung lintasan tertutup sepanjang 3 langkah. Karena setiap segitiga memiliki 3 titik dan dapat dilalui dalam 2 arah berbeda, jumlah segitiga sebenarnya adalah trace(A³)/6." },
-                { question: "Multiplicity eigenvalue 0 pada Laplacian matrix menunjukkan:", options: ["Jumlah vertex", "Jumlah edge", "Jumlah komponen terhubung", "Chromatic number"], correct: 2, explanation: "Multiplisitas aljabar dari eigenvalue 0 pada matriks Laplacian selalu sama dengan jumlah komponen terhubung (connected components) di dalam graf." },
-                { question: "Adjacency matrix graf regular memiliki ciri:", options: ["Semua baris memiliki jumlah yang sama", "Simetris", "Eigenvalue terbesar = degree", "Semua benar"], correct: 3, explanation: "Graf regular memiliki derajat simpul yang sama (k), sehingga baris bermatriks berjumlah k, matriks tetap simetris, dan radius spektralnya tepat sama dengan k." },
-                { question: "Untuk graf dengan n vertex, adjacency matrix berukuran n×n memiliki maksimal berapa nilai 1?", options: ["n", "n²", "n(n-1)", "n(n-1)/2"], correct: 2, explanation: "Untuk graf berarah sederhana tanpa loop, kapasitas maksimal nilai 1 adalah n(n-1) (tidak ada nilai 1 di diagonal utama)." },
-                { question: "Permanent dari adjacency matrix berkaitan dengan:", options: ["Jumlah perfect matchings", "Jumlah Hamiltonian cycles", "Jumlah spanning trees", "Chromatic polynomial"], correct: 0, explanation: "Secara aljabar, nilai permanen dari adjacency matrix graf bipartit mengukur jumlah pencocokan sempurna (perfect matchings)." },
-                { question: "Matrix-tree theorem menggunakan:", options: ["Adjacency matrix", "Incidence matrix", "Laplacian matrix", "Degree matrix"], correct: 2, explanation: "Matrix-Tree Theorem menyatakan bahwa jumlah spanning tree dalam graf sama dengan kofaktor manapun dari matriks Laplacian (L)." }
-            ]
-        },
-        3: {
-            title: "Dasar Bilangan Dominasi",
-            icon: "🎯",
-            difficulty: "Intermediate",
-            description: "Pahami konsep set dominasi minimum dan penempatan sensor optimal di graf.",
-            questions: [
-                { question: "Bilangan dominasi γ(G) didefinisikan sebagai:", options: ["Ukuran minimum dominating set", "Ukuran maksimum dominating set", "Jumlah semua dominating set", "Degree maksimum dalam graf"], correct: 0, explanation: "Bilangan dominasi γ(G) adalah kardinalitas atau ukuran paling sedikit (minimum) dari suatu himpunan dominasi di graf G." },
-                { question: "Suatu himpunan S ⊆ V(G) disebut dominating set jika:", options: ["Setiap vertex dalam S bertetangga", "Setiap vertex di luar S bertetangga dengan minimal satu vertex di S", "S membentuk clique", "S adalah independent set"], correct: 1, explanation: "Definisi formal dominating set adalah setiap simpul di luar himpunan tersebut harus terhubung langsung (bertetangga) dengan setidaknya satu simpul di dalam himpunan." },
-                { question: "Untuk graf path P_n, bilangan dominasi γ(P_n) = :", options: ["⌊n/2⌋", "⌈n/2⌉", "⌊n/3⌋", "⌈n/3⌉"], correct: 3, explanation: "Untuk graf lintasan, penempatan sensor paling optimal adalah setiap 3 langkah sekali, menghasilkan nilai batas atas: ⌈n/3⌉." },
-                { question: "Bilangan dominasi untuk graf complete K_n adalah:", options: ["1", "2", "n-1", "n"], correct: 0, explanation: "Dalam graf lengkap K_n, semua simpul terhubung langsung dengan simpul lainnya, sehingga cukup memilih 1 simpul manapun untuk mendominasi seluruh graf." },
-                { question: "Untuk graf cycle C_n, γ(C_n) = :", options: ["⌊n/2⌋", "⌈n/2⌉", "⌊n/3⌋", "⌈n/3⌉"], correct: 3, explanation: "Sama seperti lintasan, simpul pada graf siklus melingkar dapat didominasi secara optimal oleh 1 sensor untuk setiap 3 simpul, menghasilkan ⌈n/3⌉." },
-                { question: "Minimal dominating set yang juga merupakan independent set disebut:", options: ["Perfect dominating set", "Independent dominating set", "Connected dominating set", "Total dominating set"], correct: 1, explanation: "Sesuai namanya, jika simpul-simpul di dalam himpunan dominasi tidak saling bertetangga satu sama lain, maka disebut independent dominating set." },
-                { question: "Total dominating set mensyaratkan bahwa:", options: ["Setiap vertex hanya mendominasi dirinya sendiri", "Setiap vertex (termasuk anggota set) wajib memiliki tetangga di dalam set", "Himpunan dominasi terhubung", "Himpunan dominasi maksimal"], correct: 1, explanation: "Dalam total domination (open neighborhood domination), setiap simpul di graf—termasuk simpul di dalam himpunan dominasi itu sendiri—wajib memiliki tetangga di dalam himpunan tersebut, sehingga tidak ada simpul terisolasi di dalam subgraf himpunan dominasi." },
-                { question: "Untuk graf star S_n (n ≥ 2), γ(S_n) = :", options: ["1", "2", "n-1", "n"], correct: 0, explanation: "Graf bintang memiliki 1 pusat yang bertetangga dengan seluruh simpul lainnya. Cukup tempatkan 1 sensor di pusat maka seluruh jaringan terdominasi." },
-                { question: "Connected dominating set adalah dominating set yang:", options: ["Berisi semua vertex dengan degree maksimum", "Membentuk subgraf terhubung", "Tidak memiliki dua vertex bertetangga", "Memiliki ukuran minimal"], correct: 1, explanation: "Himpunan dominasi terhubung mewajibkan subgraf yang diinduksi oleh simpul-simpul dominasi tersebut membentuk graf yang saling terhubung (tidak terputus)." },
-                { question: "Hubungan antara bilangan dominasi γ(G) dan independence number α(G):", options: ["γ(G) = α(G)", "γ(G) ≤ α(G)", "γ(G) ≥ α(G)", "Tidak ada hubungan pasti"], correct: 1, explanation: "Secara teoretis, ukuran himpunan dominasi independen minimum γ(G) selalu kurang dari atau sama dengan ukuran himpunan independen maksimum α(G)." }
-            ]
-        },
-        4: {
-            title: "Aplikasi & Variasi Dominasi",
-            icon: "🚀",
-            difficulty: "Advanced",
-            description: "Kuasai variasi lanjut seperti Domatic Number, Roman Domination, dan kompleksitas algoritma.",
-            questions: [
-                { question: "k-dominating set adalah himpunan vertex dimana setiap vertex di luar himpunan bertetangga dengan minimal:", options: ["1 vertex dalam himpunan", "k vertex dalam himpunan", "k vertex di luar himpunan", "degree k"], correct: 1, explanation: "Pada k-domination, setiap simpul di luar himpunan dominasi wajib memiliki minimal k buah tetangga yang berada di dalam himpunan dominasi." },
-                { question: "Domatic number d(G) adalah:", options: ["Ukuran minimum dominating set", "Maksimum jumlah disjoint dominating sets", "Jumlah total dominating sets", "Rata-rata ukuran dominating sets"], correct: 1, explanation: "Domatic number d(G) didefinisikan sebagai jumlah maksimal partisi himpunan dominasi yang saling lepas (disjoint) yang dapat dibentuk di graf G." },
-                { question: "Untuk graf dengan minimum degree δ, domatic number memenuhi:", options: ["d(G) ≤ δ", "d(G) ≤ δ + 1", "d(G) = δ + 1", "d(G) ≥ δ + 1"], correct: 1, explanation: "Secara matematis, batas atas dari domatic number dari graf G tidak akan pernah melebihi derajat minimum (δ) ditambah satu: d(G) ≤ δ + 1." },
-                { question: "Domination number untuk graf bipartit lengkap K_{m,n} adalah:", options: ["1", "2", "min(m,n)", "max(m,n)"], correct: 1, explanation: "Karena tidak ada sisi internal dalam partisi yang sama, kita harus memilih 1 simpul dari partisi kiri dan 1 simpul dari partisi kanan untuk mendominasi seluruh simpul lawan. Jadi γ = 2." },
-                { question: "Locating-dominating set memiliki properti tambahan:", options: ["Setiap vertex memiliki neighbor unik dalam set", "Set membentuk clique", "Set terhubung", "Set independent"], correct: 0, explanation: "Locating-dominating set mengharuskan setiap simpul di luar himpunan memiliki himpunan tetangga patokan yang unik di dalam set dominasi tersebut." },
-                { question: "Untuk graf grid m×n, estimasi bilangan dominasi adalah sekitar:", options: ["mn/5", "mn/4", "mn/3", "mn/2"], correct: 0, explanation: "Pada graf grid dua dimensi, sebuah simpul di tengah mendominasi dirinya sendiri ditambah 4 tetangganya (total 5 simpul). Maka efisiensi kasarnya sekitar mn/5." },
-                { question: "Restrained dominating set memiliki syarat bahwa:", options: ["Set berukuran minimal", "Komplemen set juga dominating", "Setiap vertex di luar set memiliki neighbor di luar set", "Set membentuk matching"], correct: 2, explanation: "Restrained domination mengharuskan subgraf yang dibentuk oleh simpul-simpul di luar set dominasi tidak memiliki simpul terisolasi (setiap simpul luar punya tetangga simpul luar)." },
-                { question: "Untuk graf wheel W_n (n ≥ 3), γ(W_n) = :", options: ["1", "2", "Refaktor rim", "n/3"], correct: 0, explanation: "Sama seperti graf bintang, graf roda memiliki poros pusat (hub) yang terhubung langsung dengan semua simpul rim. Cukup taruh 1 sensor di pusat untuk mendominasi." },
-                { question: "Roman dominating function f: V → {0,1,2} dengan syarat vertex bernilai 0 bertetangga dengan vertex bernilai:", options: ["1", "2", "1 atau 2", "Minimal 2 vertex bernilai 1"], correct: 1, explanation: "Roman domination mengamanatkan bahwa setiap simpul dengan bobot 0 (tidak ada legiun) wajib bertetangga dengan minimal satu simpul berbobot 2 (memiliki legiun cadangan)." },
-                { question: "Kompleksitas komputasi untuk menentukan bilangan dominasi adalah:", options: ["P (polynomial time)", "NP-complete", "PSPACE-complete", "Undecidable"], correct: 1, explanation: "Menemukan ukuran minimum dominating set adalah salah satu masalah klasik yang tergolong dalam kelas NP-complete (sulit diselesaikan secara efisien untuk ukuran besar)." }
-            ]
+    // Fetch paket dari backend
+    useEffect(() => {
+        const fetchPackages = async () => {
+            try {
+                setApiLoading(true);
+                const res = await fetch('http://localhost:5000/api/packages');
+                if (!res.ok) throw new Error('Gagal memuat data paket');
+                const data = await res.json();
+                setPackages(data.data);
+            } catch (err) {
+                setApiError(err.message);
+            } finally {
+                setApiLoading(false);
+            }
+        };
+        fetchPackages();
+    }, []);
+
+    // Fetch soal saat paket dipilih
+    const fetchQuestions = useCallback(async (pkgId) => {
+        try {
+            setQuestionsLoading(true);
+            const res = await fetch(`http://localhost:5000/api/packages/${pkgId}/questions`);
+            if (!res.ok) throw new Error('Gagal memuat soal');
+            const data = await res.json();
+            setActiveQuestions(data.data.questions);
+        } catch (err) {
+            setApiError(err.message);
+        } finally {
+            setQuestionsLoading(false);
         }
-    };
+    }, []);
 
     // Helper to render interactive visual graphs inside specific questions
     const renderQuestionDiagram = (pkgId, qIdx) => {
@@ -214,7 +179,8 @@ const Latihan = () => {
     };
 
     const handlePackageSelect = (id) => { 
-        setSelectedPackage(id); 
+        setSelectedPackage(id);
+        fetchQuestions(id);
         setCurrentIndex(0);
         setSelectedOption(null);
         setIsAnswerChecked(false);
@@ -231,31 +197,47 @@ const Latihan = () => {
         setSelectedOption(optionIdx);
     };
 
-    const handleCheckAnswer = () => {
-        const pkg = questionPackages[selectedPackage];
-        const currentQuestion = pkg.questions[currentIndex];
-        const isCorrect = selectedOption === currentQuestion.correct;
-        
-        setIsAnswerChecked(true);
-        setUserAnswers(prev => ({ ...prev, [currentIndex]: selectedOption }));
-        
-        if (isCorrect) {
-            setScore(prev => prev + 1);
-            const newStreak = streak + 1;
-            setStreak(newStreak);
-            if (newStreak > maxStreak) setMaxStreak(newStreak);
-            
-            // Score formula: 10 XP base + streak bonus (5 XP per streak above 2)
-            const streakBonus = newStreak > 2 ? 5 : 0;
-            setXpPoints(prev => prev + 10 + streakBonus);
-        } else {
-            setStreak(0);
+    const handleCheckAnswer = async () => {
+        if (selectedOption === null) return;
+        try {
+            const answersPayload = { [currentIndex]: selectedOption };
+            const res = await fetch(`http://localhost:5000/api/packages/${selectedPackage}/submit`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ answers: answersPayload })
+            });
+            const data = await res.json();
+            const result = data.data.results[0];
+            const isCorrect = result.is_correct;
+
+            setIsAnswerChecked(true);
+            setUserAnswers(prev => ({ 
+                ...prev, 
+                [currentIndex]: { 
+                    selected: selectedOption, 
+                    correct_index: result.correct_index,
+                    explanation: result.explanation,
+                    is_correct: isCorrect
+                } 
+            }));
+
+            if (isCorrect) {
+                setScore(prev => prev + 1);
+                const newStreak = streak + 1;
+                setStreak(newStreak);
+                if (newStreak > maxStreak) setMaxStreak(newStreak);
+                const streakBonus = newStreak > 2 ? 5 : 0;
+                setXpPoints(prev => prev + 10 + streakBonus);
+            } else {
+                setStreak(0);
+            }
+        } catch (err) {
+            console.error('Gagal submit jawaban:', err);
         }
     };
 
     const handleNextQuestion = () => {
-        const pkg = questionPackages[selectedPackage];
-        if (currentIndex < pkg.questions.length - 1) {
+        if (currentIndex < activeQuestions.length - 1) {
             setCurrentIndex(prev => prev + 1);
             setSelectedOption(null);
             setIsAnswerChecked(false);
@@ -289,31 +271,39 @@ const Latihan = () => {
                     Uji keterampilan analitis dan pemecahan masalah Anda dengan tantangan terstruktur setingkat akademisi internasional.
                 </p>
             </header>
-            <div className={styles.packageGrid}>
-                {Object.entries(questionPackages).map(([id, pkg]) => (
-                    <div key={id} className={styles.packageCard} onClick={() => handlePackageSelect(parseInt(id))}>
-                        <div className={styles.packageCardHeader}>
-                            <span className={styles.packageCardIcon}>{pkg.icon}</span>
-                            <div>
-                                <h2 className={styles.packageCardTitle}>{pkg.title}</h2>
+            {apiLoading ? (
+                <div style={{textAlign:'center',padding:'3rem',color:'var(--text-muted)'}}>⏳ Memuat paket latihan...</div>
+            ) : apiError ? (
+                <div style={{textAlign:'center',padding:'3rem',color:'var(--error)'}}>❌ {apiError} — Pastikan backend berjalan di port 5000.</div>
+            ) : (
+                <div className={styles.packageGrid}>
+                    {packages.map((pkg) => (
+                        <div key={pkg.id} className={styles.packageCard} onClick={() => handlePackageSelect(pkg.id)}>
+                            <div className={styles.packageCardHeader}>
+                                <span className={styles.packageCardIcon}>{pkg.icon}</span>
+                                <div>
+                                    <h2 className={styles.packageCardTitle}>{pkg.title}</h2>
+                                </div>
+                            </div>
+                            <p className={styles.packageCardDescription}>{pkg.description}</p>
+                            <div className={styles.packageCardMeta}>
+                                {difficultyTags[pkg.difficulty]}
+                                <span className={`${styles.tag} ${styles.isInfo}`}>{pkg.question_count} Tantangan</span>
                             </div>
                         </div>
-                        <p className={styles.packageCardDescription}>{pkg.description}</p>
-                        <div className={styles.packageCardMeta}>
-                            {difficultyTags[pkg.difficulty]}
-                            <span className={`${styles.tag} ${styles.isInfo}`}>{pkg.questions.length} Tantangan</span>
-                        </div>
-                    </div>
-                ))}
-            </div>
+                    ))}
+                </div>
+            )}
         </>
     );
 
     const renderQuiz = () => {
-        const pkg = questionPackages[selectedPackage];
-        const q = pkg.questions[currentIndex];
-        const progress = ((currentIndex + 1) / pkg.questions.length) * 100;
-        const isCorrect = selectedOption === q.correct;
+        if (questionsLoading) return <div style={{textAlign:'center',padding:'3rem',color:'var(--text-muted)'}}>⏳ Memuat soal...</div>;
+        const q = activeQuestions[currentIndex];
+        if (!q) return null;
+        const currentAnswer = userAnswers[currentIndex];
+        const progress = ((currentIndex + 1) / activeQuestions.length) * 100;
+        const isCorrect = currentAnswer?.is_correct || false;
 
         return (
             <div className={styles.quizCard}>
@@ -332,7 +322,7 @@ const Latihan = () => {
                     )}
                     
                     <span className={styles.progressLabel}>
-                        Tantangan {currentIndex + 1} dari {pkg.questions.length}
+                        Tantangan {currentIndex + 1} dari {activeQuestions.length}
                     </span>
                 </div>
 
@@ -345,7 +335,7 @@ const Latihan = () => {
 
                 {/* Question Section */}
                 <div className={styles.questionSection}>
-                    <h2 className={styles.questionText}>{q.question}</h2>
+                    <h2 className={styles.questionText}>{q.question_text}</h2>
                     {renderQuestionDiagram(selectedPackage, currentIndex) ? (
                         <div key={`diagram-wrapper-${selectedPackage}-${currentIndex}`} className={styles.diagramWrapper}>
                             {renderQuestionDiagram(selectedPackage, currentIndex)}
@@ -388,11 +378,11 @@ const Latihan = () => {
                             ) : (
                                 <span>
                                     <FontAwesomeIcon icon={faTimesCircle} style={{ marginRight: '0.5rem' }} /> 
-                                    Kurang Tepat! Jawaban benar adalah: {String.fromCharCode(65 + q.correct)}
+                                    Kurang Tepat! Jawaban benar adalah: {String.fromCharCode(65 + (currentAnswer?.correct_index ?? 0))}
                                 </span>
                             )}
                         </div>
-                        <p className={styles.alertExplanation}>{q.explanation}</p>
+                        <p className={styles.alertExplanation}>{currentAnswer?.explanation}</p>
                     </div>
                 )}
 
@@ -413,7 +403,7 @@ const Latihan = () => {
                             className={`${styles.btn} ${styles.btnPrimary}`} 
                             onClick={handleNextQuestion}
                         >
-                            <span>{currentIndex === pkg.questions.length - 1 ? "Lihat Skor Akhir" : "Lanjut"}</span>
+                            <span>{currentIndex === activeQuestions.length - 1 ? 'Lihat Skor Akhir' : 'Lanjut'}</span>
                             <FontAwesomeIcon icon={faChevronRight} />
                         </button>
                     )}
@@ -423,8 +413,7 @@ const Latihan = () => {
     };
 
     const renderResults = () => {
-        const pkg = questionPackages[selectedPackage];
-        const percentage = Math.round((score / pkg.questions.length) * 100);
+        const percentage = Math.round((score / activeQuestions.length) * 100);
         const scoreInfo = getScoreMessage(percentage);
 
         return (
@@ -436,7 +425,7 @@ const Latihan = () => {
                     <div className={styles.accuracyRing} style={{ '--percentage': percentage }}>
                         <div className={styles.accuracyRingInner}>
                             <div className={styles.scorePercentage}>{percentage}%</div>
-                            <div className={styles.scoreFraction}>{score} / {pkg.questions.length} Benar</div>
+                            <div className={styles.scoreFraction}>{score} / {activeQuestions.length} Benar</div>
                         </div>
                     </div>
                     
@@ -483,34 +472,36 @@ const Latihan = () => {
                 {/* Right Side: Detailed Review */}
                 <main className={styles.reviewSection}>
                     <h2 className={styles.reviewSectionTitle}>Tinjau Jawaban Soal</h2>
-                    {pkg.questions.map((q, index) => {
-                        const userAnswerIndex = userAnswers[index];
-                        const isCorrect = userAnswerIndex === q.correct;
+                    {activeQuestions.map((q, index) => {
+                        const ans = userAnswers[index];
+                        const userAnswerIndex = ans?.selected;
+                        const correctIndex = ans?.correct_index;
+                        const isCorrect = ans?.is_correct;
                         return (
                             <div 
                                 key={index} 
                                 className={`${styles.reviewItem} ${isCorrect ? styles.reviewItemCorrect : styles.reviewItemIncorrect}`}
                             >
                                 <h3 className={styles.reviewItemQuestion}>
-                                    Soal {index + 1}. {q.question}
+                                    Soal {index + 1}. {q.question_text}
                                 </h3>
                                 
                                 <div className={`${styles.reviewItemYourAnswer} ${!isCorrect ? styles.reviewItemYourAnswerIncorrect : ''}`}>
                                     <FontAwesomeIcon icon={isCorrect ? faCheckCircle : faTimesCircle} className={styles.reviewItemIcon}/>
-                                    <span>Pilihan Anda: <strong>{String.fromCharCode(65 + userAnswerIndex)} ({q.options[userAnswerIndex]})</strong></span>
+                                    <span>Pilihan Anda: <strong>{userAnswerIndex !== undefined ? `${String.fromCharCode(65 + userAnswerIndex)} (${q.options[userAnswerIndex]})` : 'Tidak dijawab'}</strong></span>
                                 </div>
                                 
-                                {!isCorrect && (
+                                {!isCorrect && correctIndex !== undefined && (
                                     <div className={styles.reviewItemCorrectAnswer}>
                                         <FontAwesomeIcon icon={faCheckCircle} className={styles.reviewItemIcon}/>
-                                        <span>Jawaban Benar: <strong>{String.fromCharCode(65 + q.correct)} ({q.options[q.correct]})</strong></span>
+                                        <span>Jawaban Benar: <strong>{String.fromCharCode(65 + correctIndex)} ({q.options[correctIndex]})</strong></span>
                                     </div>
                                 )}
                                 
-                                {q.explanation && (
+                                {ans?.explanation && (
                                     <div className={styles.reviewItemExplanation}>
                                         <FontAwesomeIcon icon={faLightbulb} className={styles.reviewItemIcon} style={{ marginRight: '0.5rem', color: 'var(--warning)' }} />
-                                        <span>{q.explanation}</span>
+                                        <span>{ans.explanation}</span>
                                     </div>
                                 )}
                             </div>
