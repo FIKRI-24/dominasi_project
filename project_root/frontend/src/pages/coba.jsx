@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-  faProjectDiagram,
   faBook,
   faQuestionCircle,
   faCogs,
@@ -13,13 +12,15 @@ import {
   faTimes,
   faInfoCircle,
   faBullseye,
-  faExpand,
-  faCompress,
   faChevronDown,
-  faChevronUp
+  faChevronUp,
+  faShieldAlt,
+  faSearch,
+  faArrowsAlt,
+  faRedo
 } from '@fortawesome/free-solid-svg-icons';
-import Navbar from '../../components/navbar.module';
-import '../../src/App.css'
+import Navbar from '../components/Navbar';
+import './assets/coba.css';
 
 // Debounce utility function
 function debounce(func, wait) {
@@ -30,290 +31,244 @@ function debounce(func, wait) {
   };
 }
 
+// Enhanced graph data - CORRECTED MATHEMATICAL SOLUTIONS
+const GRAPHS = {
+  GAMBAR_II1: {
+    name: "Graf G",
+    nodes: [
+      { id: 'v1', x: 0.5, y: 0.28 },
+      { id: 'v2', x: 0.22, y: 0.58 },
+      { id: 'v3', x: 0.38, y: 0.72 },
+      { id: 'v4', x: 0.62, y: 0.72 },
+      { id: 'v5', x: 0.78, y: 0.58 }
+    ],
+    edges: [
+      ['v1','v2'],['v2','v3'],['v3','v4'],['v4','v5'],['v5','v1'],
+      ['v1','v3'],['v1','v4']
+    ],
+    metricDimension: 2,
+    dominationNumber: 1,
+    possibleSolutions: [['v2', 'v5'], ['v3', 'v4']],
+    possibleDominationSolutions: [['v1'], ['v2', 'v4'], ['v2', 'v5']],
+    description: "Graf G dengan 5 titik dan 7 sisi. |G|=5, ||G||=7, δ(G)=2, Δ(G)=4",
+    hint: "Simpul v1 bertetangga dengan semua titik lainnya sehingga mendominasi seluruh graf. Untuk pembeda metrik, pilih 2 simpul luar yang simetris."
+  },
+  GAMBAR_II3: {
+    name: "Graf Gambar II.3",
+    nodes: [
+      { id: 'v1', x: 0.1, y: 0.5 },
+      { id: 'v2', x: 0.25, y: 0.5 },
+      { id: 'v3', x: 0.4, y: 0.5 },
+      { id: 'v4', x: 0.55, y: 0.3 },
+      { id: 'v5', x: 0.55, y: 0.7 },
+      { id: 'v6', x: 0.7, y: 0.3 },
+      { id: 'v7', x: 0.7, y: 0.7 },
+      { id: 'v8', x: 0.85, y: 0.5 }
+    ],
+    edges: [
+      ['v1','v2'],['v2','v3'],['v3','v4'],['v3','v5'],
+      ['v4','v6'],['v5','v7'],['v6','v8'],['v7','v8']
+    ],
+    metricDimension: 2,
+    dominationNumber: 3,
+    possibleSolutions: [['v1', 'v4'], ['v1', 'v5'], ['v6', 'v7'], ['v2', 'v4']],
+    possibleDominationSolutions: [['v2', 'v4', 'v7'], ['v1', 'v4', 'v7'], ['v2', 'v6', 'v5']],
+    description: "Graf G Gambar II.3 dengan 8 titik dan 8 sisi. ecc(v1)=5, ecc(v3)=3, diam(G)=5, rad(G)=3, β(G)=2, γ(G)=3.",
+    hint: "Cukup pilih 2 simpul strategis (misal v1 dan v4) untuk membedakan seluruh simpul secara metrik (β=2). Untuk dominasi penjagaan, diperlukan 3 simpul (γ=3)."
+  },
+  GAMBAR_II12: {
+    name: "Graf Dimensi Metrik 2",
+    nodes: [
+      { id: 'v1', x: 0.25, y: 0.3 },
+      { id: 'v2', x: 0.4, y: 0.3 },
+      { id: 'v3', x: 0.55, y: 0.3 },
+      { id: 'v4', x: 0.7, y: 0.3 },
+      { id: 'v5', x: 0.55, y: 0.6 },
+      { id: 'v6', x: 0.4, y: 0.6 }
+    ],
+    edges: [
+      ['v1','v2'],['v2','v3'],['v3','v4'],['v3','v5'],['v2','v6']
+    ],
+    metricDimension: 2,
+    dominationNumber: 2,
+    possibleSolutions: [['v1', 'v5'], ['v1', 'v4'], ['v4', 'v6']],
+    possibleDominationSolutions: [['v2', 'v3'], ['v1', 'v3', 'v6']],
+    description: "Graf G dengan dimensi metrik β(G) = 2 dan bilangan dominasi γ(G) = 2.",
+    hint: "Dua titik dengan posisi ujung atau percabangan yang strategis dapat memantau dan membedakan semua titik."
+  },
+  LINTASAN_P8: {
+    name: "Graf Lintasan P₈",
+    nodes: Array.from({length: 8}, (_, i) => ({
+      id: `v${i+1}`, 
+      x: 0.12 + (i * 0.096), 
+      y: 0.5
+    })),
+    edges: Array.from({length: 7}, (_, i) => [`v${i+1}`, `v${i+2}`]),
+    metricDimension: 1,
+    dominationNumber: 3,
+    possibleSolutions: [['v1'], ['v8']],
+    possibleDominationSolutions: [['v2', 'v5', 'v8'], ['v1', 'v4', 'v7']],
+    description: "Graf lintasan dengan 8 titik. β(Pn) = 1, γ(P₈) = ⌈8/3⌉ = 3",
+    hint: "Untuk lintasan, cukup satu titik ujung saja sebagai pembeda (v1 atau v8). Untuk dominasi penjagaan, tempatkan tiap 3 langkah sekali (v2, v5, v8)."
+  },
+  SIKLUS_C8: {
+    name: "Graf Siklus C₈",
+    nodes: Array.from({length: 8}, (_, i) => ({
+      id: `v${i+1}`,
+      x: 0.5 + 0.3 * Math.cos((i * 2 * Math.PI) / 8 - Math.PI/2),
+      y: 0.5 + 0.3 * Math.sin((i * 2 * Math.PI) / 8 - Math.PI/2)
+    })),
+    edges: [
+      ...Array.from({length: 7}, (_, i) => [`v${i+1}`, `v${i+2}`]),
+      ['v8', 'v1']
+    ],
+    metricDimension: 2,
+    dominationNumber: 3,
+    possibleSolutions: [['v1', 'v3'], ['v1', 'v4'], ['v2', 'v4'], ['v2', 'v5'], ['v3', 'v5'], ['v3', 'v6'], ['v4', 'v6'], ['v4', 'v7'], ['v5', 'v7'], ['v5', 'v8'], ['v6', 'v8'], ['v6', 'v1']],
+    possibleDominationSolutions: [['v1', 'v4', 'v7'], ['v2', 'v5', 'v8']],
+    description: "Graf siklus dengan 8 titik. β(Cn) = 2 untuk n ≥ 3, γ(C₈) = ⌈8/3⌉ = 3",
+    hint: "Dua titik yang tidak berseberangan membedakan seluruh siklus. Untuk dominasi, dibutuhkan 3 penjaga tersebar merata."
+  },
+  BINTANG_K1_7: {
+    name: "Graf Bintang K₁,₇",
+    nodes: [
+      { id: 'c', x: 0.5, y: 0.5 },
+      ...Array.from({length: 7}, (_, i) => ({
+        id: `v${i+1}`,
+        x: 0.5 + 0.3 * Math.cos((i * 2 * Math.PI) / 7 - Math.PI/2),
+        y: 0.5 + 0.3 * Math.sin((i * 2 * Math.PI) / 7 - Math.PI/2)
+      }))
+    ],
+    edges: Array.from({length: 7}, (_, i) => ['c', `v${i+1}`]),
+    metricDimension: 6,
+    dominationNumber: 1,
+    possibleSolutions: [
+      ['v1', 'v2', 'v3', 'v4', 'v5', 'v6'],
+      ['v1', 'v2', 'v3', 'v4', 'v5', 'v7'],
+      ['v1', 'v2', 'v3', 'v4', 'v6', 'v7'],
+      ['v1', 'v2', 'v3', 'v5', 'v6', 'v7'],
+      ['v1', 'v2', 'v4', 'v5', 'v6', 'v7'],
+      ['v1', 'v3', 'v4', 'v5', 'v6', 'v7'],
+      ['v2', 'v3', 'v4', 'v5', 'v6', 'v7']
+    ],
+    possibleDominationSolutions: [['c']],
+    description: "Graf bintang dengan 1 pusat dan 7 daun. γ(K₁,n) = 1, β(K₁,n) = n-1 = 6",
+    hint: "Titik pusat mendominasi semua sekaligus (γ=1), namun butuh 6 daun sebagai pembeda (β=6) karena semua daun berjarak sama ke pusat."
+  },
+  LENGKAP_K5: {
+    name: "Graf Lengkap K₅",
+    nodes: Array.from({length: 5}, (_, i) => ({
+      id: `v${i+1}`,
+      x: 0.5 + 0.3 * Math.cos((i * 2 * Math.PI) / 5 - Math.PI/2),
+      y: 0.5 + 0.3 * Math.sin((i * 2 * Math.PI) / 5 - Math.PI/2)
+    })),
+    edges: [
+      ['v1','v2'],['v1','v3'],['v1','v4'],['v1','v5'],
+      ['v2','v3'],['v2','v4'],['v2','v5'],
+      ['v3','v4'],['v3','v5'],
+      ['v4','v5']
+    ],
+    metricDimension: 4,
+    dominationNumber: 1,
+    possibleSolutions: [
+      ['v1', 'v2', 'v3', 'v4'], 
+      ['v1', 'v2', 'v3', 'v5'],
+      ['v1', 'v2', 'v4', 'v5'],
+      ['v1', 'v3', 'v4', 'v5'],
+      ['v2', 'v3', 'v4', 'v5']
+    ],
+    possibleDominationSolutions: [['v1'], ['v2'], ['v3'], ['v4'], ['v5']],
+    description: "Graf lengkap dengan 5 titik. γ(Kn) = 1, β(Kn) = n-1 = 4",
+    hint: "Satu titik manapun mendominasi semua (γ=1), tapi n-1 titik diperlukan untuk membedakan simpul secara metrik (β=4)."
+  },
+  BIPARTIT_K3_3: {
+    name: "Graf Bipartit Lengkap K₃,₃",
+    nodes: [
+      { id: 'u1', x: 0.3, y: 0.25 },
+      { id: 'u2', x: 0.3, y: 0.5 },
+      { id: 'u3', x: 0.3, y: 0.75 },
+      { id: 'v1', x: 0.7, y: 0.25 },
+      { id: 'v2', x: 0.7, y: 0.5 },
+      { id: 'v3', x: 0.7, y: 0.75 }
+    ],
+    edges: [
+      ['u1','v1'],['u1','v2'],['u1','v3'],
+      ['u2','v1'],['u2','v2'],['u2','v3'],
+      ['u3','v1'],['u3','v2'],['u3','v3']
+    ],
+    metricDimension: 4,
+    dominationNumber: 2,
+    possibleSolutions: [
+      ['u1', 'u2', 'v1', 'v2'],
+      ['u1', 'u3', 'v1', 'v3'],
+      ['u2', 'u3', 'v2', 'v3'],
+      ['u1', 'u2', 'v1', 'v3'],
+      ['u1', 'u3', 'v1', 'v2']
+    ],
+    possibleDominationSolutions: [['u1', 'v1'], ['u2', 'v2'], ['u3', 'v3']],
+    description: "Graf bipartit lengkap K₃,₃. γ(Km,n) = 2, β(Km,n) = m+n-2 = 4",
+    hint: "Cukup 1 simpul dari masing-masing kubu untuk mendominasi (γ=2). Untuk pembeda metrik, dibutuhkan m+n-2 = 4 simpul."
+  },
+  RODA_W6: {
+    name: "Graf Roda W₆",
+    nodes: [
+      { id: 'c', x: 0.5, y: 0.5 },
+      ...Array.from({length: 6}, (_, i) => ({
+        id: `v${i+1}`,
+        x: 0.5 + 0.3 * Math.cos((i * 2 * Math.PI) / 6 - Math.PI/2),
+        y: 0.5 + 0.3 * Math.sin((i * 2 * Math.PI) / 6 - Math.PI/2)
+      }))
+    ],
+    edges: [
+      ...Array.from({length: 6}, (_, i) => ['c', `v${i+1}`]),
+      ...Array.from({length: 5}, (_, i) => [`v${i+1}`, `v${i+2}`]),
+      ['v6', 'v1']
+    ],
+    metricDimension: 3,
+    dominationNumber: 1,
+    possibleSolutions: [['v1', 'v2', 'v4'], ['v2', 'v3', 'v5'], ['v3', 'v4', 'v6'], ['c', 'v1', 'v3'], ['c', 'v2', 'v4']],
+    possibleDominationSolutions: [['c']],
+    description: "Graf roda dengan pusat c dan rim 6 titik. Sesuai teorema Buczkowski et al. (2003), β(W₆) = 3 dan γ(W₆) = 1.",
+    hint: "Pusat c langsung mengawasi seluruh rim (γ=1). Untuk pembeda metrik, dibutuhkan minimal 3 simpul (misal v1, v2, dan v4) untuk membedakan seluruh simpul secara unik (β=3)."
+  }
+};
+
 const Coba = () => {
   // Refs
   const canvasRef = useRef(null);
   const explanationRef = useRef(null);
+  const isDraggingRef = useRef(false);
+  const dragStartRef = useRef({ x: 0, y: 0 });
+  const hasMovedRef = useRef(false);
   
-  // State for interactive tabs
+  // State for interactive tabs & modes
   const [activeTab, setActiveTab] = useState('panduan');
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [showInfoPanel, setShowInfoPanel] = useState(true);
+  const [activeMode, setActiveMode] = useState('metric'); // 'metric' | 'domination'
 
-  // Enhanced graph data - sesuai dengan Gambar di Bab II PDF
-  const GRAPHS = {
-    GAMBAR_II1: {
-      name: "Gambar II.1 - Graf G",
-      nodes: [
-        { id: 'v1', x: 0.5, y: 0.3 },
-        { id: 'v2', x: 0.25, y: 0.6 },
-        { id: 'v3', x: 0.4, y: 0.7 },
-        { id: 'v4', x: 0.6, y: 0.7 },
-        { id: 'v5', x: 0.75, y: 0.6 }
-      ],
-      edges: [
-        ['v1','v2'],['v2','v3'],['v3','v4'],['v4','v5'],['v5','v1'],
-        ['v1','v3'],['v1','v4']
-      ],
-      metricDimension: 2,
-      dominationNumber: 2,
-      possibleSolutions: [['v1', 'v3']],
-      description: "Graf G dengan 5 titik dan 7 sisi. |G|=5, ||G||=7, δ(G)=2, Δ(G)=4",
-      hint: "Titik v1 bertetangga dengan v2, v3, v4, v5 sehingga N(v1) = {v2, v3, v4, v5}"
-    },
-    GAMBAR_II3: {
-      name: "Gambar II.3 - Graf dengan Diameter 4 dan Radius 3",
-      nodes: [
-        { id: 'v1', x: 0.1, y: 0.5 },
-        { id: 'v2', x: 0.25, y: 0.5 },
-        { id: 'v3', x: 0.4, y: 0.5 },
-        { id: 'v4', x: 0.55, y: 0.3 },
-        { id: 'v5', x: 0.55, y: 0.7 },
-        { id: 'v6', x: 0.7, y: 0.3 },
-        { id: 'v7', x: 0.7, y: 0.7 },
-        { id: 'v8', x: 0.85, y: 0.5 }
-      ],
-      edges: [
-        ['v1','v2'],['v2','v3'],['v3','v4'],['v3','v5'],
-        ['v4','v6'],['v5','v7'],['v6','v8'],['v7','v8']
-      ],
-      metricDimension: 3,
-      dominationNumber: 3,
-      possibleSolutions: [['v2', 'v4', 'v7']],
-      description: "Graf dengan diameter 4 dan radius 3. ecc(v1)=4, ecc(v2)=3, diam(G)=4, rad(G)=3",
-      hint: "Diameter adalah jarak maksimum antar dua titik. Radius adalah eksentrisitas minimum."
-    },
-    GAMBAR_II12: {
-      name: "Gambar II.12 - Graf dengan Dimensi Metrik 2",
-      nodes: [
-        { id: 'v1', x: 0.25, y: 0.3 },
-        { id: 'v2', x: 0.4, y: 0.3 },
-        { id: 'v3', x: 0.55, y: 0.3 },
-        { id: 'v4', x: 0.7, y: 0.3 },
-        { id: 'v5', x: 0.5, y: 0.6 },
-        { id: 'v6', x: 0.35, y: 0.6 }
-      ],
-      edges: [
-        ['v1','v2'],['v2','v3'],['v3','v4'],['v3','v5'],['v2','v6']
-      ],
-      metricDimension: 2,
-      dominationNumber: 2,
-      possibleSolutions: [['v3', 'v5']],
-      description: "Graf G dengan dimensi metrik β(G) = 2. W = {v3, v5} adalah himpunan pembeda minimum",
-      hint: "Representasi: r(v1|W)=(1,2), r(v2|W)=(1,1), r(v3|W)=(0,2), r(v4|W)=(1,3), r(v5|W)=(2,0), r(v6|W)=(2,1)"
-    },
-    GAMBAR_II19: {
-      name: "Gambar II.19 - Graf dengan γ(G)=6, β(G)=4, γM(G)=7",
-      nodes: [
-        ...Array.from({length: 12}, (_, i) => ({
-          id: `v${i+1}`,
-          x: 0.5 + 0.4 * Math.cos((i * 2 * Math.PI) / 12),
-          y: 0.5 + 0.4 * Math.sin((i * 2 * Math.PI) / 12)
-        })),
-        { id: 'v13', x: 0.7, y: 0.25 },
-        { id: 'v14', x: 0.85, y: 0.4 },
-        { id: 'v15', x: 0.85, y: 0.6 },
-        { id: 'v16', x: 0.7, y: 0.75 },
-        { id: 'v17', x: 0.92, y: 0.5 }
-      ],
-      edges: [
-        ...Array.from({length: 11}, (_, i) => [`v${i+1}`, `v${i+2}`]),
-        ['v12', 'v1'],
-        ['v13','v14'],['v14','v15'],['v15','v16'],['v16','v13'],
-        ['v12','v13'],['v1','v17'],['v17','v14']
-      ],
-      metricDimension: 4,
-      dominationNumber: 6,
-      possibleSolutions: [['v3', 'v6', 'v8', 'v10', 'v12', 'v15', 'v16']],
-      description: "Graf dengan γ(G)=6, β(G)=4, γM(G)=7. Contoh dimana γM(G) > max{γ(G), β(G)}",
-      hint: "D = {v3,v6,v8,v10,v12,v16} adalah himpunan dominasi minimum. R = {v6,v12,v15,v16} adalah himpunan pembeda minimum."
-    },
-    LINTASAN_P8: {
-      name: "Graf Lintasan P₈",
-      nodes: Array.from({length: 8}, (_, i) => ({
-        id: `v${i+1}`, 
-        x: 0.12 + (i * 0.096), 
-        y: 0.5
-      })),
-      edges: Array.from({length: 7}, (_, i) => [`v${i+1}`, `v${i+2}`]),
-      metricDimension: 1,
-      dominationNumber: 3,
-      possibleSolutions: [['v1'], ['v8']],
-      description: "Graf lintasan dengan 8 titik. β(Pn) = 1, γ(P₈) = ⌈8/3⌉ = 3",
-      hint: "Untuk lintasan, satu titik ujung sudah cukup sebagai himpunan pembeda."
-    },
-    SIKLUS_C8: {
-      name: "Graf Siklus C₈",
-      nodes: Array.from({length: 8}, (_, i) => ({
-        id: `v${i+1}`,
-        x: 0.5 + 0.35 * Math.cos((i * 2 * Math.PI) / 8),
-        y: 0.5 + 0.35 * Math.sin((i * 2 * Math.PI) / 8)
-      })),
-      edges: [
-        ...Array.from({length: 7}, (_, i) => [`v${i+1}`, `v${i+2}`]),
-        ['v8', 'v1']
-      ],
-      metricDimension: 2,
-      dominationNumber: 3,
-      possibleSolutions: [
-        ['v1', 'v3'], ['v2', 'v5'], ['v3', 'v6']
-      ],
-      description: "Graf siklus dengan 8 titik. β(Cn) = 2 untuk n ≥ 3, γ(C₈) = ⌈8/3⌉ = 3",
-      hint: "Dua titik yang tidak berseberangan diperlukan untuk membedakan semua titik."
-    },
-    BINTANG_K1_7: {
-      name: "Graf Bintang K₁,₇",
-      nodes: [
-        { id: 'c', x: 0.5, y: 0.5 },
-        ...Array.from({length: 7}, (_, i) => ({
-          id: `v${i+1}`,
-          x: 0.5 + 0.35 * Math.cos((i * 2 * Math.PI) / 7),
-          y: 0.5 + 0.35 * Math.sin((i * 2 * Math.PI) / 7)
-        }))
-      ],
-      edges: Array.from({length: 7}, (_, i) => ['c', `v${i+1}`]),
-      metricDimension: 6,
-      dominationNumber: 1,
-      possibleSolutions: [
-        ['v1', 'v2', 'v3', 'v4', 'v5', 'v6']
-      ],
-      description: "Graf bintang dengan 1 pusat dan 7 daun. γ(K₁,n) = 1, β(K₁,n) = n-1, γM(K₁,n) = n",
-      hint: "Titik pusat mendominasi semua, tapi n-1 daun diperlukan sebagai pembeda."
-    },
-    LENGKAP_K5: {
-      name: "Graf Lengkap K₅",
-      nodes: Array.from({length: 5}, (_, i) => ({
-        id: `v${i+1}`,
-        x: 0.5 + 0.3 * Math.cos((i * 2 * Math.PI) / 5 - Math.PI/2),
-        y: 0.5 + 0.3 * Math.sin((i * 2 * Math.PI) / 5 - Math.PI/2)
-      })),
-      edges: [
-        ['v1','v2'],['v1','v3'],['v1','v4'],['v1','v5'],
-        ['v2','v3'],['v2','v4'],['v2','v5'],
-        ['v3','v4'],['v3','v5'],
-        ['v4','v5']
-      ],
-      metricDimension: 4,
-      dominationNumber: 1,
-      possibleSolutions: [
-        ['v1', 'v2', 'v3', 'v4'], ['v2', 'v3', 'v4', 'v5']
-      ],
-      description: "Graf lengkap dengan 5 titik. γ(Kn) = 1, β(Kn) = n-1, γM(Kn) = n-1",
-      hint: "Satu titik mendominasi semua, tapi hampir semua titik diperlukan untuk membedakan."
-    },
-    BIPARTIT_K3_3: {
-      name: "Graf Bipartit Lengkap K₃,₃",
-      nodes: [
-        { id: 'u1', x: 0.3, y: 0.25 },
-        { id: 'u2', x: 0.3, y: 0.5 },
-        { id: 'u3', x: 0.3, y: 0.75 },
-        { id: 'v1', x: 0.7, y: 0.25 },
-        { id: 'v2', x: 0.7, y: 0.5 },
-        { id: 'v3', x: 0.7, y: 0.75 }
-      ],
-      edges: [
-        ['u1','v1'],['u1','v2'],['u1','v3'],
-        ['u2','v1'],['u2','v2'],['u2','v3'],
-        ['u3','v1'],['u3','v2'],['u3','v3']
-      ],
-      metricDimension: 4,
-      dominationNumber: 2,
-      possibleSolutions: [['u1', 'v1']],
-      description: "Graf bipartit lengkap K₃,₃. γ(Km,n) = 2 (m,n≥2), β(Km,n) = m+n-2, γM = n-2",
-      hint: "Satu titik dari setiap partisi membentuk himpunan dominasi minimum."
-    },
-    RODA_W6: {
-      name: "Graf Roda W₆",
-      nodes: [
-        { id: 'c', x: 0.5, y: 0.5 },
-        ...Array.from({length: 6}, (_, i) => ({
-          id: `v${i+1}`,
-          x: 0.5 + 0.32 * Math.cos((i * 2 * Math.PI) / 6),
-          y: 0.5 + 0.32 * Math.sin((i * 2 * Math.PI) / 6)
-        }))
-      ],
-      edges: [
-        ...Array.from({length: 6}, (_, i) => ['c', `v${i+1}`]),
-        ...Array.from({length: 5}, (_, i) => [`v${i+1}`, `v${i+2}`]),
-        ['v6', 'v1']
-      ],
-      metricDimension: 2,
-      dominationNumber: 1,
-      possibleSolutions: [
-        ['c', 'v1'], ['c', 'v2'], ['c', 'v3']
-      ],
-      description: "Graf roda dengan pusat c dan rim 6 titik. β(Wn) bergantung pada n, γ(Wn) = 1",
-      hint: "Pusat dan satu titik rim sudah cukup untuk membedakan semua titik."
-    },
-    POHON_T: {
-      name: "Gambar II.17 - Pohon T dengan β(T)=6",
-      nodes: [
-        { id: 'v5', x: 0.3, y: 0.3 },
-        { id: 'v1', x: 0.15, y: 0.2 },
-        { id: 'v2', x: 0.2, y: 0.35 },
-        { id: 'v3', x: 0.25, y: 0.2 },
-        { id: 'v4', x: 0.35, y: 0.2 },
-        { id: 'v8', x: 0.4, y: 0.35 },
-        { id: 'v6', x: 0.45, y: 0.3 },
-        { id: 'v9', x: 0.45, y: 0.45 },
-        { id: 'v10', x: 0.5, y: 0.5 },
-        { id: 'v11', x: 0.55, y: 0.45 },
-        { id: 'v7', x: 0.6, y: 0.3 },
-        { id: 'v18', x: 0.65, y: 0.35 },
-        { id: 'v12', x: 0.5, y: 0.6 },
-        { id: 'v13', x: 0.55, y: 0.65 },
-        { id: 'v14', x: 0.6, y: 0.7 },
-        { id: 'v15', x: 0.65, y: 0.65 },
-        { id: 'v16', x: 0.7, y: 0.7 },
-        { id: 'v17', x: 0.45, y: 0.65 },
-        { id: 'v19', x: 0.75, y: 0.5 },
-        { id: 'v20', x: 0.8, y: 0.45 },
-        { id: 'v21', x: 0.8, y: 0.55 }
-      ],
-      edges: [
-        ['v5','v1'],['v5','v2'],['v5','v3'],['v5','v4'],['v5','v8'],
-        ['v6','v8'],['v6','v9'],['v6','v7'],
-        ['v9','v10'],['v10','v11'],['v10','v12'],
-        ['v7','v18'],
-        ['v12','v13'],['v12','v17'],
-        ['v13','v14'],['v13','v15'],
-        ['v15','v16'],
-        ['v19','v7'],['v19','v20'],['v19','v21']
-      ],
-      metricDimension: 6,
-      dominationNumber: 5,
-      possibleSolutions: [['v1', 'v4', 'v8', 'v11', 'v16', 'v18']],
-      description: "Pohon T dengan σ(T)=11, ex(T)=5, β(T)=6. Titik mayor: v5, v6, v7, v13, v19",
-      hint: "β(T) = σ(T) - ex(T) = 11 - 5 = 6. Titik terminal digunakan sebagai himpunan pembeda."
-    },
-    GRAF_2_LINTASAN: {
-      name: "Gambar II.18 - Graf 2-Lintasan dengan 14 titik",
-      nodes: Array.from({length: 14}, (_, i) => ({
-        id: `v${i+1}`,
-        x: 0.08 + (i * 0.06),
-        y: 0.5
-      })),
-      edges: [
-        ...Array.from({length: 13}, (_, i) => [`v${i+1}`, `v${i+2}`]),
-        ...Array.from({length: 12}, (_, i) => [`v${i+1}`, `v${i+3}`])
-      ],
-      metricDimension: 2,
-      dominationNumber: 5,
-      possibleSolutions: [['v2', 'v7'], ['v3', 'v8']],
-      description: "Graf k-lintasan dengan k=2 dan 14 titik. β(G)=k=2, γM(G)=γ(G)",
-      hint: "Untuk k-lintasan, vi dan vj dominasi jika |i-j| ≤ k. Dimensi metrik β(G) = k."
-    }
-  };
-
-  // State
+  // Graph state & canvas transform
   const [currentGraph, setCurrentGraph] = useState('GAMBAR_II1');
   const [selectedNodes, setSelectedNodes] = useState(new Set());
   const [zoom, setZoom] = useState(1);
+  const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
+  
+  // Feedback state
   const [feedback, setFeedback] = useState({ 
-    message: '', type: '', explanation: '', correctAnswer: [], showDistances: false
+    message: '', type: '', explanation: '', correctAnswer: [], showDistances: false, dominationReport: null
   });
   const [showExplanation, setShowExplanation] = useState(false);
   const [highlightedNodes, setHighlightedNodes] = useState(new Set());
-  const [showInfoPanel, setShowInfoPanel] = useState(true);
+
+  const getAdjacencyMap = useCallback(() => {
+    const adj = new Map(); 
+    const { nodes, edges } = GRAPHS[currentGraph];
+    nodes.forEach(node => adj.set(node.id, []));
+    edges.forEach(([u, v]) => { 
+      if (adj.has(u)) adj.get(u).push(v);
+      if (adj.has(v)) adj.get(v).push(u);
+    }); 
+    return adj;
+  }, [currentGraph]);
 
   const drawGraph = useCallback(() => {
     const canvas = canvasRef.current; 
@@ -330,22 +285,33 @@ const Coba = () => {
       ctx.scale(dpr, dpr);
     }
     
+    canvas.style.width = `${rect.width}px`;
+    canvas.style.height = `${rect.height}px`;
+    
     ctx.clearRect(0, 0, canvas.width, canvas.height); 
     ctx.save(); 
+    ctx.translate(panOffset.x, panOffset.y);
     ctx.scale(zoom, zoom);
     
     const { edges, nodes } = GRAPHS[currentGraph];
     
     // Draw edges
-    ctx.strokeStyle = '#64748b'; 
-    ctx.lineWidth = 2;
     edges.forEach(([u, v]) => {
       const uNode = nodes.find(n => n.id === u); 
       const vNode = nodes.find(n => n.id === v);
       if (uNode && vNode) {
         ctx.beginPath(); 
         ctx.moveTo(uNode.x * rect.width, uNode.y * rect.height);
-        ctx.lineTo(vNode.x * rect.width, vNode.y * rect.height); 
+        ctx.lineTo(vNode.x * rect.width, vNode.y * rect.height);
+        
+        // In domination mode, highlight protection edges
+        if (activeMode === 'domination' && (selectedNodes.has(u) || selectedNodes.has(v))) {
+          ctx.strokeStyle = '#93c5fd';
+          ctx.lineWidth = 2.5;
+        } else {
+          ctx.strokeStyle = '#cbd5e1'; 
+          ctx.lineWidth = 2;
+        }
         ctx.stroke();
       }
     });
@@ -356,26 +322,40 @@ const Coba = () => {
       const x = node.x * rect.width; 
       const y = node.y * rect.height;
       
-      // Create gradient for node
       const gradient = ctx.createRadialGradient(x - 5, y - 5, 0, x, y, nodeRadius);
       if (highlightedNodes.has(node.id)) { 
-        gradient.addColorStop(0, '#34d399'); 
-        gradient.addColorStop(1, '#10b981'); 
+        if (activeMode === 'domination') {
+          // Unprotected node in domination mode (soft red)
+          gradient.addColorStop(0, '#fee2e2'); 
+          gradient.addColorStop(1, '#ef4444'); 
+        } else {
+          // Duplicate distance node in metric mode (amber)
+          gradient.addColorStop(0, '#fef3c7'); 
+          gradient.addColorStop(1, '#f59e0b'); 
+        }
       }
       else if (selectedNodes.has(node.id)) { 
-        gradient.addColorStop(0, '#f87171'); 
-        gradient.addColorStop(1, '#ef4444'); 
+        if (activeMode === 'domination') {
+          // Guard node (emerald green)
+          gradient.addColorStop(0, '#d1fae5'); 
+          gradient.addColorStop(1, '#10b981'); 
+        } else {
+          // Landmark node (cyber blue)
+          gradient.addColorStop(0, '#e0f2fe'); 
+          gradient.addColorStop(1, '#38bdf8'); 
+        }
       }
       else { 
-        gradient.addColorStop(0, '#60a5fa'); 
-        gradient.addColorStop(1, '#3b82f6'); 
+        // Normal nodes: White fill
+        gradient.addColorStop(0, '#ffffff'); 
+        gradient.addColorStop(1, '#ffffff'); 
       }
       
-      // Draw node
+      // Draw node circle
       ctx.beginPath(); 
       ctx.arc(x, y, nodeRadius, 0, Math.PI * 2); 
       ctx.fillStyle = gradient;
-      ctx.shadowColor = 'rgba(0,0,0,0.3)'; 
+      ctx.shadowColor = 'rgba(30, 64, 175, 0.15)'; 
       ctx.shadowBlur = 4; 
       ctx.shadowOffsetX = 2; 
       ctx.shadowOffsetY = 2;
@@ -383,36 +363,42 @@ const Coba = () => {
       ctx.shadowColor = 'transparent';
       
       // Draw node border
-      if (selectedNodes.has(node.id) || highlightedNodes.has(node.id)) {
-        ctx.beginPath(); 
-        ctx.arc(x, y, nodeRadius + 3, 0, Math.PI * 2);
-        ctx.strokeStyle = selectedNodes.has(node.id) ? '#dc2626' : '#059669';
+      ctx.beginPath(); 
+      ctx.arc(x, y, nodeRadius, 0, Math.PI * 2);
+      if (highlightedNodes.has(node.id)) {
+        ctx.strokeStyle = activeMode === 'domination' ? '#b91c1c' : '#d97706';
         ctx.lineWidth = 3; 
-        ctx.stroke();
+      } else if (selectedNodes.has(node.id)) {
+        ctx.strokeStyle = activeMode === 'domination' ? '#047857' : '#0284c7';
+        ctx.lineWidth = 3; 
+      } else {
+        ctx.strokeStyle = '#1e40af';
+        ctx.lineWidth = 2.5; 
       }
+      ctx.stroke();
       
       // Draw node label
-      ctx.fillStyle = '#ffffff'; 
-      ctx.font = `bold ${Math.min(nodeRadius * 0.65, 12)}px Inter, sans-serif`;
+      if (selectedNodes.has(node.id)) {
+        ctx.fillStyle = activeMode === 'domination' ? '#064e3b' : '#1e293b'; 
+      } else if (highlightedNodes.has(node.id)) {
+        ctx.fillStyle = activeMode === 'domination' ? '#7f1d1d' : '#92400e'; 
+      } else {
+        ctx.fillStyle = '#1e40af'; 
+      }
+      ctx.font = `bold ${Math.min(nodeRadius * 0.75, 12)}px 'Inter', sans-serif`;
       ctx.textAlign = 'center'; 
       ctx.textBaseline = 'middle'; 
       ctx.fillText(node.id, x, y);
     });
     
     ctx.restore();
-  }, [currentGraph, selectedNodes, zoom, highlightedNodes]);
+  }, [currentGraph, selectedNodes, zoom, panOffset, highlightedNodes, activeMode]);
 
   useEffect(() => {
     const canvas = canvasRef.current; 
     if (!canvas) return;
     
     const handleResize = () => {
-      const container = canvas.parentElement; 
-      if (!container) return;
-      
-      const rect = container.getBoundingClientRect();
-      canvas.style.width = `${rect.width}px`; 
-      canvas.style.height = `${rect.height}px`; 
       drawGraph();
     };
     
@@ -431,23 +417,15 @@ const Coba = () => {
 
   useEffect(() => { 
     requestAnimationFrame(drawGraph); 
-  }, [currentGraph, selectedNodes, zoom, highlightedNodes, drawGraph]);
-  
-  const handleCanvasClick = (e) => {
-    const canvas = canvasRef.current; 
-    const rect = canvas.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / zoom; 
-    const y = (e.clientY - rect.top) / zoom;
-    const clickedNode = findNodeAt(x, y); 
-    if (clickedNode) { 
-      toggleNodeSelection(clickedNode.id); 
-    }
-  };
-  
+  }, [currentGraph, selectedNodes, zoom, panOffset, highlightedNodes, activeMode, drawGraph]);
+
   const findNodeAt = (canvasX, canvasY) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return null;
+    
     const { nodes } = GRAPHS[currentGraph]; 
-    const nodeRadius = 16;
-    const rect = canvasRef.current.getBoundingClientRect();
+    const nodeRadius = 18;
+    const rect = canvas.getBoundingClientRect();
     
     for (const node of nodes) {
       const x = node.x * rect.width; 
@@ -459,7 +437,7 @@ const Coba = () => {
     } 
     return null;
   };
-  
+
   const toggleNodeSelection = (nodeId) => {
     setSelectedNodes(prev => {
       const newSet = new Set(prev); 
@@ -470,34 +448,113 @@ const Coba = () => {
       } 
       return newSet;
     }); 
-    setFeedback({ message: '', type: '', explanation: '', correctAnswer: [], showDistances: false }); 
+    setFeedback({ message: '', type: '', explanation: '', correctAnswer: [], showDistances: false, dominationReport: null }); 
     setHighlightedNodes(new Set());
   };
-  
-  const getAdjacencyMap = useCallback(() => {
-    const adj = new Map(); 
-    const { nodes, edges } = GRAPHS[currentGraph];
-    nodes.forEach(node => adj.set(node.id, []));
-    edges.forEach(([u, v]) => { 
-      adj.get(u).push(v); 
-      adj.get(v).push(u); 
-    }); 
-    return adj;
-  }, [currentGraph]);
-  
+
+  // Pan / Drag handlers for Canvas
+  const handleMouseDown = (e) => {
+    isDraggingRef.current = true;
+    hasMovedRef.current = false;
+    dragStartRef.current = {
+      x: e.clientX - panOffset.x,
+      y: e.clientY - panOffset.y
+    };
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDraggingRef.current) return;
+    const dx = e.clientX - dragStartRef.current.x - panOffset.x;
+    const dy = e.clientY - dragStartRef.current.y - panOffset.y;
+    if (Math.hypot(dx, dy) > 4) {
+      hasMovedRef.current = true;
+    }
+    setPanOffset({
+      x: e.clientX - dragStartRef.current.x,
+      y: e.clientY - dragStartRef.current.y
+    });
+  };
+
+  const handleMouseUp = (e) => {
+    if (!isDraggingRef.current) return;
+    isDraggingRef.current = false;
+    
+    if (!hasMovedRef.current) {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const rect = canvas.getBoundingClientRect();
+      const x = (e.clientX - rect.left - panOffset.x) / zoom;
+      const y = (e.clientY - rect.top - panOffset.y) / zoom;
+      const clickedNode = findNodeAt(x, y);
+      if (clickedNode) {
+        toggleNodeSelection(clickedNode.id);
+      }
+    }
+  };
+
+  // Touch handlers for mobile
+  const handleTouchStart = (e) => {
+    if (e.touches.length === 1) {
+      const touch = e.touches[0];
+      isDraggingRef.current = true;
+      hasMovedRef.current = false;
+      dragStartRef.current = {
+        x: touch.clientX - panOffset.x,
+        y: touch.clientY - panOffset.y
+      };
+    }
+  };
+
+  const handleTouchMove = (e) => {
+    if (!isDraggingRef.current || e.touches.length !== 1) return;
+    const touch = e.touches[0];
+    const dx = touch.clientX - dragStartRef.current.x - panOffset.x;
+    const dy = touch.clientY - dragStartRef.current.y - panOffset.y;
+    if (Math.hypot(dx, dy) > 4) {
+      hasMovedRef.current = true;
+    }
+    setPanOffset({
+      x: touch.clientX - dragStartRef.current.x,
+      y: touch.clientY - dragStartRef.current.y
+    });
+  };
+
+  const handleTouchEnd = (e) => {
+    if (!isDraggingRef.current) return;
+    isDraggingRef.current = false;
+    if (!hasMovedRef.current && e.changedTouches.length > 0) {
+      const touch = e.changedTouches[0];
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const rect = canvas.getBoundingClientRect();
+      const x = (touch.clientX - rect.left - panOffset.x) / zoom;
+      const y = (touch.clientY - rect.top - panOffset.y) / zoom;
+      const clickedNode = findNodeAt(x, y);
+      if (clickedNode) {
+        toggleNodeSelection(clickedNode.id);
+      }
+    }
+  };
+
   const bfs = useCallback((startId) => {
     const distances = new Map(); 
     const { nodes } = GRAPHS[currentGraph];
     nodes.forEach(node => distances.set(node.id, Infinity));
     
     const adj = getAdjacencyMap(); 
+    if (!adj.has(startId)) {
+      return distances;
+    }
+    
     const queue = [[startId, 0]]; 
     distances.set(startId, 0); 
     let head = 0;
     
     while (head < queue.length) {
       const [currentId, dist] = queue[head++];
-      adj.get(currentId)?.forEach(neighborId => {
+      const neighbors = adj.get(currentId) || [];
+      
+      neighbors.forEach(neighborId => {
         if (distances.get(neighborId) === Infinity) { 
           distances.set(neighborId, dist + 1); 
           queue.push([neighborId, dist + 1]); 
@@ -506,132 +563,373 @@ const Coba = () => {
     } 
     return distances;
   }, [currentGraph, getAdjacencyMap]);
-  
-  const isResolvingSet = (nodeSet) => {
+
+  // Validation: Metric Resolving Set
+  const isResolvingSet = useCallback((nodeSet) => {
     const { nodes } = GRAPHS[currentGraph]; 
     const selectedArray = Array.from(nodeSet).sort();
-    if (selectedArray.length === 0) return { isResolving: false, duplicateGroups: [] };
     
-    const allDistances = new Map(selectedArray.map(selId => [selId, bfs(selId)]));
+    if (selectedArray.length === 0) {
+      return { 
+        isResolving: false, 
+        duplicateGroups: [],
+        error: 'Tidak ada simpul yang dipilih.',
+        unreachableNodes: []
+      };
+    }
+    
+    const invalidNodes = selectedArray.filter(id => 
+      !nodes.some(n => n.id === id)
+    );
+    if (invalidNodes.length > 0) {
+      return {
+        isResolving: false,
+        duplicateGroups: [],
+        error: `Simpul tidak valid: ${invalidNodes.join(', ')}`,
+        unreachableNodes: []
+      };
+    }
+    
+    const allDistances = new Map();
+    selectedArray.forEach(selId => {
+      allDistances.set(selId, bfs(selId));
+    });
+    
     const repToNodes = new Map();
+    const representations = new Map();
+    const unreachableNodes = [];
     
     nodes.forEach(node => {
-      const repString = selectedArray.map(selId => allDistances.get(selId).get(node.id)).join(',');
+      const distances = selectedArray.map(selId => {
+        const dist = allDistances.get(selId)?.get(node.id);
+        return dist !== undefined && dist !== Infinity ? dist : '∞';
+      });
+      
+      if (distances.includes('∞')) {
+        unreachableNodes.push(node.id);
+      }
+      
+      const repString = distances.join(',');
+      representations.set(node.id, distances);
+      
       if (!repToNodes.has(repString)) { 
         repToNodes.set(repString, []); 
       } 
       repToNodes.get(repString).push(node.id);
     });
     
-    const duplicateGroups = Array.from(repToNodes.entries()).filter(([_, group]) => group.length > 1);
-    return { isResolving: duplicateGroups.length === 0, duplicateGroups };
-  };
-  
+    const duplicateGroups = Array.from(repToNodes.entries())
+      .filter(([, group]) => group.length > 1)
+      .map(([rep, group]) => ({
+        representation: rep,
+        nodes: group,
+        count: group.length
+      }));
+    
+    return { 
+      isResolving: duplicateGroups.length === 0 && unreachableNodes.length === 0,
+      duplicateGroups,
+      representations,
+      unreachableNodes,
+      totalUnique: repToNodes.size,
+      totalNodes: nodes.length
+    };
+  }, [currentGraph, bfs]);
+
+  // Validation: Dominating Set
+  const isDominatingSet = useCallback((selected) => {
+    const { nodes } = GRAPHS[currentGraph];
+    const adj = getAdjacencyMap();
+    const undominated = [];
+    const dominatedReport = [];
+
+    nodes.forEach(node => {
+      if (selected.has(node.id)) {
+        dominatedReport.push({
+          node: node.id,
+          status: 'Penjaga (Mendominasi Diri Sendiri)',
+          guard: node.id,
+          isCovered: true
+        });
+        return;
+      }
+      const neighbors = adj.get(node.id) || [];
+      const guards = neighbors.filter(neighbor => selected.has(neighbor));
+      if (guards.length > 0) {
+        dominatedReport.push({
+          node: node.id,
+          status: `Terawasi oleh ${guards.join(', ')}`,
+          guard: guards.join(', '),
+          isCovered: true
+        });
+      } else {
+        undominated.push(node.id);
+        dominatedReport.push({
+          node: node.id,
+          status: 'Belum Terawasi',
+          guard: '-',
+          isCovered: false
+        });
+      }
+    });
+
+    return {
+      isDominating: undominated.length === 0,
+      undominated,
+      dominatedReport,
+      totalNodes: nodes.length,
+      coveredCount: nodes.length - undominated.length
+    };
+  }, [currentGraph, getAdjacencyMap]);
+
   const checkAnswer = () => {
     const graphData = GRAPHS[currentGraph]; 
     const selectedSize = selectedNodes.size; 
-    const targetSize = graphData.metricDimension;
     
     if (selectedSize === 0) {
       setFeedback({ 
-        message: '❌ Tidak Ada Pilihan', 
+        message: '❌ Belum Ada Simpul yang Dipilih', 
         type: 'incorrect', 
-        explanation: 'Silakan pilih beberapa simpul terlebih dahulu untuk membentuk himpunan pembeda.', 
+        explanation: activeMode === 'metric' 
+          ? 'Silakan klik simpul pada diagram graf untuk memilih himpunan patokan pembeda navigasi.'
+          : 'Silakan klik simpul pada diagram graf untuk menempatkan pos penjaga dominasi.', 
         correctAnswer: [], 
-        showDistances: false 
+        showDistances: false,
+        dominationReport: null
       });
       setShowExplanation(true); 
       return;
     }
-    
-    const { isResolving, duplicateGroups } = isResolvingSet(selectedNodes);
-    let feedbackData = { 
-      correctAnswer: graphData.possibleSolutions[0] || [], 
-      showDistances: true, 
-    };
-    
-    if (isResolving) {
-      if (selectedSize === targetSize) {
-        feedbackData = { 
-          ...feedbackData, 
-          message: '🎉 SEMPURNA! Himpunan Pembeda Optimal!', 
-          type: 'correct', 
-          explanation: `Luar biasa! Anda menemukan himpunan pembeda (resolving set) dengan ${targetSize} simpul. Ini adalah dimensi metrik β(G) = ${targetSize}.`, 
-        };
-      } else if (selectedSize < targetSize) {
-        feedbackData = { 
-          ...feedbackData, 
-          message: '🤔 Hasil Tidak Biasa', 
-          type: 'partial', 
-          explanation: `Himpunan Anda valid dengan ukuran ${selectedSize}, tapi teori mengatakan dimensi metrik minimal ${targetSize}. Periksa kembali.`, 
-        };
-      } else {
-        feedbackData = { 
-          ...feedbackData, 
-          message: '✅ Valid, Tapi Belum Optimal', 
-          type: 'partial', 
-          explanation: `Himpunan pembeda Anda valid, tapi bisa diperkecil menjadi ${targetSize} simpul untuk mencapai β(G).`, 
-        };
-      } 
-      setHighlightedNodes(new Set(selectedNodes));
-    } else {
-      const examples = duplicateGroups.slice(0, 2).map(([rep, nodes]) => `{${nodes.join(', ')}}`).join(' dan ');
-      feedbackData = { 
-        ...feedbackData, 
-        message: '❌ Belum Membentuk Himpunan Pembeda', 
-        type: 'incorrect', 
-        explanation: `Himpunan Anda belum bisa membedakan semua simpul. Simpul dengan representasi sama: ${examples}.\n\n💡 ${graphData.hint}`, 
-        showDistances: false, 
+
+    if (activeMode === 'metric') {
+      const targetSize = graphData.metricDimension;
+      const validation = isResolvingSet(selectedNodes);
+      
+      if (validation.error) {
+        setFeedback({
+          message: '⚠️ Error Validasi',
+          type: 'incorrect',
+          explanation: validation.error,
+          correctAnswer: graphData.possibleSolutions[0] || [],
+          showDistances: false,
+          dominationReport: null
+        });
+        setShowExplanation(true);
+        return;
+      }
+      
+      if (validation.unreachableNodes && validation.unreachableNodes.length > 0) {
+        setFeedback({
+          message: '⚠️ Graf Tidak Terhubung',
+          type: 'incorrect',
+          explanation: `Beberapa simpul tidak dapat dijangkau dari simpul patokan pilihan Anda: ${validation.unreachableNodes.join(', ')}.`,
+          correctAnswer: graphData.possibleSolutions[0] || [],
+          showDistances: false,
+          dominationReport: null
+        });
+        setHighlightedNodes(new Set(validation.unreachableNodes));
+        setShowExplanation(true);
+        return;
+      }
+      
+      let feedbackData = { 
+        correctAnswer: graphData.possibleSolutions[0] || [], 
+        showDistances: true, 
+        dominationReport: null
       };
-      const duplicateNodes = duplicateGroups.flatMap(([_, nodes]) => nodes); 
-      setHighlightedNodes(new Set(duplicateNodes));
+      
+      if (validation.isResolving) {
+        const efficiency = ((targetSize / selectedSize) * 100).toFixed(1);
+        
+        if (selectedSize === targetSize) {
+          feedbackData = { 
+            ...feedbackData, 
+            message: '🎉 SEMPURNA! Himpunan Pembeda Optimal!', 
+            type: 'correct', 
+            explanation: `Luar biasa! Anda berhasil menemukan himpunan pembeda minimum dengan ${targetSize} simpul patokan.\n\n✅ Seluruh ${validation.totalNodes} simpul memiliki koordinat jarak yang unik.\n✅ Ini adalah nilai dimensi metrik β(G) = ${targetSize}.\n\n💡 Karakteristik: ${graphData.hint}`, 
+          };
+        } else if (selectedSize < targetSize) {
+          feedbackData = { 
+            ...feedbackData, 
+            message: '🤔 Hasil Khusus Terverifikasi', 
+            type: 'partial', 
+            explanation: `Himpunan Anda membentuk resolving set yang valid dengan ${selectedSize} simpul. Silakan periksa kembali dengan solusi standar.`, 
+          };
+        } else {
+          const wastedNodes = selectedSize - targetSize;
+          feedbackData = { 
+            ...feedbackData, 
+            message: '✅ Valid, Tetapi Belum Optimal', 
+            type: 'partial', 
+            explanation: `Himpunan pembeda Anda valid dengan ${selectedSize} simpul, tetapi masih bisa dihemat menjadi ${targetSize} simpul patokan.\n\n📊 Efisiensi: ${efficiency}%\n⚠️ Terbuang ${wastedNodes} simpul berlebih.\n\n💡 Coba ganti posisi simpul agar mencapai target optimal β(G) = ${targetSize}.`, 
+          };
+        } 
+        setHighlightedNodes(new Set(selectedNodes));
+      } else {
+        const exampleGroups = validation.duplicateGroups.slice(0, 2);
+        const examples = exampleGroups.map(g => `{${g.nodes.join(', ')}}`).join(' dan ');
+        const totalDuplicates = validation.duplicateGroups.reduce((sum, g) => sum + g.count, 0);
+        
+        feedbackData = { 
+          ...feedbackData, 
+          message: '❌ Belum Membentuk Himpunan Pembeda', 
+          type: 'incorrect', 
+          explanation: `Himpunan pilihan Anda belum dapat membedakan posisi semua simpul secara unik.\n\n❌ Terdapat ${validation.duplicateGroups.length} kelompok simpul yang memiliki representasi jarak sama.\n❌ Total ${totalDuplicates} simpul bertabrakan.\n\nContoh simpul yang berkoordinat kembar: ${examples}.\n\n💡 ${graphData.hint}`, 
+          showDistances: true, 
+        };
+        const duplicateNodes = validation.duplicateGroups.flatMap(g => g.nodes); 
+        setHighlightedNodes(new Set(duplicateNodes));
+      }
+      
+      setFeedback(feedbackData); 
+      setShowExplanation(true);
+    } else {
+      // DOMINATION MODE
+      const targetSize = graphData.dominationNumber;
+      const domValidation = isDominatingSet(selectedNodes);
+      const possibleSols = graphData.possibleDominationSolutions || [[]];
+      
+      let feedbackData = {
+        correctAnswer: possibleSols[0] || [],
+        showDistances: false,
+        dominationReport: domValidation.dominatedReport
+      };
+
+      if (domValidation.isDominating) {
+        if (selectedSize === targetSize) {
+          feedbackData = {
+            ...feedbackData,
+            message: '🎉 SEMPURNA! Himpunan Dominasi Minimum Optimal!',
+            type: 'correct',
+            explanation: `Luar biasa! Himpunan {${Array.from(selectedNodes).join(', ')}} berhasil mengawasi seluruh ${domValidation.totalNodes} simpul jaringan dengan tepat ${targetSize} penjaga.\n\n✅ Seluruh area terawasi secara optimal.\n✅ Nilai ini adalah Bilangan Dominasi γ(G) = ${targetSize}.\n\n💡 Karakteristik: ${graphData.hint}`
+          };
+          setHighlightedNodes(new Set(selectedNodes));
+        } else if (selectedSize < targetSize) {
+          feedbackData = {
+            ...feedbackData,
+            message: '🎉 Dominasi Super Efisien!',
+            type: 'correct',
+            explanation: `Himpunan ini berhasil mengawasi seluruh jaringan hanya dengan ${selectedSize} simpul penjaga!`
+          };
+          setHighlightedNodes(new Set(selectedNodes));
+        } else {
+          const wasted = selectedSize - targetSize;
+          feedbackData = {
+            ...feedbackData,
+            message: '✅ Valid Mendominasi, Tetapi Belum Minimum',
+            type: 'partial',
+            explanation: `Seluruh jaringan terawasi dengan aman! Namun jumlah penjaga Anda (${selectedSize} simpul) masih bisa dihemat sebanyak ${wasted} simpul untuk mencapai batas minimum γ(G) = ${targetSize} penjaga.`
+          };
+          setHighlightedNodes(new Set(selectedNodes));
+        }
+      } else {
+        feedbackData = {
+          ...feedbackData,
+          message: '❌ Belum Mendominasi Seluruh Jaringan',
+          type: 'incorrect',
+          explanation: `Terdapat ${domValidation.undominated.length} simpul yang belum terawasi: {${domValidation.undominated.join(', ')}}.\n\nSimpul-simpul merah tersebut tidak berada dalam himpunan penjaga dan tidak terhubung langsung dengan satupun penjaga pilihan Anda.\n\n💡 Coba letakkan penjaga di simpul dengan derajat konektivitas yang lebih tinggi.`
+        };
+        setHighlightedNodes(new Set(domValidation.undominated));
+      }
+
+      setFeedback(feedbackData);
+      setShowExplanation(true);
     }
-    
-    setFeedback(feedbackData); 
-    setShowExplanation(true);
+
     setTimeout(() => { 
-      explanationRef.current?.scrollIntoView({ behavior: 'smooth' }); 
+      explanationRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); 
     }, 100);
   };
-  
+
   const resetSelection = () => { 
     setSelectedNodes(new Set()); 
-    setFeedback({ message: '', type: '', explanation: '', correctAnswer: [], showDistances: false }); 
+    setFeedback({ message: '', type: '', explanation: '', correctAnswer: [], showDistances: false, dominationReport: null }); 
     setHighlightedNodes(new Set()); 
     setShowExplanation(false); 
   };
-  
+
   const showSolution = () => {
     const graphData = GRAPHS[currentGraph];
-    if (graphData.possibleSolutions.length > 0) {
-      const solution = new Set(graphData.possibleSolutions[0]);
-      setSelectedNodes(solution); 
-      setHighlightedNodes(solution);
-      setFeedback({ 
-        message: '💡 Contoh Himpunan Pembeda Optimal', 
-        type: 'info', 
-        explanation: `Ini adalah salah satu himpunan pembeda minimum dengan β(G) = ${graphData.metricDimension} simpul. ${graphData.description}`, 
-        correctAnswer: Array.from(solution), 
-        showDistances: true 
-      });
-      setShowExplanation(true);
+    if (activeMode === 'metric') {
+      if (graphData.possibleSolutions.length > 0) {
+        const solution = new Set(graphData.possibleSolutions[0]);
+        setSelectedNodes(solution); 
+        setHighlightedNodes(solution);
+        setFeedback({ 
+          message: '💡 Contoh Himpunan Pembeda Optimal', 
+          type: 'info', 
+          explanation: `Ini adalah salah satu pilihan himpunan pembeda minimum dengan β(G) = ${graphData.metricDimension} simpul patokan.\n\n✨ ${graphData.description}\n\n💡 ${graphData.hint}\n\n${graphData.possibleSolutions.length > 1 ? `\n📝 Info: Terdapat ${graphData.possibleSolutions.length} kemungkinan himpunan pembeda optimal pada graf ini.` : ''}`, 
+          correctAnswer: Array.from(solution), 
+          showDistances: true,
+          dominationReport: null 
+        });
+        setShowExplanation(true);
+      }
+    } else {
+      const sols = graphData.possibleDominationSolutions || [[]];
+      if (sols.length > 0 && sols[0].length > 0) {
+        const solution = new Set(sols[0]);
+        setSelectedNodes(solution);
+        setHighlightedNodes(solution);
+        const domValidation = isDominatingSet(solution);
+        setFeedback({
+          message: '💡 Contoh Himpunan Dominasi Minimum',
+          type: 'info',
+          explanation: `Ini adalah salah satu pilihan himpunan penjaga minimum dengan γ(G) = ${graphData.dominationNumber} simpul.\n\n✨ ${graphData.description}\n\n${sols.length > 1 ? `\n📝 Info: Terdapat ${sols.length} variasi penempatan penjaga minimum yang valid pada graf ini.` : ''}`,
+          correctAnswer: Array.from(solution),
+          showDistances: false,
+          dominationReport: domValidation.dominatedReport
+        });
+        setShowExplanation(true);
+      }
     }
+    setTimeout(() => { 
+      explanationRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); 
+    }, 100);
   };
-  
+
+  const handleModeChange = (newMode) => {
+    if (newMode === activeMode) return;
+    setActiveMode(newMode);
+    setSelectedNodes(new Set());
+    setHighlightedNodes(new Set());
+    setFeedback({ message: '', type: '', explanation: '', correctAnswer: [], showDistances: false, dominationReport: null });
+    setShowExplanation(false);
+  };
+
   const handleGraphChange = (e) => { 
     setCurrentGraph(e.target.value); 
     resetSelection(); 
+    resetView();
   };
-  
+
   const getDistanceTable = useCallback(() => {
     if (!feedback.showDistances || selectedNodes.size === 0) return null;
     const { nodes } = GRAPHS[currentGraph]; 
-    const selectedArray = Array.from(selectedNodes).sort();
-    const allDistances = new Map(selectedArray.map(selId => [selId, bfs(selId)]));
+    const selectedArray = Array.from(selectedNodes).sort((a,b) => {
+      const aNum = parseInt(a.replace(/\D/g, '')) || 0;
+      const bNum = parseInt(b.replace(/\D/g, '')) || 0;
+      return aNum - bNum;
+    });
+    
+    const validSelected = selectedArray.filter(id => 
+      nodes.some(node => node.id === id)
+    );
+    
+    if (validSelected.length === 0) return null;
+    
+    const allDistances = new Map(validSelected.map(selId => [selId, bfs(selId)]));
     
     return nodes.map(node => {
-      const distances = selectedArray.map(selId => allDistances.get(selId).get(node.id));
-      return { node: node.id, distances, representation: `(${distances.join(',')})` };
+      const distances = validSelected.map(selId => {
+        const dist = allDistances.get(selId)?.get(node.id);
+        return dist !== undefined && dist !== Infinity ? dist : '∞';
+      });
+      return { 
+        node: node.id, 
+        distances, 
+        representation: `(${distances.join(',')})` 
+      };
     }).sort((a,b) => {
       const aNum = parseInt(a.node.replace(/\D/g, '')) || 0;
       const bNum = parseInt(b.node.replace(/\D/g, '')) || 0;
@@ -639,939 +937,435 @@ const Coba = () => {
     });
   }, [feedback.showDistances, selectedNodes, currentGraph, bfs]);
 
-  const zoomIn = () => setZoom(prev => Math.min(prev + 0.1, 2));
-  const zoomOut = () => setZoom(prev => Math.max(prev - 0.1, 0.5));
-  const resetZoom = () => setZoom(1);
+  const zoomIn = () => setZoom(prev => Math.min(prev + 0.15, 2.5));
+  const zoomOut = () => setZoom(prev => Math.max(prev - 0.15, 0.5));
+  const resetView = () => {
+    setZoom(1);
+    setPanOffset({ x: 0, y: 0 });
+  };
 
   return (
-    <div className="app-container">
+    <div className="cobaPage">
       <Navbar />
-      <div className="content-wrapper">
-        <div className="header">
-          <h1 className="judul-heading">
-            <FontAwesomeIcon icon={faProjectDiagram} className="icon" />
-            visualisasi Graf
-          </h1>
-          <p className="subtitle">
-            Eksplorasi diagram-diagram dari Bab II: Himpunan Dominasi dan Dimensi Matrix
+      
+      {/* Hero Section */}
+      <section className="coba-hero">
+        <div className="container">
+          <h1 className="coba-title">Lab Eksperimen Graf</h1>
+          <p className="coba-subtitle">
+            Simulasikan penempatan sensor secara langsung pada simpul graf interaktif untuk menguji Himpunan Dominasi (Penjaga) dan Dimensi Metrik (Pembeda)
           </p>
         </div>
+      </section>
+
+      {/* Main Grid Layout */}
+      <div className="coba-layout-grid">
         
-        <div className="main-content">
-          <div className="control-panel">
-            <div className="control-card">
-              <label htmlFor="graph-type" style={{color: '#334155', fontWeight: '600', fontSize: '0.9rem'}}>
-                Pilih Graf 
-              </label>
+        {/* Left Side: Sidebar Controls */}
+        <div className="coba-sidebar">
+          
+          {/* Card 1: Mode Switcher & Selector */}
+          <div className="sidebar-card">
+            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '700', fontSize: '0.82rem', letterSpacing: '0.05em' }}>
+              MODE EKSPERIMEN
+            </label>
+            <div className="mode-toggle-group">
+              <button
+                className={`mode-btn ${activeMode === 'metric' ? 'active' : ''}`}
+                onClick={() => handleModeChange('metric')}
+              >
+                <FontAwesomeIcon icon={faSearch} />
+                <span>Pembeda (β)</span>
+              </button>
+              <button
+                className={`mode-btn ${activeMode === 'domination' ? 'active' : ''}`}
+                onClick={() => handleModeChange('domination')}
+              >
+                <FontAwesomeIcon icon={faShieldAlt} />
+                <span>Dominasi (γ)</span>
+              </button>
+            </div>
+
+            <label htmlFor="graph-type" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '700', fontSize: '0.82rem', letterSpacing: '0.05em' }}>
+              PILIH STRUKTUR JARINGAN
+            </label>
+            <div className="select-wrapper">
               <select 
                 id="graph-type"
                 value={currentGraph}
                 onChange={handleGraphChange}
-                className="graph-type-selector"
-                style={{
-                  width: '100%', 
-                  padding: '0.75rem', 
-                  borderRadius: '8px', 
-                  border: '1px solid #cbd5e1', 
-                  fontSize: '0.95rem', 
-                  backgroundColor: '#f8fafc',
-                  color: '#334155'
-                }}
+                className="coba-select"
               >
-                <optgroup label="Gambar dari Bab II PDF">
-                  <option value="GAMBAR_II1">Gambar II.1 - Graf G (|G|=5, ||G||=7)</option>
-                  <option value="GAMBAR_II3">Gambar II.3 - Graf diam=4, rad=3</option>
-                  <option value="GAMBAR_II12">Gambar II.12 - Graf β(G)=2</option>
-                  <option value="GAMBAR_II19">Gambar II.19 - Graf γ=6, β=4, γM=7</option>
-                  <option value="POHON_T">Gambar II.17 - Pohon T (β(T)=6)</option>
-                  <option value="GRAF_2_LINTASAN">Gambar II.18 - Graf 2-Lintasan</option>
+                <optgroup label="Graf Utama">
+                  <option value="GAMBAR_II1">Graf G (5 titik, 7 sisi)</option>
+                  <option value="GAMBAR_II3">Graf Gambar II.3 (8 titik, β=2, γ=3)</option>
+                  <option value="GAMBAR_II12">Graf Dimensi Metrik 2 (6 titik)</option>
                 </optgroup>
                 <optgroup label="Graf Khusus">
-                  <option value="LINTASAN_P8">Lintasan P₈ (β=1)</option>
-                  <option value="SIKLUS_C8">Siklus C₈ (β=2)</option>
-                  <option value="BINTANG_K1_7">Bintang K₁,₇ (γ=1, β=6)</option>
-                  <option value="LENGKAP_K5">Lengkap K₅ (γ=1, β=4)</option>
+                  <option value="LINTASAN_P8">Lintasan Lurus P₈ (β=1, γ=3)</option>
+                  <option value="SIKLUS_C8">Siklus Melingkar C₈ (β=2, γ=3)</option>
+                  <option value="BINTANG_K1_7">Bintang Terpusat K₁,₇ (γ=1, β=6)</option>
+                  <option value="LENGKAP_K5">Lengkap Padat K₅ (γ=1, β=4)</option>
                   <option value="BIPARTIT_K3_3">Bipartit K₃,₃ (γ=2, β=4)</option>
-                  <option value="RODA_W6">Roda W₆ (β=2)</option>
+                  <option value="RODA_W6">Roda W₆ (γ=1, β=3)</option>
                 </optgroup>
               </select>
             </div>
             
-            <div className="control-card">
-              <h3 style={{fontSize: '1.1rem', marginBottom: '0.5rem'}}>{GRAPHS[currentGraph].name}</h3>
-              <p style={{fontSize: '0.9rem', lineHeight: '1.5'}}>{GRAPHS[currentGraph].description}</p>
-              <div className="target-info" style={{marginTop: '1rem'}}>
-                <strong><FontAwesomeIcon icon={faBullseye} /> Target:</strong> 
-                <div style={{marginTop: '0.5rem'}}>
-                  <span style={{display: 'block'}}>• Dimensi Metrik β(G) = <strong>{GRAPHS[currentGraph].metricDimension}</strong></span>
-                  <span style={{display: 'block'}}>• Bilangan Dominasi γ(G) = <strong>{GRAPHS[currentGraph].dominationNumber}</strong></span>
-                </div>
+            <div className="target-box">
+              <div className="target-title">
+                <FontAwesomeIcon icon={faBullseye} /> Target Uji:
               </div>
-            </div>
-            
-            <div className="control-card">
-              <div className="action-buttons">
-                <button onClick={resetSelection} className="action-btn reset-btn">
-                  <FontAwesomeIcon icon={faEraser} /> Reset
-                </button>
-                <button onClick={checkAnswer} className="action-btn check-btn">
-                  <FontAwesomeIcon icon={faCheck} /> Cek
-                </button>
-                <button onClick={showSolution} className="action-btn solution-btn">
-                  <FontAwesomeIcon icon={faLightbulb} /> Solusi
-                </button>
+              <div className="target-item" style={{ fontWeight: activeMode === 'metric' ? '700' : '400', color: activeMode === 'metric' ? 'var(--primary)' : 'inherit' }}>
+                • Dimensi Metrik β(G) = <strong>{GRAPHS[currentGraph].metricDimension}</strong> patokan {activeMode === 'metric' && '👈 (Target Aktif)'}
               </div>
-              
-              <div className="zoom-controls">
-                <button onClick={zoomOut} className="zoom-btn" title="Zoom Out">
-                  <FontAwesomeIcon icon={faMinus} />
-                </button>
-                <button onClick={resetZoom} className="zoom-reset" title="Reset Zoom">
-                  {Math.round(zoom * 100)}%
-                </button>
-                <button onClick={zoomIn} className="zoom-btn" title="Zoom In">
-                  <FontAwesomeIcon icon={faPlus} />
-                </button>
-              </div>
-            </div>
-            
-            <div className="control-card">
-              <div className="selected-nodes-panel">
-                <h4>Simpul Terpilih ({selectedNodes.size})</h4>
-                {selectedNodes.size > 0 ? (
-                  <div className="selected-nodes-list">
-                    {Array.from(selectedNodes).sort((a,b) => {
-                      const aNum = parseInt(a.replace(/\D/g, '')) || 0;
-                      const bNum = parseInt(b.replace(/\D/g, '')) || 0;
-                      return aNum - bNum;
-                    }).map(node => (
-                      <span key={node} className="node-tag selected">
-                        {node}
-                      </span>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="no-selection">Klik simpul pada graf untuk memilih</p>
-                )}
+              <div className="target-item" style={{ fontWeight: activeMode === 'domination' ? '700' : '400', color: activeMode === 'domination' ? '#047857' : 'inherit' }}>
+                • Bilangan Dominasi γ(G) = <strong>{GRAPHS[currentGraph].dominationNumber}</strong> penjaga {activeMode === 'domination' && '👈 (Target Aktif)'}
               </div>
             </div>
           </div>
           
-          <div className="visualization">
-            <div className="canvas-container" style={{ minHeight: '300px', position: 'relative' }}>
-              <canvas
-                ref={canvasRef}
-                onClick={handleCanvasClick}
-                style={{ 
-                  cursor: 'pointer',
-                  width: '100%',
-                  height: '500px',
-                  display: 'block'
-                }}
-              />
+          {/* Card 2: Interactive Controls */}
+          <div className="sidebar-card">
+            <h3 style={{ marginBottom: '1rem' }}>Kontrol Eksperimen</h3>
+            <div className="actions-grid">
+              <button onClick={resetSelection} className="action-btn action-btn-reset">
+                <FontAwesomeIcon icon={faEraser} /> Reset
+              </button>
+              <button onClick={checkAnswer} className="action-btn action-btn-cek">
+                <FontAwesomeIcon icon={faCheck} /> Cek
+              </button>
+              <button onClick={showSolution} className="action-btn action-btn-solusi">
+                <FontAwesomeIcon icon={faLightbulb} /> Solusi
+              </button>
+            </div>
+            
+            <div className="zoom-controls">
+              <button onClick={zoomOut} className="zoom-btn" title="Perkecil (-)">
+                <FontAwesomeIcon icon={faMinus} />
+              </button>
+              <button 
+                onClick={resetView} 
+                className="zoom-indicator" 
+                title="Klik untuk reset zoom & posisi (100%)"
+                style={{ background: 'none', border: 'none', cursor: 'pointer', font: 'inherit', color: 'inherit' }}
+              >
+                {Math.round(zoom * 100)}%
+              </button>
+              <button onClick={zoomIn} className="zoom-btn" title="Perbesar (+)">
+                <FontAwesomeIcon icon={faPlus} />
+              </button>
             </div>
           </div>
+          
+          {/* Card 3: Selected Nodes */}
+          <div className="sidebar-card">
+            <h3>
+              {activeMode === 'metric' 
+                ? `Patokan Navigasi Anda (${selectedNodes.size})` 
+                : `Pos Penjaga Dominasi (${selectedNodes.size})`}
+            </h3>
+            <p style={{ marginBottom: '0.75rem', fontSize: '0.85rem' }}>
+              {activeMode === 'metric'
+                ? 'Simpul yang Anda tandai sebagai patokan koordinat metrik:'
+                : 'Simpul yang Anda tugaskan sebagai penjaga/sensor pemantau:'}
+            </p>
+            {selectedNodes.size > 0 ? (
+              <div className="selected-nodes-container">
+                {Array.from(selectedNodes).sort((a,b) => {
+                  const aNum = parseInt(a.replace(/\D/g, '')) || 0;
+                  const bNum = parseInt(b.replace(/\D/g, '')) || 0;
+                  return aNum - bNum;
+                }).map(node => (
+                  <span 
+                    key={node} 
+                    className="selected-node-badge"
+                    style={{ background: activeMode === 'domination' ? '#10b981' : 'var(--primary)' }}
+                  >
+                    {node}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <p style={{ color: 'var(--text-light)', fontStyle: 'italic', fontSize: '0.8rem' }}>
+                Belum ada. Silakan klik bulatan simpul di area kanan.
+              </p>
+            )}
+          </div>
+
+        </div>
+
+        {/* Right Side: Interactive Canvas Visualizer */}
+        <div className="coba-canvas-card">
+          <div className="canvas-header-bar">
+            <div className="canvas-hint">
+              <FontAwesomeIcon icon={faArrowsAlt} style={{ color: 'var(--primary)' }} />
+              <span>
+                {activeMode === 'metric'
+                  ? 'Klik simpul untuk memilih patokan. Geser canvas untuk memindahkan.'
+                  : 'Klik simpul untuk menaruh penjaga. Geser canvas untuk memindahkan.'}
+              </span>
+            </div>
+            <button 
+              onClick={resetView} 
+              className="canvas-reset-view-btn"
+              title="Kembalikan posisi dan zoom ke tampilan awal"
+            >
+              <FontAwesomeIcon icon={faRedo} />
+              <span>Reset Posisi</span>
+            </button>
+          </div>
+
+          <div className="coba-canvas-wrapper">
+            <canvas
+              ref={canvasRef}
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+              className="coba-canvas"
+            />
+          </div>
+        </div>
+
+      </div>
+
+      {/* Dynamic Feedback Card */}
+      {feedback.message && (
+        <div className="coba-feedback-wrapper" ref={explanationRef}>
+          <div className={`coba-feedback-card feedback-${feedback.type}`}>
+            <div className="feedback-header">
+              <h3>
+                {feedback.type === 'correct' && <FontAwesomeIcon icon={faCheck} />}
+                {feedback.type === 'incorrect' && <FontAwesomeIcon icon={faTimes} />}
+                {feedback.type === 'partial' && <FontAwesomeIcon icon={faInfoCircle} />}
+                {feedback.type === 'info' && <FontAwesomeIcon icon={faLightbulb} />}
+                {feedback.message}
+              </h3>
+              <button 
+                onClick={() => setShowExplanation(!showExplanation)}
+                className="feedback-toggle-btn"
+              >
+                {showExplanation ? (
+                  <><FontAwesomeIcon icon={faChevronUp} /> Sembunyikan Rincian</>
+                ) : (
+                  <><FontAwesomeIcon icon={faChevronDown} /> Tampilkan Rincian</>
+                )}
+              </button>
+            </div>
+            
+            {showExplanation && (
+              <div className="feedback-body">
+                <p className="feedback-explanation" style={{ whiteSpace: 'pre-line' }}>{feedback.explanation}</p>
+                
+                {feedback.correctAnswer.length > 0 && (
+                  <div className="solution-box">
+                    <h4>
+                      {activeMode === 'metric' 
+                        ? '💡 Contoh Himpunan Pembeda Minimum yang Valid:' 
+                        : '💡 Contoh Himpunan Dominasi Minimum yang Valid:'}
+                    </h4>
+                    <div className="solution-badge-grid">
+                      {feedback.correctAnswer.map(node => (
+                        <span 
+                          key={`sol-${node}`} 
+                          className="solution-badge"
+                          style={{ background: activeMode === 'domination' ? '#047857' : 'var(--primary)' }}
+                        >
+                          {node}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Domination Report Table */}
+                {activeMode === 'domination' && feedback.dominationReport && (
+                  <div className="table-section">
+                    <h4>🛡️ Status Pengawasan Simpul Jaringan</h4>
+                    <p className="table-subtitle">
+                      Setiap simpul harus bertindak sebagai penjaga atau bertetangga langsung dengan minimal satu penjaga:
+                    </p>
+                    <div className="table-responsive-wrapper">
+                      <table className="distance-table">
+                        <thead>
+                          <tr>
+                            <th>Simpul</th>
+                            <th>Status Pemantauan</th>
+                            <th>Penjaga yang Mengawasi</th>
+                            <th>Status Keamanan</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {feedback.dominationReport.map(row => (
+                            <tr key={row.node} style={{ background: row.isCovered ? 'transparent' : '#fef2f2' }}>
+                              <td>
+                                <span className={`node-badge-small ${selectedNodes.has(row.node) ? 'selected-node' : ''}`} style={{
+                                  background: selectedNodes.has(row.node) ? '#10b981' : 'transparent',
+                                  color: selectedNodes.has(row.node) ? '#ffffff' : 'inherit'
+                                }}>
+                                  {row.node}
+                                </span>
+                              </td>
+                              <td>{row.status}</td>
+                              <td>{row.guard}</td>
+                              <td>
+                                <span style={{
+                                  padding: '3px 10px',
+                                  borderRadius: '12px',
+                                  fontSize: '0.75rem',
+                                  fontWeight: '600',
+                                  backgroundColor: row.isCovered ? '#d1fae5' : '#fee2e2',
+                                  color: row.isCovered ? '#047857' : '#b91c1c',
+                                  display: 'inline-block'
+                                }}>
+                                  {row.isCovered ? '✓ Terawasi' : '✗ Tidak Terawasi'}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                {/* Metric Distance Table */}
+                {activeMode === 'metric' && getDistanceTable() && (
+                  <div className="table-section">
+                    <h4>📊 Tabel Representasi Jarak (Vektor Jarak)</h4>
+                    <p className="table-subtitle">
+                      Masing-masing koordinat r(v|W) = (d(v, w₁), d(v, w₂), ...) menunjukkan jarak simpul terhadap seluruh patokan navigasi
+                    </p>
+                    <div className="table-responsive-wrapper">
+                      <table className="distance-table">
+                        <thead>
+                          <tr>
+                            <th>Simpul</th>
+                            {Array.from(selectedNodes).sort((a,b) => {
+                              const aNum = parseInt(a.replace(/\D/g, '')) || 0;
+                              const bNum = parseInt(b.replace(/\D/g, '')) || 0;
+                              return aNum - bNum;
+                            }).map(selNode => (
+                              <th key={selNode}>Jarak ke {selNode}</th>
+                            ))}
+                            <th>Representasi Koordinat r(v|W)</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {getDistanceTable().map(row => (
+                            <tr key={row.node} className={selectedNodes.has(row.node) ? 'selected-row' : ''}>
+                              <td>
+                                <span className={`node-badge-small ${selectedNodes.has(row.node) ? 'selected-node' : ''}`}>
+                                  {row.node}
+                                </span>
+                              </td>
+                              {row.distances.map((dist, i) => (
+                                <td key={i}>{dist}</td>
+                              ))}
+                              <td>
+                                <code className="representation-code">
+                                  {row.representation}
+                                </code>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Bottom Concepts Panel (Accordion) */}
+      <div className="info-accordion-card">
+        <div 
+          onClick={() => setShowInfoPanel(!showInfoPanel)}
+          className="info-accordion-header"
+        >
+          <h3>
+            <FontAwesomeIcon icon={faInfoCircle} />
+            Konsep & Teorema Teori Graf
+          </h3>
+          <button className="info-accordion-toggle">
+            <FontAwesomeIcon icon={showInfoPanel ? faChevronUp : faChevronDown} />
+          </button>
         </div>
         
-        {feedback.message && (
-          <div className="feedback-section" ref={explanationRef}>
-            <div className={`feedback ${feedback.type}`}>
-              <div className="feedback-header">
-                <h3>
-                  {feedback.type === 'correct' && <FontAwesomeIcon icon={faCheck} />}
-                  {feedback.type === 'incorrect' && <FontAwesomeIcon icon={faTimes} />}
-                  {feedback.type === 'partial' && <FontAwesomeIcon icon={faInfoCircle} />}
-                  {feedback.type === 'info' && <FontAwesomeIcon icon={faLightbulb} />}
-                  {' '}{feedback.message}
-                </h3>
-                <button 
-                  onClick={() => setShowExplanation(!showExplanation)}
-                  className="toggle-explanation"
-                >
-                  {showExplanation ? (
-                    <>
-                      <FontAwesomeIcon icon={faChevronUp} /> Sembunyikan
-                    </>
-                  ) : (
-                    <>
-                      <FontAwesomeIcon icon={faChevronDown} /> Tampilkan
-                    </>
-                  )}
-                </button>
-              </div>
+        {showInfoPanel && (
+          <>
+            <div className="accordion-tabs-bar">
+              <button 
+                onClick={() => setActiveTab('panduan')}
+                className={`accordion-tab-btn ${activeTab === 'panduan' ? 'active' : ''}`}
+              >
+                <FontAwesomeIcon icon={faQuestionCircle} /> Cara Bereksperimen
+              </button>
+              <button 
+                onClick={() => setActiveTab('teori')}
+                className={`accordion-tab-btn ${activeTab === 'teori' ? 'active' : ''}`}
+              >
+                <FontAwesomeIcon icon={faBook} /> Definisi Istilah
+              </button>
+              <button 
+                onClick={() => setActiveTab('teorema')}
+                className={`accordion-tab-btn ${activeTab === 'teorema' ? 'active' : ''}`}
+              >
+                <FontAwesomeIcon icon={faCogs} /> Teorema Kunci
+              </button>
+            </div>
+            
+            <div className="accordion-content-body">
+              {activeTab === 'panduan' && (
+                <div>
+                  <h4 style={{ margin: '0 0 0.5rem', color: 'var(--text-dark)' }}>Panduan Penggunaan Lab Graf</h4>
+                  <ul style={{ paddingLeft: '1.25rem', margin: 0, lineHeight: 1.8, fontSize: '0.9rem' }}>
+                    <li><strong>Pilih Mode:</strong> Gunakan tombol <em>Pembeda (β)</em> untuk menguji navigasi koordinat metrik, atau <em>Dominasi (γ)</em> untuk menguji pengawasan keamanan jaringan.</li>
+                    <li><strong>Pilih Struktur Graf:</strong> Pilih salah satu jenis graf melalui dropdown di panel kiri.</li>
+                    <li><strong>Tandai Simpul:</strong> Klik langsung pada lingkaran simpul di area kanvas untuk memilih atau membatalkan pilihan.</li>
+                    <li><strong>Geser & Perbesar:</strong> Geser (*drag*) kanvas ke mana saja untuk meninjau bagian graf yang tertutup, dan gunakan tombol zoom (+ / -) untuk mengatur ukuran.</li>
+                    <li><strong>Cek Hasil:</strong> Klik tombol <em>Cek</em> untuk memeriksa apakah pilihan Anda sudah optimal atau terdapat simpul yang belum memenuhi kriteria.</li>
+                  </ul>
+                </div>
+              )}
               
-              {showExplanation && (
-                <div className="explanation">
-                  <p style={{whiteSpace: 'pre-wrap'}}>{feedback.explanation}</p>
-                  
-                  {feedback.correctAnswer.length > 0 && (
-                    <div className="correct-answer">
-                      <h4>💡 Contoh Himpunan Pembeda Minimum:</h4>
-                      <div className="solution-nodes">
-                        {feedback.correctAnswer.map(node => (
-                          <span key={node} className="node-tag correct">{node}</span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {getDistanceTable() && (
-                    <div className="distance-table">
-                      <h4>📊 Tabel Representasi Jarak (Vektor Jarak):</h4>
-                      <p style={{fontSize: '0.9rem', marginBottom: '1rem', color: '#64748b'}}>
-                        Representasi r(v|W) = (d(v,w₁), d(v,w₂), ...) untuk setiap simpul v terhadap himpunan W
-                      </p>
-                      <div className="table-container">
-                        <table>
-                          <thead>
-                            <tr>
-                              <th>Simpul</th>
-                              {Array.from(selectedNodes).sort((a,b) => {
-                                const aNum = parseInt(a.replace(/\D/g, '')) || 0;
-                                const bNum = parseInt(b.replace(/\D/g, '')) || 0;
-                                return aNum - bNum;
-                              }).map(selNode => (
-                                <th key={selNode}>d(-, {selNode})</th>
-                              ))}
-                              <th>Representasi r(v|W)</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {getDistanceTable().map(row => (
-                              <tr key={row.node} className={selectedNodes.has(row.node) ? 'selected-row' : ''}>
-                                <td className="node-cell">
-                                  <span className={`node-tag ${selectedNodes.has(row.node) ? 'selected' : ''}`}>
-                                    {row.node}
-                                  </span>
-                                </td>
-                                {row.distances.map((dist, i) => (
-                                  <td key={i} className="distance-cell">{dist}</td>
-                                ))}
-                                <td className="representation-cell">
-                                  <code>{row.representation}</code>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  )}
+              {activeTab === 'teori' && (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
+                  <div style={{ background: '#f8fafc', padding: '1rem', borderRadius: '10px', border: '1px solid var(--border)' }}>
+                    <h5 style={{ margin: '0 0 0.5rem', color: 'var(--primary)', fontWeight: 700 }}>Himpunan Dominasi (Dominating Set)</h5>
+                    <p style={{ margin: 0, fontSize: '0.85rem', lineHeight: 1.6 }}>
+                      Himpunan simpul S sedemikian sehingga setiap simpul di luar S bertetangga langsung dengan minimal satu simpul di S. Ukuran minimumnya disebut <strong>Bilangan Dominasi γ(G)</strong>.
+                    </p>
+                  </div>
+                  <div style={{ background: '#f8fafc', padding: '1rem', borderRadius: '10px', border: '1px solid var(--border)' }}>
+                    <h5 style={{ margin: '0 0 0.5rem', color: 'var(--primary)', fontWeight: 700 }}>Himpunan Pembeda (Resolving Set)</h5>
+                    <p style={{ margin: 0, fontSize: '0.85rem', lineHeight: 1.6 }}>
+                      Himpunan patokan W sedemikian sehingga setiap simpul di graf memiliki vektor jarak koordinat yang unik terhadap W. Ukuran minimumnya disebut <strong>Dimensi Metrik β(G)</strong>.
+                    </p>
+                  </div>
+                </div>
+              )}
+              
+              {activeTab === 'teorema' && (
+                <div>
+                  <h4 style={{ margin: '0 0 0.5rem', color: 'var(--text-dark)' }}>Teorema Karakterisasi Penting</h4>
+                  <ul style={{ paddingLeft: '1.25rem', margin: 0, lineHeight: 1.8, fontSize: '0.9rem' }}>
+                    <li><strong>Graf Lintasan Pₙ:</strong> β(Pₙ) = 1 (cukup 1 simpul ujung), sedangkan γ(Pₙ) = ⌈n/3⌉.</li>
+                    <li><strong>Graf Lengkap Kₙ:</strong> γ(Kₙ) = 1 (1 simpul terhubung ke semua), sedangkan β(Kₙ) = n - 1 (hampir semua simpul harus jadi patokan).</li>
+                    <li><strong>Graf Bintang K₁,ₙ:</strong> γ(K₁,ₙ) = 1 (cukup pusat c), sedangkan β(K₁,ₙ) = n - 1 (seluruh daun kecuali 1 harus jadi patokan).</li>
+                  </ul>
                 </div>
               )}
             </div>
-          </div>
+          </>
         )}
-
-        <div className="info-tabs-container">
-          <div className="tab-header" onClick={() => setShowInfoPanel(!showInfoPanel)}>
-            <h3>
-              <FontAwesomeIcon icon={faInfoCircle} />
-              Informasi Konsep dari Bab II
-            </h3>
-            <button className="toggle-panel-btn">
-              {showInfoPanel ? <FontAwesomeIcon icon={faChevronUp} /> : <FontAwesomeIcon icon={faChevronDown} />}
-            </button>
-          </div>
-          
-          {showInfoPanel && (
-            <>
-              <div className="tab-buttons">
-                <button className={`tab-btn ${activeTab === 'panduan' ? 'active' : ''}`} onClick={() => setActiveTab('panduan')}>
-                  <FontAwesomeIcon icon={faQuestionCircle} /> Panduan
-                </button>
-                <button className={`tab-btn ${activeTab === 'teori' ? 'active' : ''}`} onClick={() => setActiveTab('teori')}>
-                  <FontAwesomeIcon icon={faBook} /> Definisi
-                </button>
-                <button className={`tab-btn ${activeTab === 'strategi' ? 'active' : ''}`} onClick={() => setActiveTab('strategi')}>
-                  <FontAwesomeIcon icon={faCogs} /> Teorema
-                </button>
-              </div>
-
-              <div className="tab-content">
-                {activeTab === 'panduan' && (
-                  <div className="tab-panel">
-                    <div className="instruction-grid">
-                      <div className="instruction-card">
-                        <div className="instruction-number">1</div>
-                        <h4>Pilih Graf</h4>
-                        <p>Pilih graf dari dropdown. Tersedia diagram dari Gambar II.1 hingga II.19 sesuai PDF Bab II.</p>
-                      </div>
-                      <div className="instruction-card">
-                        <div className="instruction-number">2</div>
-                        <h4>Pilih Simpul</h4>
-                        <p>Klik simpul untuk membentuk himpunan pembeda atau himpunan dominasi.</p>
-                      </div>
-                      <div className="instruction-card">
-                        <div className="instruction-number">3</div>
-                        <h4>Cek Validitas</h4>
-                        <p>Klik "Cek" untuk memvalidasi apakah himpunan Anda adalah himpunan pembeda yang valid.</p>
-                      </div>
-                      <div className="instruction-card">
-                        <div className="instruction-number">4</div>
-                        <h4>Lihat Tabel Jarak</h4>
-                        <p>Analisis tabel representasi jarak untuk memahami konsep dimensi metrik β(G).</p>
-                      </div>
-                    </div>
-                    
-                    <div style={{marginTop: '2rem', padding: '1rem', background: '#f0f9ff', borderRadius: '8px', borderLeft: '4px solid #3b82f6'}}>
-                      <h4 style={{margin: '0 0 0.5rem 0', color: '#1e40af'}}>💡 Tips Visualisasi</h4>
-                      <ul style={{margin: 0, paddingLeft: '1.5rem', lineHeight: '1.8'}}>
-                        <li>Simpul berwarna <span style={{color: '#ef4444', fontWeight: 'bold'}}>merah</span> = simpul yang Anda pilih</li>
-                        <li>Simpul berwarna <span style={{color: '#10b981', fontWeight: 'bold'}}>hijau</span> = simpul dengan representasi sama (perlu diperbaiki)</li>
-                        <li>Gunakan zoom untuk melihat lebih detail pada graf yang kompleks</li>
-                      </ul>
-                    </div>
-                  </div>
-                )}
-
-                {activeTab === 'teori' && (
-                  <div className="tab-panel">
-                    <div className="theory-definition">
-                      <h4>🎯 Himpunan Dominasi</h4>
-                      <p>Himpunan D ⊆ V disebut <strong>himpunan dominasi</strong> dari graf G jika untuk setiap titik v ∈ V − D bertetangga dengan suatu titik di D.</p>
-                      <p style={{marginTop: '0.5rem'}}><strong>Bilangan Dominasi γ(G):</strong> Kardinalitas terkecil dari himpunan dominasi di G.</p>
-                      <p style={{fontSize: '0.85rem', fontStyle: 'italic', color: '#64748b'}}>Contoh: Pada graf bintang K₁,n, γ(K₁,n) = 1 (titik pusat mendominasi semua).</p>
-                    </div>
-                    
-                    <div className="theory-definition">
-                      <h4>📏 Himpunan Pembeda (Resolving Set)</h4>
-                      <p>Himpunan W ⊆ V disebut <strong>himpunan pembeda</strong> jika r(x|W) ≠ r(y|W) untuk setiap dua titik berbeda x, y ∈ V.</p>
-                      <p style={{marginTop: '0.5rem'}}>Representasi: r(v|W) = (d(v,w₁), d(v,w₂), ..., d(v,wₖ))</p>
-                      <p style={{fontSize: '0.85rem', fontStyle: 'italic', color: '#64748b'}}>Vektor jarak dari titik v ke setiap anggota W.</p>
-                    </div>
-                    
-                    <div className="theory-definition">
-                      <h4>📐 Dimensi Metrik β(G)</h4>
-                      <p><strong>Dimensi metrik</strong> dari G adalah bilangan bulat terkecil k sedemikian sehingga G mempunyai himpunan pembeda dengan k anggota.</p>
-                     
-                      <p style={{fontSize: '0.85rem', fontStyle: 'italic', color: '#64748b'}}>
-                        Contoh: β(Pn) = 1, β(Cn) = 2, β(Kn) = n-1
-                      </p>
-                    </div>
-                    
-                    <div className="theory-definition">
-                      <h4>🎯📏 Himpunan Dominasi-Lokasi-Metrik</h4>
-                      <p>Himpunan S yang sekaligus merupakan <strong>himpunan dominasi DAN himpunan pembeda</strong>.</p>
-                      <p style={{marginTop: '0.5rem'}}><strong>Bilangan Dominasi-Lokasi-Metrik γM(G):</strong> Kardinalitas minimum dari himpunan dominasi-lokasi-metrik.</p>
-                      <p style={{marginTop: '0.5rem', padding: '0.5rem', background: '#fef3c7', borderRadius: '4px'}}>
-                        <strong>Batas (Brigham et al., 2003):</strong><br/>
-                        {/* max{γ(G), β(G)} ≤ γM(G) ≤ min{γ(G) + β(G), n  } */}
-                      </p>
-                    </div>
-                  </div>
-                )}
-                
-                {activeTab === 'strategi' && (
-                  <div className="tab-panel">
-                    <h4 style={{marginBottom: '1rem', color: '#1e40af'}}>📚 Teorema Penting dari Bab II</h4>
-                    
-                    <div style={{marginBottom: '1.5rem', padding: '1rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0'}}>
-                      <h5 style={{margin: '0 0 0.5rem 0', color: '#0f172a'}}>Teorema II.6 (Chartrand et al., 2000)</h5>
-                      <ul style={{margin: 0, paddingLeft: '1.5rem', lineHeight: '1.8'}}>
-                        <li>β(G) = 1 ⟺ G ≅ Pn (hanya graf lintasan)</li>
-                        <li>β(G) = n−1 ⟺ G ≅ Kn (graf lengkap)</li>
-                        <li>β(Cn) = 2 untuk n ≥ 3</li>
-                      </ul>
-                    </div>
-                    
-                    <div style={{marginBottom: '1.5rem', padding: '1rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0'}}>
-                      <h5 style={{margin: '0 0 0.5rem 0', color: '#0f172a'}}>Teorema II.11 (Dimensi Metrik Pohon)</h5>
-                      <p style={{margin: 0}}>Jika T adalah pohon bukan lintasan, maka:</p>
-                      <p style={{margin: '0.5rem 0 0 0', fontWeight: 'bold', color: '#3b82f6'}}>β(T) = σ(T) − ex(T)</p>
-                      <p style={{fontSize: '0.85rem', color: '#64748b', margin: '0.5rem 0 0 0'}}>
-                        σ(T) = total derajat terminal, ex(T) = banyak titik mayor eksterior
-                      </p>
-                    </div>
-                    
-                    <div style={{marginBottom: '1.5rem', padding: '1rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0'}}>
-                      <h5 style={{margin: '0 0 0.5rem 0', color: '#0f172a'}}>Teorema II.18 & II.19 (Henning & Oellermann, 2004)</h5>
-                      {/* <p style={{margin: '0 0 0.5rem 0'}}>γM(G) = n−1 ⟺ G ∈ {K₁,n₋₁, Kn}</p> */}
-                      <p style={{margin: 0}}>γM(G) = n−2 ⟺ G ∈ ⋃⁷ᵢ₌₁ Fᵢ (7 keluarga graf khusus)</p>
-                    </div>
-                    
-                    <div style={{marginBottom: '1.5rem', padding: '1rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0'}}>
-                      <h5 style={{margin: '0 0 0.5rem 0', color: '#0f172a'}}>Teorema II.20 (Pohon)</h5>
-                      <p style={{margin: 0, fontWeight: 'bold', color: '#3b82f6'}}>γM(T) = γ(T) + ℓ'(T) − |S'(T)|</p>
-                      <p style={{fontSize: '0.85rem', color: '#64748b', margin: '0.5rem 0 0 0'}}>
-                        ℓ'(T) = banyak titik pendan bertetangga dengan titik pendukung kuat<br/>
-                        S'(T) = himpunan titik pendukung kuat
-                      </p>
-                    </div>
-                    
-                    <div style={{padding: '1rem', background: '#fef3c7', borderRadius: '8px', border: '1px solid #fbbf24'}}>
-                      <h5 style={{margin: '0 0 0.5rem 0', color: '#92400e'}}>💡 Sifat Titik Kembar (Teorema II.5)</h5>
-                      <p style={{margin: 0}}>Jika S adalah himpunan dengan p ≥ 2 titik kembar pada graf G, maka setiap himpunan pembeda harus memuat <strong>p−1 titik dari S</strong>.</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </>
-          )}
-        </div>
       </div>
-
-      <style jsx>{`
-        .app-container { 
-          background: linear-gradient(135deg, #f0f2f5 0%, #e6e9f0 100%);
-          min-height: 100vh;
-          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        }
-        
-        .content-wrapper { 
-          max-width: 1400px; 
-          margin: 0 auto; 
-          padding: 2rem 1.5rem;
-        }
-        
-        .header { 
-          text-align: center; 
-          margin-bottom: 2.5rem; 
-        }
-        
-        .judul-heading { 
-          font-size: 2.5rem; 
-          color: #1e3a8a; 
-          margin-bottom: 0.5rem;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 0.75rem;
-        }
-        
-        .subtitle { 
-          font-size: 1.2rem; 
-          color: #475569; 
-          max-width: 700px;
-          margin: 0 auto;
-          line-height: 1.6;
-        }
-        
-        .icon { 
-          color: #3b82f6;
-        }
-
-        .main-content { 
-          display: flex; 
-          gap: 2rem; 
-          margin-bottom: 2.5rem;
-          flex-direction: column;
-        }
-        
-        @media (min-width: 1024px) {
-          .main-content {
-            flex-direction: row;
-          }
-        }
-        
-        .control-panel { 
-          flex: 1; 
-          min-width: 320px; 
-          display: flex; 
-          flex-direction: column; 
-          gap: 1.5rem; 
-        }
-        
-        .visualization { 
-          flex: 2; 
-          min-width: 0; 
-          display: flex; 
-          flex-direction: column; 
-          background: #ffffff; 
-          border-radius: 16px; 
-          box-shadow: 0 10px 25px rgba(0,0,0,0.05), 0 5px 10px rgba(0,0,0,0.05);
-          overflow: hidden;
-          height: 500px;
-        }
-        
-        @media (min-width: 1024px) {
-          .visualization {
-            height: auto;
-          }
-        }
-
-        .control-card { 
-          background: #ffffff; 
-          padding: 1.5rem; 
-          border-radius: 12px; 
-          box-shadow: 0 4px 6px rgba(0,0,0,0.04); 
-          border: 1px solid #e2e8f0;
-        }
-        
-        .control-card label { 
-          display: block; 
-          margin-bottom: 0.75rem; 
-          font-weight: 600; 
-          color: #334155; 
-          font-size: 0.9rem;
-        }
-        
-        .graph-type-selector { 
-          width: 100%; 
-          padding: 0.75rem; 
-          border-radius: 8px; 
-          border: 1px solid #cbd5e1; 
-          font-size: 1rem; 
-          background-color: #f8fafc;
-          transition: all 0.2s ease;
-        }
-        
-        .graph-type-selector:focus {
-          outline: none;
-          border-color: #3b82f6;
-          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
-        }
-        
-        .target-info { 
-          background-color: #e0f2fe; 
-          border-left: 4px solid #0ea5e9; 
-          padding: 0.75rem 1rem; 
-          border-radius: 6px; 
-          margin-top: 1rem; 
-          font-size: 0.9rem;
-        }
-        
-        .action-buttons { 
-          display: grid; 
-          grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); 
-          gap: 0.75rem; 
-          margin-bottom: 1.25rem;
-        }
-        
-        .action-btn { 
-          padding: 0.75rem 1rem; 
-          border: none; 
-          border-radius: 8px; 
-          font-size: 0.9rem; 
-          font-weight: 600; 
-          cursor: pointer; 
-          transition: all 0.2s ease; 
-          display: flex; 
-          align-items: center; 
-          justify-content: center; 
-          gap: 0.5rem; 
-        }
-        
-        .reset-btn { 
-          background-color: #f8fafc; 
-          color: #475569; 
-          border: 1px solid #e2e8f0;
-        }
-        
-        .reset-btn:hover { 
-          background-color: #f1f5f9; 
-        }
-        
-        .check-btn { 
-          background: linear-gradient(135deg, #10b981 0%, #059669 100%); 
-          color: white; 
-        }
-        
-        .check-btn:hover { 
-          background: linear-gradient(135deg, #059669 0%, #047857 100%); 
-          transform: translateY(-2px);
-          box-shadow: 0 4px 6px rgba(5, 150, 105, 0.3);
-        }
-        
-        .solution-btn { 
-          background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); 
-          color: white; 
-        }
-        
-        .solution-btn:hover { 
-          background: linear-gradient(135deg, #d97706 0%, #b45309 100%); 
-          transform: translateY(-2px);
-          box-shadow: 0 4px 6px rgba(245, 158, 11, 0.3);
-        }
-        
-        .zoom-controls {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 0.5rem;
-          margin-top: 1rem;
-          padding-top: 1rem;
-          border-top: 1px solid #e2e8f0;
-        }
-        
-        .zoom-btn {
-          width: 36px;
-          height: 36px;
-          border-radius: 50%;
-          border: 1px solid #cbd5e1;
-          background: #f8fafc;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
-          transition: all 0.2s ease;
-        }
-        
-        .zoom-btn:hover {
-          background: #e2e8f0;
-        }
-        
-        .zoom-reset {
-          padding: 0.25rem 0.75rem;
-          border-radius: 20px;
-          border: 1px solid #cbd5e1;
-          background: #f8fafc;
-          font-size: 0.8rem;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.2s ease;
-        }
-        
-        .zoom-reset:hover {
-          background: #e2e8f0;
-        }
-        
-        .selected-nodes-panel h4 {
-          margin-bottom: 0.75rem;
-          color: #334155;
-          font-size: 1rem;
-        }
-        
-        .selected-nodes-list {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 0.5rem;
-        }
-        
-        .no-selection {
-          color: #94a3b8;
-          font-style: italic;
-          font-size: 0.9rem;
-        }
-        
-        .canvas-container { 
-          flex-grow: 1; 
-          position: relative; 
-          width: 100%;
-          height: 100%;
-        }
-        
-        canvas { 
-          position: absolute; 
-          top: 0; 
-          left: 0; 
-          width: 100%; 
-          height: 100%; 
-          border-radius: 16px;
-        }
-        
-        .feedback-section { 
-          margin-bottom: 2.5rem; 
-        }
-        
-        .feedback { 
-          padding: 1.5rem; 
-          border-radius: 12px; 
-          box-shadow: 0 10px 15px rgba(0,0,0,0.05);
-        }
-        
-        .feedback-header { 
-          display: flex; 
-          justify-content: space-between; 
-          align-items: center; 
-          margin-bottom: 1rem; 
-          flex-wrap: wrap;
-          gap: 1rem;
-        }
-        
-        .feedback-header h3 { 
-          margin: 0; 
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-        }
-        
-        .toggle-explanation { 
-          background: none; 
-          border: 1px solid #94a3b8; 
-          color: #475569; 
-          padding: 0.5rem 1rem; 
-          border-radius: 20px; 
-          cursor: pointer; 
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          font-size: 0.9rem;
-          transition: all 0.2s ease;
-        }
-        
-        .toggle-explanation:hover {
-          background: #f8fafc;
-        }
-        
-        .explanation { 
-          border-top: 1px solid rgba(0,0,0,0.1); 
-          padding-top: 1.5rem; 
-        }
-        
-        .feedback.correct { 
-          background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); 
-          border-left: 5px solid #22c55e; 
-        }
-        
-        .feedback.incorrect { 
-          background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); 
-          border-left: 5px solid #ef4444; 
-        }
-        
-        .feedback.partial { 
-          background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); 
-          border-left: 5px solid #f59e0b; 
-        }
-        
-        .feedback.info { 
-          background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); 
-          border-left: 5px solid #3b82f6; 
-        }
-
-        .table-container { 
-          overflow-x: auto; 
-          margin: 1rem 0; 
-          border-radius: 8px;
-          border: 1px solid #e2e8f0;
-        }
-        
-        .distance-table table { 
-          width: 100%; 
-          border-collapse: collapse; 
-          font-size: 0.9rem; 
-        }
-        
-        .distance-table th, .distance-table td { 
-          padding: 0.75rem 0.5rem; 
-          text-align: center; 
-          border: 1px solid #e5e7eb; 
-        }
-        
-        .distance-table th { 
-          background: #f8fafc; 
-          font-weight: 600; 
-          color: #374151;
-        }
-        
-        .selected-row { 
-          background: rgba(239, 68, 68, 0.1); 
-        }
-        
-        .node-tag { 
-          display: inline-block; 
-          padding: 0.35rem 0.75rem; 
-          border-radius: 20px; 
-          font-weight: 600; 
-          margin: 0.125rem; 
-          font-size: 0.8rem;
-        }
-        
-        .node-tag.correct { 
-          background: #10b981; 
-          color: white; 
-        }
-        
-        .node-tag.selected { 
-          background: #ef4444; 
-          color: white; 
-        }
-        
-        .representation-cell code { 
-          background: #f1f5f9; 
-          padding: 0.25rem 0.5rem; 
-          border-radius: 4px; 
-          font-family: 'Fira Code', monospace;
-          font-size: 0.85rem;
-        }
-        
-        .info-tabs-container {
-            background: #ffffff;
-            border-radius: 16px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05), 0 5px 10px rgba(0,0,0,0.05);
-            overflow: hidden;
-            margin-bottom: 2rem;
-        }
-        
-        .tab-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1.25rem 1.5rem;
-            background: #f8fafc;
-            cursor: pointer;
-            border-bottom: 1px solid #e2e8f0;
-        }
-        
-        .tab-header h3 {
-            margin: 0;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: #334155;
-        }
-        
-        .toggle-panel-btn {
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: #64748b;
-            font-size: 1.1rem;
-        }
-        
-        .tab-buttons {
-            display: flex;
-            background-color: #f1f5f9;
-            padding: 0.5rem;
-            gap: 0.5rem;
-        }
-        
-        .tab-btn {
-            flex: 1;
-            padding: 0.75rem 1rem;
-            font-size: 0.9rem;
-            font-weight: 600;
-            border: none;
-            background-color: transparent;
-            color: #475569;
-            cursor: pointer;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-        }
-        
-        .tab-btn:hover {
-            background-color: #e2e8f0;
-            color: #1e3a8a;
-        }
-        
-        .tab-btn.active {
-            background-color: #3b82f6;
-            color: #ffffff;
-            box-shadow: 0 2px 4px rgba(59, 130, 246, 0.4);
-        }
-        
-        .tab-content {
-            padding: 1.5rem;
-        }
-        
-        .tab-panel {
-            animation: fadeIn 0.5s ease-in-out;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .instruction-grid { 
-          display: grid; 
-          grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); 
-          gap: 1.5rem; 
-        }
-        
-        .instruction-card { 
-          background: #f8fafc; 
-          padding: 1.5rem; 
-          border-radius: 12px; 
-          border: 1px solid #e2e8f0; 
-          transition: transform 0.2s ease, box-shadow 0.2s ease; 
-          position: relative; 
-        }
-        
-        .instruction-card:hover { 
-          transform: translateY(-5px); 
-          box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
-        }
-        
-        .instruction-number { 
-          position: absolute; 
-          top: -15px; 
-          left: -15px; 
-          background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); 
-          color: white; 
-          width: 40px; 
-          height: 40px; 
-          border-radius: 50%; 
-          display: flex; 
-          align-items: center; 
-          justify-content: center; 
-          font-size: 1.25rem; 
-          font-weight: bold; 
-          border: 3px solid white; 
-          box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3);
-        }
-        
-        .instruction-card h4 { 
-          margin-top: 1rem; 
-          margin-bottom: 0.75rem;
-          color: #1e293b;
-        }
-        
-        .instruction-card p {
-          color: #64748b;
-          line-height: 1.6;
-          margin: 0;
-        }
-        
-        .theory-definition { 
-          margin-bottom: 2rem; 
-          padding: 1.5rem;
-          background: #f8fafc;
-          border-radius: 12px;
-          border-left: 4px solid #3b82f6;
-        }
-        
-        .theory-definition h4 { 
-          color: #1e3a8a; 
-          border-bottom: 2px solid #dbeafe; 
-          padding-bottom: 0.5rem; 
-          margin-bottom: 1rem; 
-        }
-        
-        .theory-definition p { 
-          line-height: 1.6; 
-          color: #374151;
-        }
-
-        .correct-answer {
-          margin-top: 1.5rem;
-          padding: 1rem;
-          background: #f0fdf4;
-          border-radius: 8px;
-          border: 1px solid #86efac;
-        }
-
-        .correct-answer h4 {
-          margin: 0 0 0.75rem 0;
-          color: #166534;
-        }
-
-        .solution-nodes {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 0.5rem;
-        }
-
-        @media (max-width: 1024px) {
-            .content-wrapper { padding: 1.5rem 1rem; }
-            .main-content { flex-direction: column; }
-            .control-panel { min-width: 100%; }
-            .judul-heading { font-size: 2rem; }
-            .subtitle { font-size: 1rem; }
-        }
-        
-        @media (max-width: 768px) {
-            .judul-heading { font-size: 1.75rem; }
-            .tab-buttons { flex-direction: column; }
-            .feedback-header { flex-direction: column; align-items: flex-start; }
-            .toggle-explanation { align-self: flex-end; }
-            .instruction-grid { grid-template-columns: 1fr; }
-        }
-      `}</style>
     </div>
   );
 };

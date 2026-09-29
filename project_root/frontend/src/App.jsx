@@ -1,13 +1,5 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-// import './App.css';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {
-  faProjectDiagram, faHome, faBook, faPlayCircle,
-  faPenFancy, faTasks, faArrowRight, faPlay,
-  faBookOpen, faGamepad, faPencilRuler, faChevronRight
-} from '@fortawesome/free-solid-svg-icons';
-
 // Halaman
 import Beranda from './pages/beranda';
 import Materi from './pages/materi';

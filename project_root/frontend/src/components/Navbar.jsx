@@ -1,9 +1,9 @@
-// src/components/Navbar.jsx (Final & Refactored)
+// src/components/Navbar.jsx
 import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faProjectDiagram, faHome, faBook, faPlayCircle, faPenFancy, faTasks, faBars, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { NavLink, useLocation } from 'react-router-dom';
-import styles from './navbar.module.css'; 
+import styles from './Navbar.module.css'; 
 
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);

@@ -1,7 +1,8 @@
 // src/pages/Login.jsx
 import React, { useState } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import './assets/login.css';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -13,6 +14,8 @@ const Login = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+    setPesan('');
+
     try {
       const res = await axios.post('http://localhost:3000/users/login', {
         email,
@@ -22,9 +25,14 @@ const Login = () => {
       });
 
       setPesan(res.data.message || 'Login berhasil');
-      navigate('/'); 
+      setTimeout(() => navigate('/'), 1000);
     } catch (err) {
-      setPesan(err.response?.data?.message || 'Login gagal');
+      if (!err.response) {
+        // Server backend tidak aktif (mode offline/demo)
+        setPesan('Fitur Demo: Server akun belum dihubungkan. Anda tetap dapat menjelajahi seluruh materi, contoh, dan lab graf secara bebas.');
+      } else {
+        setPesan(err.response?.data?.message || 'Login gagal. Periksa kembali email dan kata sandi Anda.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -33,7 +41,7 @@ const Login = () => {
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #4361ee 0%, #3f37c9 100%)',
+      background: 'linear-gradient(135deg, #1e40af 0%, #3730a3 100%)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -56,18 +64,18 @@ const Login = () => {
       }} />
 
       <div style={{
-        background: 'rgba(255, 255, 255, 0.95)',
+        background: 'rgba(255, 255, 255, 0.96)',
         backdropFilter: 'blur(20px)',
         borderRadius: '24px',
-        padding: '40px',
+        padding: '36px 40px',
         width: '100%',
-        maxWidth: '420px',
+        maxWidth: '440px',
         boxShadow: `
-          0 32px 64px rgba(67, 97, 238, 0.3),
-          0 16px 32px rgba(63, 55, 201, 0.2),
+          0 32px 64px rgba(30, 64, 175, 0.3),
+          0 16px 32px rgba(55, 48, 163, 0.2),
           inset 0 1px 0 rgba(255, 255, 255, 0.8)
         `,
-        border: '1px solid rgba(255, 255, 255, 0.3)',
+        border: '1px solid rgba(255, 255, 255, 0.4)',
         position: 'relative',
         overflow: 'hidden'
       }}>
@@ -83,17 +91,33 @@ const Login = () => {
           animation: 'shine 3s ease-in-out infinite'
         }} />
 
-        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+        {/* Back Link */}
+        <div style={{ marginBottom: '16px' }}>
+          <Link to="/" style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            color: '#1e40af',
+            fontSize: '14px',
+            fontWeight: '600',
+            textDecoration: 'none',
+            transition: 'color 0.2s ease'
+          }}>
+            ← Kembali ke Beranda
+          </Link>
+        </div>
+
+        <div style={{ textAlign: 'center', marginBottom: '28px' }}>
           <div style={{
-            width: '64px',
-            height: '64px',
-            background: 'linear-gradient(135deg, #4361ee, #3f37c9)',
+            width: '60px',
+            height: '60px',
+            background: 'linear-gradient(135deg, #1e40af, #3b82f6)',
             borderRadius: '16px',
-            margin: '0 auto 16px',
+            margin: '0 auto 14px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 8px 32px rgba(67, 97, 238, 0.4)'
+            boxShadow: '0 8px 24px rgba(30, 64, 175, 0.35)'
           }}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M16 7C16 9.20914 14.2091 11 12 11C9.79086 11 8 9.20914 8 7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7Z" fill="white"/>
@@ -102,59 +126,57 @@ const Login = () => {
           </div>
           <h2 style={{
             margin: 0,
-            fontSize: '28px',
+            fontSize: '26px',
             fontWeight: '700',
-            background: 'linear-gradient(135deg, #4361ee, #3f37c9)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
+            color: '#0f172a',
             letterSpacing: '-0.5px'
           }}>
-            Welcome Back
+            Masuk ke Akun
           </h2>
           <p style={{
-            margin: '8px 0 0',
-            color: '#6b7280',
-            fontSize: '16px'
+            margin: '6px 0 0',
+            color: '#64748b',
+            fontSize: '14px'
           }}>
-            Sign in to continue to your account
+            Masuk untuk mengakses materi dan melacak kemajuan latihan Anda
           </p>
         </div>
 
-        <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
           <div>
             <label style={{
               display: 'block',
-              marginBottom: '8px',
+              marginBottom: '6px',
               fontSize: '14px',
-              fontWeight: '500',
-              color: '#374151'
+              fontWeight: '600',
+              color: '#334155'
             }}>
-              Email
+              Alamat Email
             </label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              placeholder="nama@email.com"
               required
               style={{
                 width: '100%',
-                padding: '12px 16px',
-                border: '2px solid #e5e7eb',
-                borderRadius: '12px',
-                fontSize: '16px',
+                padding: '12px 14px',
+                border: '1.5px solid #cbd5e1',
+                borderRadius: '10px',
+                fontSize: '15px',
                 backgroundColor: '#ffffff',
-                color: '#1f2937',
+                color: '#0f172a',
                 transition: 'all 0.2s ease',
                 outline: 'none',
                 boxSizing: 'border-box'
               }}
               onFocus={(e) => {
-                e.target.style.borderColor = '#4361ee';
-                e.target.style.boxShadow = '0 0 0 3px rgba(67, 97, 238, 0.1)';
+                e.target.style.borderColor = '#1e40af';
+                e.target.style.boxShadow = '0 0 0 3px rgba(30, 64, 175, 0.15)';
               }}
               onBlur={(e) => {
-                e.target.style.borderColor = '#e5e7eb';
+                e.target.style.borderColor = '#cbd5e1';
                 e.target.style.boxShadow = 'none';
               }}
             />
@@ -163,36 +185,37 @@ const Login = () => {
           <div>
             <label style={{
               display: 'block',
-              marginBottom: '8px',
+              marginBottom: '6px',
               fontSize: '14px',
-              fontWeight: '500',
-              color: '#374151'
+              fontWeight: '600',
+              color: '#334155'
             }}>
-              Password
+              Kata Sandi
             </label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
               required
               style={{
                 width: '100%',
-                padding: '12px 16px',
-                border: '2px solid #e5e7eb',
-                borderRadius: '12px',
-                fontSize: '16px',
+                padding: '12px 14px',
+                border: '1.5px solid #cbd5e1',
+                borderRadius: '10px',
+                fontSize: '15px',
                 backgroundColor: '#ffffff',
-                color: '#1f2937',
+                color: '#0f172a',
                 transition: 'all 0.2s ease',
                 outline: 'none',
                 boxSizing: 'border-box'
               }}
               onFocus={(e) => {
-                e.target.style.borderColor = '#4361ee';
-                e.target.style.boxShadow = '0 0 0 3px rgba(67, 97, 238, 0.1)';
+                e.target.style.borderColor = '#1e40af';
+                e.target.style.boxShadow = '0 0 0 3px rgba(30, 64, 175, 0.15)';
               }}
               onBlur={(e) => {
-                e.target.style.borderColor = '#e5e7eb';
+                e.target.style.borderColor = '#cbd5e1';
                 e.target.style.boxShadow = 'none';
               }}
             />
@@ -203,35 +226,22 @@ const Login = () => {
             disabled={isLoading}
             style={{
               width: '100%',
-              padding: '14px',
+              padding: '13px',
               background: isLoading 
-                ? 'linear-gradient(135deg, #9ca3af, #6b7280)' 
-                : 'linear-gradient(135deg, #4361ee, #3f37c9)',
+                ? 'linear-gradient(135deg, #94a3b8, #64748b)' 
+                : 'linear-gradient(135deg, #1e40af, #2563eb)',
               color: 'white',
               border: 'none',
-              borderRadius: '12px',
-              fontSize: '16px',
+              borderRadius: '10px',
+              fontSize: '15px',
               fontWeight: '600',
               cursor: isLoading ? 'not-allowed' : 'pointer',
               transition: 'all 0.2s ease',
               boxShadow: isLoading 
                 ? 'none' 
-                : '0 8px 24px rgba(67, 97, 238, 0.4)',
+                : '0 6px 20px rgba(30, 64, 175, 0.35)',
               transform: isLoading ? 'none' : 'translateY(0)',
-              position: 'relative',
-              overflow: 'hidden'
-            }}
-            onMouseEnter={(e) => {
-              if (!isLoading) {
-                e.target.style.transform = 'translateY(-2px)';
-                e.target.style.boxShadow = '0 12px 32px rgba(67, 97, 238, 0.5)';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!isLoading) {
-                e.target.style.transform = 'translateY(0)';
-                e.target.style.boxShadow = '0 8px 24px rgba(67, 97, 238, 0.4)';
-              }
+              marginTop: '4px'
             }}
           >
             {isLoading ? (
@@ -244,29 +254,29 @@ const Login = () => {
                   borderRadius: '50%',
                   animation: 'spin 1s linear infinite'
                 }} />
-                Signing In...
+                Sedang Masuk...
               </span>
             ) : (
-              'Sign In'
+              'Masuk Sekarang'
             )}
           </button>
 
           {pesan && (
             <div style={{
-              padding: '12px 16px',
-              borderRadius: '8px',
-              fontSize: '14px',
-              fontWeight: '500',
+              padding: '12px 14px',
+              borderRadius: '10px',
+              fontSize: '13px',
+              lineHeight: '1.5',
               textAlign: 'center',
               backgroundColor: pesan.includes('berhasil') || pesan.includes('success') 
                 ? 'rgba(16, 185, 129, 0.1)' 
-                : 'rgba(239, 68, 68, 0.1)',
+                : 'rgba(59, 130, 246, 0.08)',
               color: pesan.includes('berhasil') || pesan.includes('success') 
-                ? '#10b981' 
-                : '#ef4444',
+                ? '#047857' 
+                : '#1e40af',
               border: `1px solid ${pesan.includes('berhasil') || pesan.includes('success') 
-                ? 'rgba(16, 185, 129, 0.2)' 
-                : 'rgba(239, 68, 68, 0.2)'}`,
+                ? 'rgba(16, 185, 129, 0.3)' 
+                : 'rgba(59, 130, 246, 0.25)'}`,
               animation: 'slideIn 0.3s ease-out'
             }}>
               {pesan}
@@ -275,45 +285,20 @@ const Login = () => {
         </form>
 
         <div style={{
-          marginTop: '24px',
+          marginTop: '22px',
           textAlign: 'center',
-          paddingTop: '24px',
-          borderTop: '1px solid #f3f4f6'
+          paddingTop: '20px',
+          borderTop: '1px solid #f1f5f9'
         }}>
           <p style={{
             margin: 0,
-            fontSize: '14px',
-            color: '#6b7280'
+            fontSize: '13px',
+            color: '#64748b'
           }}>
-            Don't have an account?{' '}
-            <span style={{
-              color: '#4361ee',
-              fontWeight: '600',
-              cursor: 'pointer'
-            }}>
-              Sign up here
-            </span>
+            Belum memiliki akun? Akses gratis ke semua modul tetap tersedia tanpa login.
           </p>
         </div>
       </div>
-
-      <style jsx>{`
-        @keyframes shine {
-          0% { left: -100%; }
-          50% { left: 100%; }
-          100% { left: 100%; }
-        }
-        
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-        
-        @keyframes slideIn {
-          0% { opacity: 0; transform: translateY(-10px); }
-          100% { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
     </div>
   );
 };
