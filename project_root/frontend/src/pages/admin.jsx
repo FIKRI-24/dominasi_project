@@ -3,28 +3,41 @@ import Navbar from '../components/Navbar';
 
 const API = 'http://localhost:5000/api';
 
-const DIFF_COLORS = { Beginner: '#10b981', Intermediate: '#f59e0b', Advanced: '#ef4444' };
+const DIFF_COLORS = { 
+  Beginner: { bg: '#064e3b', text: '#34d399', border: '#059669' }, 
+  Intermediate: { bg: '#78350f', text: '#fde047', border: '#d97706' }, 
+  Advanced: { bg: '#7f1d1d', text: '#fca5a5', border: '#dc2626' } 
+};
 
-// ── Komponen canvas interaktif untuk input graph JSON ──
-const GraphCanvas = ({ value, onChange }) => {
+const CATEGORY_SUGGESTIONS = [
+  'Representasi Matriks',
+  'Spektral Graf & Laplacian',
+  'Dasar Bilangan Dominasi',
+  'Variasi Dominasi & Sensor',
+  'Konektivitas & Jalur',
+  'Pembeda Metrik'
+];
+
+const EMOJI_OPTIONS = ['📊', '🔬', '🎯', '🚀', '⚡', '💡', '🧩', '📐', '🌐', '🛡️'];
+
+// ── Komponen Kanvas Interaktif untuk Membangun JSON Graf ──
+const GraphCanvas = ({ value, onChange, onAutoAnalyze }) => {
   const canvasRef = useRef(null);
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
-  const [connecting, setConnecting] = useState(null); // id node yang sedang dipilih untuk disambungkan
+  const [connecting, setConnecting] = useState(null);
   const [mode, setMode] = useState('add'); // 'add' | 'connect' | 'delete'
 
-  // Sync from external value (JSON string)
   useEffect(() => {
     if (value) {
       try {
-        const parsed = JSON.parse(value);
+        const parsed = typeof value === 'string' ? JSON.parse(value) : value;
         if (parsed.nodes) setNodes(parsed.nodes);
         if (parsed.edges) setEdges(parsed.edges);
       } catch (e) {}
     }
   }, []);
 
-  // Sync ke parent setiap nodes/edges berubah
   useEffect(() => {
     const graphJson = JSON.stringify({ viewBox: { width: 320, height: 200 }, nodes, edges });
     onChange(graphJson);
@@ -35,9 +48,20 @@ const GraphCanvas = ({ value, onChange }) => {
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Draw grid background subtle
+    ctx.strokeStyle = '#1e293b';
+    ctx.lineWidth = 1;
+    for (let x = 0; x < canvas.width; x += 20) {
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+    }
+    for (let y = 0; y < canvas.height; y += 20) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+    }
+
     // Draw edges
-    ctx.strokeStyle = '#94a3b8';
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#64748b';
+    ctx.lineWidth = 2.5;
     for (const [u, v] of edges) {
       const nu = nodes.find(n => n.id === u);
       const nv = nodes.find(n => n.id === v);
@@ -47,16 +71,18 @@ const GraphCanvas = ({ value, onChange }) => {
       ctx.lineTo(nv.x, nv.y);
       ctx.stroke();
     }
+
     // Draw nodes
     for (const node of nodes) {
       ctx.beginPath();
       ctx.arc(node.x, node.y, 16, 0, Math.PI * 2);
-      ctx.fillStyle = connecting === node.id ? '#fbbf24' : '#fff';
+      ctx.fillStyle = connecting === node.id ? '#fbbf24' : '#0f172a';
       ctx.fill();
-      ctx.strokeStyle = '#1e40af';
-      ctx.lineWidth = 2.5;
+      ctx.strokeStyle = connecting === node.id ? '#d97706' : '#3b82f6';
+      ctx.lineWidth = 3;
       ctx.stroke();
-      ctx.fillStyle = '#1e40af';
+
+      ctx.fillStyle = connecting === node.id ? '#78350f' : '#93c5fd';
       ctx.font = 'bold 11px sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
@@ -102,24 +128,30 @@ const GraphCanvas = ({ value, onChange }) => {
   const clearAll = () => { setNodes([]); setEdges([]); setConnecting(null); };
 
   return (
-    <div style={{ border: '1px solid #334155', borderRadius: 8, padding: 12, background: '#0f172a' }}>
-      <div style={{ display: 'flex', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
+    <div style={{ border: '1px solid #334155', borderRadius: 8, padding: 12, background: '#0a0f1e' }}>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 8, flexWrap: 'wrap', alignItems: 'center' }}>
         {['add', 'connect', 'delete'].map(m => (
-          <button key={m} onClick={() => { setMode(m); setConnecting(null); }}
-            style={{ padding: '4px 12px', borderRadius: 6, border: '1px solid #475569', background: mode === m ? '#1e40af' : '#1e293b', color: '#fff', cursor: 'pointer', fontSize: 12 }}>
-            {m === 'add' ? '➕ Tambah Titik' : m === 'connect' ? '🔗 Hubungkan' : '🗑️ Hapus'}
+          <button key={m} type="button" onClick={() => { setMode(m); setConnecting(null); }}
+            style={{ padding: '5px 12px', borderRadius: 6, border: '1px solid #475569', background: mode === m ? '#2563eb' : '#1e293b', color: '#fff', cursor: 'pointer', fontSize: 12, fontWeight: mode === m ? 600 : 400 }}>
+            {m === 'add' ? '➕ Titik' : m === 'connect' ? '🔗 Garis' : '🗑️ Hapus'}
           </button>
         ))}
-        <button onClick={clearAll} style={{ padding: '4px 12px', borderRadius: 6, border: '1px solid #ef4444', background: '#1e293b', color: '#ef4444', cursor: 'pointer', fontSize: 12 }}>🧹 Reset</button>
+        <button type="button" onClick={clearAll} style={{ padding: '5px 12px', borderRadius: 6, border: '1px solid #dc2626', background: '#450a0a', color: '#fca5a5', cursor: 'pointer', fontSize: 12 }}>🧹 Reset</button>
+        {nodes.length >= 2 && onAutoAnalyze && (
+          <button type="button" onClick={() => onAutoAnalyze({ nodes, edges })}
+            style={{ marginLeft: 'auto', padding: '5px 12px', borderRadius: 6, border: '1px solid #10b981', background: '#064e3b', color: '#6ee7b7', cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>
+            🤖 Analisis γ & β Otomatis
+          </button>
+        )}
       </div>
       <canvas
         ref={canvasRef}
-        width={320} height={200}
+        width={320} height={180}
         onClick={handleCanvasClick}
-        style={{ display: 'block', background: '#1e293b', borderRadius: 6, cursor: mode === 'add' ? 'crosshair' : 'pointer' }}
+        style={{ display: 'block', background: '#0f172a', borderRadius: 6, cursor: mode === 'add' ? 'crosshair' : 'pointer', border: '1px solid #1e293b', width: '100%', maxWidth: 360 }}
       />
       {mode === 'connect' && connecting && (
-        <p style={{ color: '#fbbf24', fontSize: 11, marginTop: 4 }}>Klik titik tujuan untuk disambungkan dengan "{connecting}"</p>
+        <p style={{ color: '#fbbf24', fontSize: 11, marginTop: 4 }}>Klik titik berikutnya untuk disambungkan dengan "{connecting}"</p>
       )}
       <p style={{ color: '#64748b', fontSize: 11, marginTop: 4 }}>
         {nodes.length} titik · {edges.length} sisi
@@ -128,10 +160,115 @@ const GraphCanvas = ({ value, onChange }) => {
   );
 };
 
-// ── Form Tambah / Edit Soal ──
-const QuestionForm = ({ packages, initial, onSave, onCancel }) => {
+// ── Modal / Form Manajemen Paket Latihan ──
+const PackageModal = ({ initial, onSave, onCancel }) => {
+  const [form, setForm] = useState(initial || {
+    title: '',
+    category: 'Representasi Matriks',
+    difficulty: 'Beginner',
+    target_questions: 10,
+    icon: '📊',
+    description: ''
+  });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    setError(null);
+    try {
+      const url = initial ? `${API}/admin/packages/${initial.id}` : `${API}/admin/packages`;
+      const method = initial ? 'PUT' : 'POST';
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form)
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message);
+      onSave(data.data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const inputStyle = { width: '100%', padding: '9px 12px', borderRadius: 6, border: '1px solid #334155', background: '#1e293b', color: '#f1f5f9', fontSize: 14, boxSizing: 'border-box', marginBottom: 12 };
+  const labelStyle = { display: 'block', color: '#94a3b8', fontSize: 12, marginBottom: 4, fontWeight: 500 };
+
+  return (
+    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: 16 }}>
+      <form onSubmit={handleSubmit} style={{ background: '#0f172a', border: '1px solid #2563eb', borderRadius: 12, padding: 24, maxWidth: 520, width: '100%', maxHeight: '90vh', overflowY: 'auto' }}>
+        <h3 style={{ color: '#f1f5f9', fontSize: 18, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span>{initial ? '✏️ Edit Paket Latihan' : '➕ Buat Paket Latihan Baru'}</span>
+        </h3>
+        <p style={{ color: '#64748b', fontSize: 13, marginBottom: 16 }}>Tentukan klasifikasi topik, tingkat kesulitan, dan target soal objektif.</p>
+        
+        {error && <div style={{ background: '#450a0a', border: '1px solid #dc2626', color: '#fca5a5', padding: '8px 12px', borderRadius: 6, marginBottom: 12, fontSize: 13 }}>❌ {error}</div>}
+
+        <label style={labelStyle}>Nama Latihan / Judul Paket *</label>
+        <input style={inputStyle} value={form.title} placeholder="Contoh: Dasar Graph Matrix" onChange={e => setForm(f => ({ ...f, title: e.target.value }))} required />
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div>
+            <label style={labelStyle}>Klasifikasi / Kategori Topik *</label>
+            <input style={inputStyle} list="category-list" value={form.category} placeholder="Pilih atau ketik topik" onChange={e => setForm(f => ({ ...f, category: e.target.value }))} required />
+            <datalist id="category-list">
+              {CATEGORY_SUGGESTIONS.map(c => <option key={c} value={c} />)}
+            </datalist>
+          </div>
+          <div>
+            <label style={labelStyle}>Tingkat Kesulitan</label>
+            <select style={inputStyle} value={form.difficulty} onChange={e => setForm(f => ({ ...f, difficulty: e.target.value }))}>
+              <option value="Beginner">Beginner (Dasar)</option>
+              <option value="Intermediate">Intermediate (Menengah)</option>
+              <option value="Advanced">Advanced (Mahir)</option>
+            </select>
+          </div>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div>
+            <label style={labelStyle}>Target Soal Objektif *</label>
+            <input style={inputStyle} type="number" min="1" max="50" value={form.target_questions} onChange={e => setForm(f => ({ ...f, target_questions: parseInt(e.target.value) || 1 }))} required />
+          </div>
+          <div>
+            <label style={labelStyle}>Ikon Pengenal</label>
+            <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+              <input style={{ ...inputStyle, width: 60, textAlign: 'center', fontSize: 18 }} value={form.icon} onChange={e => setForm(f => ({ ...f, icon: e.target.value }))} maxLength={4} />
+              <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                {EMOJI_OPTIONS.map(em => (
+                  <button key={em} type="button" onClick={() => setForm(f => ({ ...f, icon: em }))} style={{ border: 'none', background: form.icon === em ? '#2563eb' : '#1e293b', borderRadius: 4, padding: '3px 6px', cursor: 'pointer', fontSize: 14 }}>
+                    {em}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <label style={labelStyle}>Deskripsi / Petunjuk untuk Siswa</label>
+        <textarea style={{ ...inputStyle, minHeight: 70, resize: 'vertical' }} placeholder="Tuliskan gambaran materi yang diuji dan tujuan pembelajaran..." value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
+
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 12 }}>
+          <button type="button" onClick={onCancel} style={{ padding: '9px 18px', borderRadius: 6, border: '1px solid #475569', background: 'transparent', color: '#94a3b8', cursor: 'pointer', fontSize: 13 }}>
+            Batal
+          </button>
+          <button type="submit" disabled={saving} style={{ padding: '9px 20px', borderRadius: 6, border: 'none', background: '#2563eb', color: '#fff', cursor: 'pointer', fontWeight: 600, fontSize: 13 }}>
+            {saving ? '⏳ Menyimpan...' : '💾 Simpan Paket'}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+};
+
+// ── Form Tambah / Edit Soal Terikat ke Paket ──
+const QuestionForm = ({ activePackage, initial, onSave, onCancel }) => {
   const emptyForm = {
-    package_id: packages[0]?.id || 1,
+    package_id: activePackage.id,
     question_text: '',
     has_diagram: false,
     graph_data: '',
@@ -142,6 +279,23 @@ const QuestionForm = ({ packages, initial, onSave, onCancel }) => {
   const [form, setForm] = useState(initial || emptyForm);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
+  const [analysisResult, setAnalysisResult] = useState(null);
+
+  const handleAutoAnalyze = async (graphPayload) => {
+    try {
+      const res = await fetch(`${API}/admin/graph/analyze`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(graphPayload)
+      });
+      const data = await res.json();
+      if (data.success) {
+        setAnalysisResult(data.data);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -150,6 +304,7 @@ const QuestionForm = ({ packages, initial, onSave, onCancel }) => {
     try {
       const payload = {
         ...form,
+        package_id: activePackage.id,
         options: form.options,
         graph_data: form.has_diagram && form.graph_data ? JSON.parse(form.graph_data) : null
       };
@@ -167,64 +322,82 @@ const QuestionForm = ({ packages, initial, onSave, onCancel }) => {
   };
 
   const inputStyle = { width: '100%', padding: '8px 12px', borderRadius: 6, border: '1px solid #334155', background: '#1e293b', color: '#f1f5f9', fontSize: 14, boxSizing: 'border-box', marginBottom: 12 };
-  const labelStyle = { display: 'block', color: '#94a3b8', fontSize: 12, marginBottom: 4 };
+  const labelStyle = { display: 'block', color: '#94a3b8', fontSize: 12, marginBottom: 4, fontWeight: 500 };
 
   return (
-    <form onSubmit={handleSubmit} style={{ background: '#0f172a', border: '1px solid #1e40af', borderRadius: 12, padding: 24 }}>
-      <h3 style={{ color: '#f1f5f9', marginBottom: 16 }}>{initial ? '✏️ Edit Soal' : '➕ Tambah Soal Baru'}</h3>
-      {error && <p style={{ color: '#ef4444', marginBottom: 12, fontSize: 13 }}>❌ {error}</p>}
-      
-      <label style={labelStyle}>Paket</label>
-      <select style={inputStyle} value={form.package_id} onChange={e => setForm(f => ({ ...f, package_id: parseInt(e.target.value) }))}>
-        {packages.map(p => <option key={p.id} value={p.id}>{p.title}</option>)}
-      </select>
+    <form onSubmit={handleSubmit} style={{ background: '#0f172a', border: '1px solid #2563eb', borderRadius: 12, padding: 22, marginBottom: 24 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, borderBottom: '1px solid #1e293b', paddingBottom: 10 }}>
+        <div>
+          <h3 style={{ color: '#f1f5f9', fontSize: 17, margin: 0 }}>
+            {initial ? '✏️ Edit Soal' : '➕ Tambah Soal Baru'}
+          </h3>
+          <span style={{ fontSize: 12, color: '#60a5fa' }}>
+            Paket: {activePackage.icon} {activePackage.title} ({activePackage.category})
+          </span>
+        </div>
+        <button type="button" onClick={onCancel} style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: 16 }}>✕</button>
+      </div>
 
-      <label style={labelStyle}>Teks Soal</label>
-      <textarea style={{ ...inputStyle, minHeight: 80, resize: 'vertical' }} value={form.question_text}
+      {error && <p style={{ color: '#ef4444', marginBottom: 12, fontSize: 13 }}>❌ {error}</p>}
+
+      <label style={labelStyle}>Teks Pertanyaan (Mendukung simbol rumus $...$)</label>
+      <textarea style={{ ...inputStyle, minHeight: 70, resize: 'vertical' }} placeholder="Contoh: Berapa nilai bilangan dominasi γ(G) untuk graf lintasan P_6?" value={form.question_text}
         onChange={e => setForm(f => ({ ...f, question_text: e.target.value }))} required />
 
-      {['A', 'B', 'C', 'D'].map((letter, i) => (
-        <div key={i}>
-          <label style={labelStyle}>
-            <input type="radio" name="correct" checked={form.correct_index === i} onChange={() => setForm(f => ({ ...f, correct_index: i }))} style={{ marginRight: 6 }} />
-            Opsi {letter} {form.correct_index === i ? '✅ (Jawaban Benar)' : ''}
-          </label>
-          <input style={inputStyle} value={form.options[i]}
-            onChange={e => setForm(f => { const o = [...f.options]; o[i] = e.target.value; return { ...f, options: o }; })} required />
-        </div>
-      ))}
+      <label style={{ ...labelStyle, marginTop: 4 }}>Pilihan Ganda & Tentukan Kunci Jawaban Benar:</label>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
+        {['A', 'B', 'C', 'D'].map((letter, i) => (
+          <div key={i} style={{ background: form.correct_index === i ? '#064e3b' : '#1e293b', border: `1px solid ${form.correct_index === i ? '#059669' : '#334155'}`, borderRadius: 8, padding: 10 }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', color: form.correct_index === i ? '#34d399' : '#94a3b8', fontSize: 12, fontWeight: 600, marginBottom: 6 }}>
+              <input type="radio" name="correct_idx" checked={form.correct_index === i} onChange={() => setForm(f => ({ ...f, correct_index: i }))} />
+              Opsi {letter} {form.correct_index === i && '✓ Kunci Benar'}
+            </label>
+            <input style={{ ...inputStyle, marginBottom: 0, background: '#0f172a' }} value={form.options[i]} placeholder={`Isi pilihan jawaban ${letter}`}
+              onChange={e => setForm(f => { const o = [...f.options]; o[i] = e.target.value; return { ...f, options: o }; })} required />
+          </div>
+        ))}
+      </div>
 
-      <label style={labelStyle}>Penjelasan / Pembahasan</label>
-      <textarea style={{ ...inputStyle, minHeight: 80, resize: 'vertical' }} value={form.explanation}
+      <label style={labelStyle}>Pembahasan & Rujukan Teori Akademik</label>
+      <textarea style={{ ...inputStyle, minHeight: 70, resize: 'vertical' }} placeholder="Jelaskan dasar rumus atau teorema kenapa jawaban tersebut benar..." value={form.explanation}
         onChange={e => setForm(f => ({ ...f, explanation: e.target.value }))} required />
 
-      <div style={{ marginBottom: 12 }}>
-        <label style={{ ...labelStyle, display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div style={{ marginBottom: 14 }}>
+        <label style={{ ...labelStyle, display: 'inline-flex', alignItems: 'center', gap: 8, cursor: 'pointer', background: '#1e293b', padding: '6px 12px', borderRadius: 6 }}>
           <input type="checkbox" checked={form.has_diagram} onChange={e => setForm(f => ({ ...f, has_diagram: e.target.checked }))} />
-          <span>Soal memiliki diagram graf</span>
+          <span>Sertakan Diagram Graf Visual pada Soal Ini</span>
         </label>
       </div>
 
       {form.has_diagram && (
-        <div style={{ marginBottom: 16 }}>
-          <label style={labelStyle}>Builder Graf Interaktif</label>
+        <div style={{ background: '#0a0f1e', border: '1px solid #1e3a8a', borderRadius: 8, padding: 14, marginBottom: 16 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+            <label style={{ ...labelStyle, margin: 0, color: '#93c5fd' }}>Kanvas Interaktif Graf</label>
+            <span style={{ fontSize: 11, color: '#64748b' }}>Klik titik & garis untuk menggambar</span>
+          </div>
           <GraphCanvas
             value={form.graph_data}
             onChange={gj => setForm(f => ({ ...f, graph_data: gj }))}
+            onAutoAnalyze={handleAutoAnalyze}
           />
-          <label style={{ ...labelStyle, marginTop: 8 }}>JSON Graf (auto-generated)</label>
-          <textarea style={{ ...inputStyle, minHeight: 60, fontSize: 11, color: '#7dd3fc' }} value={form.graph_data}
-            onChange={e => setForm(f => ({ ...f, graph_data: e.target.value }))} />
+          {analysisResult && (
+            <div style={{ marginTop: 10, background: '#022c22', border: '1px solid #059669', borderRadius: 6, padding: '8px 12px', fontSize: 12, color: '#6ee7b7' }}>
+              <strong>Hasil Analisis Otomatis:</strong><br />
+              • Bilangan Dominasi γ(G) = <strong>{analysisResult.domination_number}</strong> (Himpunan: {`{${analysisResult.domination_set.join(', ')}}`})<br />
+              • Dimensi Metrik β(G) = <strong>{analysisResult.metric_dimension}</strong> (Resolving set: {`{${analysisResult.resolving_set.join(', ')}}`})<br />
+              • Diameter Graf = {analysisResult.diameter}
+            </div>
+          )}
         </div>
       )}
 
-      <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
+      <div style={{ display: 'flex', gap: 10 }}>
         <button type="submit" disabled={saving}
-          style={{ padding: '10px 24px', borderRadius: 8, border: 'none', background: '#1d4ed8', color: '#fff', cursor: 'pointer', fontWeight: 600 }}>
-          {saving ? '⏳ Menyimpan...' : '💾 Simpan'}
+          style={{ padding: '9px 24px', borderRadius: 6, border: 'none', background: '#2563eb', color: '#fff', cursor: 'pointer', fontWeight: 600, fontSize: 13 }}>
+          {saving ? '⏳ Menyimpan...' : '💾 Simpan Soal'}
         </button>
         <button type="button" onClick={onCancel}
-          style={{ padding: '10px 24px', borderRadius: 8, border: '1px solid #475569', background: 'transparent', color: '#94a3b8', cursor: 'pointer' }}>
+          style={{ padding: '9px 18px', borderRadius: 6, border: '1px solid #475569', background: 'transparent', color: '#94a3b8', cursor: 'pointer', fontSize: 13 }}>
           Batal
         </button>
       </div>
@@ -232,28 +405,41 @@ const QuestionForm = ({ packages, initial, onSave, onCancel }) => {
   );
 };
 
-// ── Halaman Admin Utama ──
+// ── HALAMAN ADMIN UTAMA (Package-First Management) ──
 const Admin = () => {
   const [packages, setPackages] = useState([]);
+  const [activePackage, setActivePackage] = useState(null); // Jika null: View 1 (List Paket). Jika terisi: View 2 (Soal Paket)
   const [questions, setQuestions] = useState([]);
-  const [filterPkg, setFilterPkg] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [showForm, setShowForm] = useState(false);
-  const [editingQ, setEditingQ] = useState(null);
-  const [deleteConfirm, setDeleteConfirm] = useState(null);
+
+  // Modals & State
+  const [showPackageModal, setShowPackageModal] = useState(false);
+  const [editingPackage, setEditingPackage] = useState(null);
+  const [showQuestionForm, setShowQuestionForm] = useState(false);
+  const [editingQuestion, setEditingQuestion] = useState(null);
+  const [deletePackageConfirm, setDeletePackageConfirm] = useState(null);
+  const [deleteQuestionConfirm, setDeleteQuestionConfirm] = useState(null);
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState('');
 
   const fetchPackages = async () => {
-    const res = await fetch(`${API}/packages`);
-    const data = await res.json();
-    setPackages(data.data);
+    try {
+      setLoading(true);
+      const res = await fetch(`${API}/packages`);
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message);
+      setPackages(data.data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const fetchQuestions = async (pkgId = '') => {
-    setLoading(true);
+  const fetchQuestionsForPackage = async (pkgId) => {
     try {
-      const url = `${API}/admin/questions${pkgId ? `?package_id=${pkgId}` : ''}`;
-      const res = await fetch(url);
+      setLoading(true);
+      const res = await fetch(`${API}/admin/questions?package_id=${pkgId}`);
       const data = await res.json();
       if (!data.success) throw new Error(data.message);
       setQuestions(data.data);
@@ -266,124 +452,393 @@ const Admin = () => {
 
   useEffect(() => {
     fetchPackages();
-    fetchQuestions();
   }, []);
 
-  const handleFilter = (pkgId) => {
-    setFilterPkg(pkgId);
-    fetchQuestions(pkgId);
+  const handleOpenPackage = (pkg) => {
+    setActivePackage(pkg);
+    setShowQuestionForm(false);
+    setEditingQuestion(null);
+    fetchQuestionsForPackage(pkg.id);
   };
 
-  const handleDelete = async (id) => {
-    await fetch(`${API}/admin/questions/${id}`, { method: 'DELETE' });
-    setDeleteConfirm(null);
-    fetchQuestions(filterPkg);
+  const handleBackToPackages = () => {
+    setActivePackage(null);
+    setQuestions([]);
+    setShowQuestionForm(false);
+    setEditingQuestion(null);
+    fetchPackages();
   };
 
-  const handleSaved = () => {
-    setShowForm(false);
-    setEditingQ(null);
-    fetchQuestions(filterPkg);
+  const handleDeletePackage = async (pkgId) => {
+    try {
+      await fetch(`${API}/admin/packages/${pkgId}`, { method: 'DELETE' });
+      setDeletePackageConfirm(null);
+      fetchPackages();
+    } catch (e) {
+      console.error(e);
+    }
   };
 
-  const containerStyle = { minHeight: '100vh', background: '#0a0f1e', color: '#f1f5f9', fontFamily: 'Inter, sans-serif' };
-  const cardStyle = { background: '#0f172a', border: '1px solid #1e293b', borderRadius: 12, padding: 20, marginBottom: 16 };
+  const handleDeleteQuestion = async (qId) => {
+    try {
+      await fetch(`${API}/admin/questions/${qId}`, { method: 'DELETE' });
+      setDeleteQuestionConfirm(null);
+      fetchQuestionsForPackage(activePackage.id);
+      fetchPackages();
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handlePackageSaved = (savedPkg) => {
+    setShowPackageModal(false);
+    setEditingPackage(null);
+    fetchPackages();
+    if (activePackage && activePackage.id === savedPkg.id) {
+      setActivePackage(savedPkg);
+    }
+  };
+
+  const handleQuestionSaved = () => {
+    setShowQuestionForm(false);
+    setEditingQuestion(null);
+    fetchQuestionsForPackage(activePackage.id);
+    fetchPackages();
+  };
+
+  // Filter categories
+  const categories = Array.from(new Set(packages.map(p => p.category).filter(Boolean)));
+  const filteredPackages = selectedCategoryFilter 
+    ? packages.filter(p => p.category === selectedCategoryFilter) 
+    : packages;
+
+  const totalQuestionsAll = packages.reduce((acc, p) => acc + (p.question_count || 0), 0);
 
   return (
-    <div style={containerStyle}>
+    <div style={{ minHeight: '100vh', background: '#060a12', color: '#f1f5f9', fontFamily: 'Inter, system-ui, sans-serif' }}>
       <Navbar />
-      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '2rem 1.5rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
-          <div>
-            <h1 style={{ color: '#f1f5f9', fontSize: 26, fontWeight: 700 }}>🎓 Admin Dashboard</h1>
-            <p style={{ color: '#64748b', marginTop: 4 }}>Manajemen Bank Soal Graf & Teori Dominasi</p>
-          </div>
-          <button onClick={() => { setShowForm(true); setEditingQ(null); }}
-            style={{ padding: '10px 20px', borderRadius: 8, border: 'none', background: '#1d4ed8', color: '#fff', cursor: 'pointer', fontWeight: 600, fontSize: 14 }}>
-            ➕ Tambah Soal
-          </button>
-        </div>
 
-        {/* Filter paket */}
-        <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
-          <button onClick={() => handleFilter('')}
-            style={{ padding: '6px 16px', borderRadius: 20, border: '1px solid #475569', background: !filterPkg ? '#1e40af' : 'transparent', color: '#f1f5f9', cursor: 'pointer', fontSize: 13 }}>
-            Semua ({questions.length})
-          </button>
-          {packages.map(p => (
-            <button key={p.id} onClick={() => handleFilter(p.id)}
-              style={{ padding: '6px 16px', borderRadius: 20, border: '1px solid #475569', background: filterPkg == p.id ? '#1e40af' : 'transparent', color: '#f1f5f9', cursor: 'pointer', fontSize: 13 }}>
-              {p.icon} {p.title} ({p.question_count})
-            </button>
-          ))}
-        </div>
+      <main style={{ maxWidth: 1160, margin: '0 auto', padding: '2rem 1.5rem' }}>
+        
+        {/* ── JIKA DI VIEW 1: OVERVIEW PAKET LATIHAN ── */}
+        {!activePackage && (
+          <>
+            {/* Header Admin */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24, flexWrap: 'wrap', gap: 16 }}>
+              <div>
+                <h1 style={{ fontSize: 26, fontWeight: 700, margin: '0 0 6px 0', display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span>🎓 Manajemen Paket Latihan Graf</span>
+                </h1>
+                <p style={{ color: '#64748b', fontSize: 14, margin: 0 }}>
+                  Kelola struktur paket soal latihan, klasifikasi materi, dan tetapkan target soal objektif.
+                </p>
+              </div>
+              <button 
+                onClick={() => { setEditingPackage(null); setShowPackageModal(true); }}
+                style={{ padding: '10px 20px', borderRadius: 8, border: 'none', background: '#2563eb', color: '#fff', cursor: 'pointer', fontWeight: 600, fontSize: 14, display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 4px 12px rgba(37,99,235,0.3)' }}
+              >
+                <span>➕ Buat Paket Latihan Baru</span>
+              </button>
+            </div>
 
-        {/* Form tambah / edit */}
-        {(showForm || editingQ) && (
-          <div style={{ marginBottom: 24 }}>
-            <QuestionForm
-              packages={packages}
-              initial={editingQ ? { ...editingQ, graph_data: editingQ.graph_data ? JSON.stringify(editingQ.graph_data) : '' } : null}
-              onSave={handleSaved}
-              onCancel={() => { setShowForm(false); setEditingQ(null); }}
-            />
-          </div>
+            {/* Statistik Ringkas */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14, marginBottom: 24 }}>
+              <div style={{ background: '#0f172a', border: '1px solid #1e293b', borderRadius: 10, padding: 16 }}>
+                <span style={{ color: '#94a3b8', fontSize: 12 }}>Total Paket Aktif</span>
+                <div style={{ fontSize: 24, fontWeight: 700, color: '#f8fafc', marginTop: 4 }}>{packages.length} Paket</div>
+              </div>
+              <div style={{ background: '#0f172a', border: '1px solid #1e293b', borderRadius: 10, padding: 16 }}>
+                <span style={{ color: '#94a3b8', fontSize: 12 }}>Total Soal di Bank Data</span>
+                <div style={{ fontSize: 24, fontWeight: 700, color: '#38bdf8', marginTop: 4 }}>{totalQuestionsAll} Butir Soal</div>
+              </div>
+              <div style={{ background: '#0f172a', border: '1px solid #1e293b', borderRadius: 10, padding: 16 }}>
+                <span style={{ color: '#94a3b8', fontSize: 12 }}>Rata-rata Target per Paket</span>
+                <div style={{ fontSize: 24, fontWeight: 700, color: '#34d399', marginTop: 4 }}>10 Soal Objektif</div>
+              </div>
+            </div>
+
+            {/* Filter Klasifikasi / Kategori */}
+            <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap', alignItems: 'center' }}>
+              <span style={{ color: '#64748b', fontSize: 13, marginRight: 4 }}>Klasifikasi:</span>
+              <button 
+                onClick={() => setSelectedCategoryFilter('')}
+                style={{ padding: '6px 14px', borderRadius: 20, border: '1px solid #334155', background: !selectedCategoryFilter ? '#2563eb' : '#0f172a', color: '#f8fafc', cursor: 'pointer', fontSize: 12 }}
+              >
+                Semua Topik ({packages.length})
+              </button>
+              {categories.map(cat => (
+                <button 
+                  key={cat} 
+                  onClick={() => setSelectedCategoryFilter(cat)}
+                  style={{ padding: '6px 14px', borderRadius: 20, border: '1px solid #334155', background: selectedCategoryFilter === cat ? '#2563eb' : '#0f172a', color: '#f8fafc', cursor: 'pointer', fontSize: 12 }}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+
+            {/* Grid Kartu Paket */}
+            {loading ? (
+              <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>⏳ Memuat paket latihan...</div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 18 }}>
+                {filteredPackages.map(pkg => {
+                  const target = pkg.target_questions || 10;
+                  const count = pkg.question_count || 0;
+                  const isComplete = count >= target;
+                  const diffStyle = DIFF_COLORS[pkg.difficulty] || DIFF_COLORS.Beginner;
+                  const progressPct = Math.min(Math.round((count / target) * 100), 100);
+
+                  return (
+                    <div 
+                      key={pkg.id} 
+                      style={{ background: '#0f172a', border: '1px solid #1e293b', borderRadius: 12, padding: 20, display: 'flex', flexDirection: 'column', transition: 'transform 0.15s, border-color 0.15s' }}
+                    >
+                      {/* Top Badges */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <span style={{ fontSize: 24 }}>{pkg.icon}</span>
+                          <div>
+                            <span style={{ fontSize: 11, background: '#1e293b', color: '#93c5fd', padding: '2px 8px', borderRadius: 10, fontWeight: 500 }}>
+                              {pkg.category || 'Teori Graf'}
+                            </span>
+                          </div>
+                        </div>
+                        <span style={{ fontSize: 11, background: diffStyle.bg, color: diffStyle.text, border: `1px solid ${diffStyle.border}`, padding: '2px 8px', borderRadius: 10, fontWeight: 600 }}>
+                          {pkg.difficulty}
+                        </span>
+                      </div>
+
+                      {/* Title & Description */}
+                      <h3 style={{ fontSize: 17, fontWeight: 600, color: '#f8fafc', margin: '0 0 6px 0' }}>{pkg.title}</h3>
+                      <p style={{ color: '#94a3b8', fontSize: 13, lineHeight: 1.4, margin: '0 0 16px 0', flex: 1 }}>{pkg.description || 'Tidak ada deskripsi.'}</p>
+
+                      {/* Progress Bar & Status Soal */}
+                      <div style={{ background: '#0a0f1e', borderRadius: 8, padding: 12, border: '1px solid #1e293b', marginBottom: 16 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 6 }}>
+                          <span style={{ color: '#94a3b8' }}>Progres Soal Objektif</span>
+                          <span style={{ fontWeight: 600, color: isComplete ? '#34d399' : '#fde047' }}>
+                            {count} / {target} Butir
+                          </span>
+                        </div>
+                        <div style={{ width: '100%', height: 6, background: '#1e293b', borderRadius: 3, overflow: 'hidden' }}>
+                          <div style={{ width: `${progressPct}%`, height: '100%', background: isComplete ? '#10b981' : '#f59e0b', borderRadius: 3 }} />
+                        </div>
+                        <div style={{ marginTop: 6, fontSize: 11, display: 'flex', justifyContent: 'space-between' }}>
+                          <span style={{ color: isComplete ? '#34d399' : '#fbbf24' }}>
+                            {isComplete ? '🟢 Siap Rilis (Lengkap)' : `🟡 Draft (Kurang ${target - count} soal)`}
+                          </span>
+                          <span style={{ color: '#64748b' }}>{progressPct}%</span>
+                        </div>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <button 
+                          onClick={() => handleOpenPackage(pkg)}
+                          style={{ flex: 1, padding: '9px 14px', borderRadius: 6, border: 'none', background: '#2563eb', color: '#fff', cursor: 'pointer', fontWeight: 600, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+                        >
+                          <span>📝 Kelola Soal</span>
+                        </button>
+                        <button 
+                          onClick={() => { setEditingPackage(pkg); setShowPackageModal(true); }}
+                          title="Edit Paket"
+                          style={{ padding: '9px 12px', borderRadius: 6, border: '1px solid #334155', background: '#1e293b', color: '#94a3b8', cursor: 'pointer', fontSize: 13 }}
+                        >
+                          ✏️
+                        </button>
+                        <button 
+                          onClick={() => setDeletePackageConfirm(pkg.id)}
+                          title="Hapus Paket"
+                          style={{ padding: '9px 12px', borderRadius: 6, border: '1px solid #7f1d1d', background: '#1e293b', color: '#f87171', cursor: 'pointer', fontSize: 13 }}
+                        >
+                          🗑️
+                        </button>
+                      </div>
+
+                      {/* Konfirmasi Hapus Paket */}
+                      {deletePackageConfirm === pkg.id && (
+                        <div style={{ marginTop: 12, padding: 10, background: '#450a0a', border: '1px solid #dc2626', borderRadius: 6, fontSize: 12 }}>
+                          <p style={{ color: '#fca5a5', margin: '0 0 8px 0' }}>⚠️ Hapus paket "{pkg.title}" dan seluruh {count} soalnya?</p>
+                          <div style={{ display: 'flex', gap: 6 }}>
+                            <button onClick={() => handleDeletePackage(pkg.id)} style={{ padding: '4px 10px', borderRadius: 4, border: 'none', background: '#dc2626', color: '#fff', cursor: 'pointer', fontSize: 11, fontWeight: 600 }}>Ya, Hapus</button>
+                            <button onClick={() => setDeletePackageConfirm(null)} style={{ padding: '4px 10px', borderRadius: 4, border: '1px solid #7f1d1d', background: 'transparent', color: '#fca5a5', cursor: 'pointer', fontSize: 11 }}>Batal</button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </>
         )}
 
-        {/* Daftar soal */}
-        {error && <p style={{ color: '#ef4444' }}>❌ {error}</p>}
-        {loading ? (
-          <p style={{ color: '#64748b' }}>⏳ Memuat soal...</p>
-        ) : (
-          questions.map((q, idx) => (
-            <div key={q.id} style={cardStyle}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
-                <div style={{ flex: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                    <span style={{ background: '#1e293b', padding: '2px 10px', borderRadius: 12, fontSize: 11, color: '#7dd3fc' }}>#{idx + 1}</span>
-                    <span style={{ fontSize: 11, color: DIFF_COLORS[q.package_slug] || '#64748b' }}>{q.package_title}</span>
-                    {q.has_diagram ? <span style={{ fontSize: 11, background: '#134e4a', padding: '1px 8px', borderRadius: 10, color: '#34d399' }}>📊 Graf</span> : null}
-                  </div>
-                  <p style={{ color: '#e2e8f0', marginBottom: 10, lineHeight: 1.5, fontSize: 14 }}>{q.question_text}</p>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 10 }}>
-                    {q.options.map((opt, i) => (
-                      <div key={i} style={{
-                        padding: '5px 10px', borderRadius: 6, fontSize: 13,
-                        background: q.correct_index === i ? '#052e16' : '#1e293b',
-                        border: `1px solid ${q.correct_index === i ? '#16a34a' : '#334155'}`,
-                        color: q.correct_index === i ? '#4ade80' : '#94a3b8'
-                      }}>
-                        {String.fromCharCode(65 + i)}. {opt} {q.correct_index === i ? '✓' : ''}
-                      </div>
-                    ))}
-                  </div>
-                  <div style={{ background: '#1e293b', borderLeft: '3px solid #f59e0b', padding: '6px 10px', borderRadius: 4 }}>
-                    <p style={{ fontSize: 12, color: '#94a3b8', margin: 0 }}>💡 {q.explanation}</p>
+        {/* ── JIKA DI VIEW 2: RUANG KERJA SOAL DALAM PAKET (Package Workspace) ── */}
+        {activePackage && (
+          <div>
+            {/* Top Navigation Back */}
+            <button 
+              onClick={handleBackToPackages}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '7px 14px', borderRadius: 6, border: '1px solid #334155', background: '#0f172a', color: '#94a3b8', cursor: 'pointer', fontSize: 13, marginBottom: 18 }}
+            >
+              <span>← Kembali ke Semua Paket Latihan</span>
+            </button>
+
+            {/* Banner Paket Aktif */}
+            <div style={{ background: '#0f172a', border: '1px solid #2563eb', borderRadius: 12, padding: 22, marginBottom: 24 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 14 }}>
+                <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
+                  <span style={{ fontSize: 36 }}>{activePackage.icon}</span>
+                  <div>
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 4 }}>
+                      <span style={{ fontSize: 11, background: '#1e3a8a', color: '#93c5fd', padding: '2px 8px', borderRadius: 10, fontWeight: 600 }}>
+                        {activePackage.category}
+                      </span>
+                      <span style={{ fontSize: 11, background: DIFF_COLORS[activePackage.difficulty]?.bg, color: DIFF_COLORS[activePackage.difficulty]?.text, padding: '2px 8px', borderRadius: 10, fontWeight: 600 }}>
+                        {activePackage.difficulty}
+                      </span>
+                    </div>
+                    <h2 style={{ fontSize: 22, fontWeight: 700, color: '#f8fafc', margin: '0 0 4px 0' }}>{activePackage.title}</h2>
+                    <p style={{ color: '#94a3b8', fontSize: 13, margin: 0 }}>{activePackage.description}</p>
                   </div>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  <button onClick={() => { setEditingQ(q); setShowForm(false); }}
-                    style={{ padding: '6px 14px', borderRadius: 6, border: '1px solid #334155', background: '#1e293b', color: '#7dd3fc', cursor: 'pointer', fontSize: 12 }}>✏️ Edit</button>
-                  <button onClick={() => setDeleteConfirm(q.id)}
-                    style={{ padding: '6px 14px', borderRadius: 6, border: '1px solid #7f1d1d', background: '#1e293b', color: '#f87171', cursor: 'pointer', fontSize: 12 }}>🗑️ Hapus</button>
+
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
+                  <div style={{ textAlign: 'right' }}>
+                    <span style={{ fontSize: 12, color: '#94a3b8' }}>Status Kelengkapan:</span>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: questions.length >= (activePackage.target_questions || 10) ? '#34d399' : '#fbbf24' }}>
+                      {questions.length} / {activePackage.target_questions || 10} Soal Terisi
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => { setEditingQuestion(null); setShowQuestionForm(true); }}
+                    style={{ padding: '9px 18px', borderRadius: 8, border: 'none', background: '#2563eb', color: '#fff', cursor: 'pointer', fontWeight: 600, fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}
+                  >
+                    <span>➕ Tambah Soal #{questions.length + 1}</span>
+                  </button>
                 </div>
               </div>
-              {/* Konfirmasi hapus */}
-              {deleteConfirm === q.id && (
-                <div style={{ marginTop: 10, padding: '10px 14px', background: '#1e293b', borderRadius: 8, border: '1px solid #ef4444' }}>
-                  <p style={{ color: '#fca5a5', fontSize: 13, marginBottom: 8 }}>⚠️ Hapus soal ini permanen?</p>
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <button onClick={() => handleDelete(q.id)}
-                      style={{ padding: '5px 14px', borderRadius: 6, border: 'none', background: '#b91c1c', color: '#fff', cursor: 'pointer', fontSize: 12 }}>Ya, Hapus</button>
-                    <button onClick={() => setDeleteConfirm(null)}
-                      style={{ padding: '5px 14px', borderRadius: 6, border: '1px solid #475569', background: 'transparent', color: '#94a3b8', cursor: 'pointer', fontSize: 12 }}>Batal</button>
-                  </div>
-                </div>
-              )}
             </div>
-          ))
+
+            {/* Form Tambah/Edit Soal jika aktif */}
+            {(showQuestionForm || editingQuestion) && (
+              <QuestionForm
+                activePackage={activePackage}
+                initial={editingQuestion ? { ...editingQuestion, graph_data: editingQuestion.graph_data ? JSON.stringify(editingQuestion.graph_data) : '' } : null}
+                onSave={handleQuestionSaved}
+                onCancel={() => { setShowQuestionForm(false); setEditingQuestion(null); }}
+              />
+            )}
+
+            {/* Daftar Soal dalam Paket */}
+            <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ fontSize: 17, fontWeight: 600, color: '#f8fafc', margin: 0 }}>
+                Daftar Butir Soal ({questions.length} Soal)
+              </h3>
+              <span style={{ fontSize: 12, color: '#64748b' }}>
+                Target: {activePackage.target_questions || 10} soal objektif
+              </span>
+            </div>
+
+            {loading ? (
+              <p style={{ color: '#64748b' }}>⏳ Memuat daftar soal...</p>
+            ) : questions.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '3rem', background: '#0f172a', borderRadius: 12, border: '1px dashed #334155', color: '#94a3b8' }}>
+                <p style={{ fontSize: 16, marginBottom: 12 }}>Belum ada soal pada paket ini.</p>
+                <button 
+                  onClick={() => { setEditingQuestion(null); setShowQuestionForm(true); }}
+                  style={{ padding: '8px 18px', borderRadius: 6, border: 'none', background: '#2563eb', color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}
+                >
+                  ➕ Tambah Soal Pertama
+                </button>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                {questions.map((q, idx) => (
+                  <div key={q.id} style={{ background: '#0f172a', border: '1px solid #1e293b', borderRadius: 10, padding: 18 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                          <span style={{ background: '#1e293b', padding: '2px 10px', borderRadius: 12, fontSize: 12, fontWeight: 600, color: '#60a5fa' }}>
+                            Soal #{idx + 1}
+                          </span>
+                          {q.has_diagram ? (
+                            <span style={{ fontSize: 11, background: '#064e3b', color: '#34d399', padding: '1px 8px', borderRadius: 8 }}>
+                              📊 Memiliki Diagram Graf
+                            </span>
+                          ) : null}
+                        </div>
+
+                        <p style={{ color: '#f8fafc', fontSize: 14, lineHeight: 1.5, margin: '0 0 12px 0', fontWeight: 500 }}>
+                          {q.question_text}
+                        </p>
+
+                        {/* Opsi Jawaban */}
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 8, marginBottom: 12 }}>
+                          {q.options.map((opt, i) => (
+                            <div key={i} style={{
+                              padding: '6px 12px', borderRadius: 6, fontSize: 13,
+                              background: q.correct_index === i ? '#064e3b' : '#0a0f1e',
+                              border: `1px solid ${q.correct_index === i ? '#059669' : '#1e293b'}`,
+                              color: q.correct_index === i ? '#34d399' : '#94a3b8'
+                            }}>
+                              <strong>{String.fromCharCode(65 + i)}.</strong> {opt} {q.correct_index === i && '✓ (Kunci)'}
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Pembahasan */}
+                        <div style={{ background: '#0a0f1e', borderLeft: '3px solid #f59e0b', padding: '8px 12px', borderRadius: 4 }}>
+                          <span style={{ fontSize: 12, color: '#d97706', fontWeight: 600 }}>💡 Pembahasan: </span>
+                          <span style={{ fontSize: 12, color: '#94a3b8' }}>{q.explanation}</span>
+                        </div>
+                      </div>
+
+                      {/* Tombol Aksi Soal */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                        <button 
+                          onClick={() => { setEditingQuestion(q); setShowQuestionForm(false); }}
+                          style={{ padding: '6px 14px', borderRadius: 6, border: '1px solid #334155', background: '#1e293b', color: '#7dd3fc', cursor: 'pointer', fontSize: 12 }}
+                        >
+                          ✏️ Edit
+                        </button>
+                        <button 
+                          onClick={() => setDeleteQuestionConfirm(q.id)}
+                          style={{ padding: '6px 14px', borderRadius: 6, border: '1px solid #7f1d1d', background: '#1e293b', color: '#f87171', cursor: 'pointer', fontSize: 12 }}
+                        >
+                          🗑️ Hapus
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Konfirmasi Hapus Soal */}
+                    {deleteQuestionConfirm === q.id && (
+                      <div style={{ marginTop: 12, padding: 10, background: '#450a0a', border: '1px solid #dc2626', borderRadius: 6, fontSize: 12 }}>
+                        <p style={{ color: '#fca5a5', margin: '0 0 8px 0' }}>⚠️ Hapus soal nomor #{idx + 1} ini secara permanen?</p>
+                        <div style={{ display: 'flex', gap: 6 }}>
+                          <button onClick={() => handleDeleteQuestion(q.id)} style={{ padding: '4px 10px', borderRadius: 4, border: 'none', background: '#dc2626', color: '#fff', cursor: 'pointer', fontSize: 11, fontWeight: 600 }}>Ya, Hapus</button>
+                          <button onClick={() => setDeleteQuestionConfirm(null)} style={{ padding: '4px 10px', borderRadius: 4, border: '1px solid #7f1d1d', background: 'transparent', color: '#fca5a5', cursor: 'pointer', fontSize: 11 }}>Batal</button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         )}
-      </div>
+
+      </main>
+
+      {/* Modal Buat / Edit Paket */}
+      {showPackageModal && (
+        <PackageModal
+          initial={editingPackage}
+          onSave={handlePackageSaved}
+          onCancel={() => { setShowPackageModal(false); setEditingPackage(null); }}
+        />
+      )}
     </div>
   );
 };

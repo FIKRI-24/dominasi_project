@@ -26,4 +26,21 @@ if (fs.existsSync(schemaPath)) {
   db.exec(schema);
 }
 
+// Auto-migration for newly added columns if table already existed
+try {
+  db.exec(`ALTER TABLE packages ADD COLUMN category VARCHAR(100) DEFAULT 'Teori Graf'`);
+} catch (e) {}
+
+try {
+  db.exec(`ALTER TABLE packages ADD COLUMN target_questions INTEGER DEFAULT 10`);
+} catch (e) {}
+
+// Set initial categories if default is still unset or general
+try {
+  db.prepare(`UPDATE packages SET category = 'Representasi Matriks', target_questions = 10 WHERE slug = 'dasar-graph-matrix' AND (category IS NULL OR category = 'Teori Graf')`).run();
+  db.prepare(`UPDATE packages SET category = 'Spektral Graf & Laplacian', target_questions = 10 WHERE slug = 'aplikasi-graph-matrix' AND (category IS NULL OR category = 'Teori Graf')`).run();
+  db.prepare(`UPDATE packages SET category = 'Dasar Bilangan Dominasi', target_questions = 10 WHERE slug = 'dasar-bilangan-dominasi' AND (category IS NULL OR category = 'Teori Graf')`).run();
+  db.prepare(`UPDATE packages SET category = 'Variasi Dominasi & Sensor', target_questions = 10 WHERE slug = 'aplikasi-variasi-dominasi' AND (category IS NULL OR category = 'Teori Graf')`).run();
+} catch (e) {}
+
 module.exports = db;

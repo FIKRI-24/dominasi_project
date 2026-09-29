@@ -38,6 +38,13 @@ const createQuestion = (req, res, next) => {
     const pkg = db.prepare('SELECT id FROM packages WHERE id = ?').get(package_id);
     if (!pkg) return res.status(404).json({ success: false, message: 'Paket tidak ditemukan.' });
 
+    // Auto-calculate order_index if not provided
+    let calculatedOrder = order_index;
+    if (calculatedOrder === undefined || calculatedOrder === null) {
+      const maxRow = db.prepare('SELECT COALESCE(MAX(order_index), -1) as max_order FROM questions WHERE package_id = ?').get(package_id);
+      calculatedOrder = maxRow.max_order + 1;
+    }
+
     const result = db.prepare(`
       INSERT INTO questions (package_id, question_text, has_diagram, graph_data, options, correct_index, explanation, order_index)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -49,7 +56,7 @@ const createQuestion = (req, res, next) => {
       JSON.stringify(options),
       correct_index,
       explanation,
-      order_index ?? 99
+      calculatedOrder
     );
     const newQ = db.prepare('SELECT * FROM questions WHERE id = ?').get(result.lastInsertRowid);
     res.status(201).json({ success: true, message: 'Soal berhasil dibuat.', data: { ...newQ, options: JSON.parse(newQ.options) } });
@@ -218,4 +225,111 @@ const analyzeGraph = (req, res, next) => {
   } catch (err) { next(err); }
 };
 
-module.exports = { getAllQuestionsAdmin, createQuestion, updateQuestion, deleteQuestion, analyzeGraph };
+// ── CRUD PAKET LATIHAN ──
+// POST create package
+const createPackage = (req, res, next) => {
+  try {
+    const { title, slug, category, difficulty, target_questions, icon, description } = req.body;
+    if (!title) {
+      return res.status(400).json({ success: false, message: 'Judul paket (title) wajib diisi.' });
+    }
+
+    const finalSlug = slug && slug.trim() 
+      ? slug.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-') 
+      : title.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-');
+
+    const existingSlug = db.prepare('SELECT id FROM packages WHERE slug = ?').get(finalSlug);
+    if (existingSlug) {
+      return res.status(400).json({ success: false, message: `Slug '${finalSlug}' sudah digunakan. Buat slug yang berbeda.` });
+    }
+
+    const result = db.prepare(`
+      INSERT INTO packages (slug, title, category, difficulty, target_questions, icon, description)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      finalSlug,
+      title.trim(),
+      category && category.trim() ? category.trim() : 'Teori Graf',
+      difficulty || 'Beginner',
+      target_questions ? parseInt(target_questions) : 10,
+      icon || '📋',
+      description || ''
+    );
+
+    const newPkg = db.prepare(`
+      SELECT p.*, 0 as question_count FROM packages p WHERE p.id = ?
+    `).get(result.lastInsertRowid);
+
+    res.status(201).json({ success: true, message: 'Paket latihan berhasil dibuat.', data: newPkg });
+  } catch (err) { next(err); }
+};
+
+// PUT update package
+const updatePackage = (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const existing = db.prepare('SELECT * FROM packages WHERE id = ?').get(id);
+    if (!existing) return res.status(404).json({ success: false, message: 'Paket tidak ditemukan.' });
+
+    const { title, slug, category, difficulty, target_questions, icon, description } = req.body;
+
+    let finalSlug = existing.slug;
+    if (slug && slug.trim() && slug.trim() !== existing.slug) {
+      finalSlug = slug.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      const conflict = db.prepare('SELECT id FROM packages WHERE slug = ? AND id != ?').get(finalSlug, id);
+      if (conflict) {
+        return res.status(400).json({ success: false, message: `Slug '${finalSlug}' sudah dipakai paket lain.` });
+      }
+    }
+
+    db.prepare(`
+      UPDATE packages
+      SET title = ?, slug = ?, category = ?, difficulty = ?, target_questions = ?, icon = ?, description = ?
+      WHERE id = ?
+    `).run(
+      title ? title.trim() : existing.title,
+      finalSlug,
+      category ? category.trim() : existing.category,
+      difficulty || existing.difficulty,
+      target_questions !== undefined ? parseInt(target_questions) : existing.target_questions,
+      icon || existing.icon,
+      description !== undefined ? description : existing.description,
+      id
+    );
+
+    const updated = db.prepare(`
+      SELECT p.*, COUNT(q.id) as question_count
+      FROM packages p
+      LEFT JOIN questions q ON q.package_id = p.id
+      WHERE p.id = ?
+      GROUP BY p.id
+    `).get(id);
+
+    res.json({ success: true, message: 'Paket berhasil diperbarui.', data: updated });
+  } catch (err) { next(err); }
+};
+
+// DELETE package (cascade delete questions)
+const deletePackage = (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const existing = db.prepare('SELECT * FROM packages WHERE id = ?').get(id);
+    if (!existing) return res.status(404).json({ success: false, message: 'Paket tidak ditemukan.' });
+
+    db.prepare('DELETE FROM questions WHERE package_id = ?').run(id);
+    db.prepare('DELETE FROM packages WHERE id = ?').run(id);
+
+    res.json({ success: true, message: `Paket '${existing.title}' beserta seluruh soalnya berhasil dihapus.` });
+  } catch (err) { next(err); }
+};
+
+module.exports = {
+  getAllQuestionsAdmin,
+  createQuestion,
+  updateQuestion,
+  deleteQuestion,
+  analyzeGraph,
+  createPackage,
+  updatePackage,
+  deletePackage
+};

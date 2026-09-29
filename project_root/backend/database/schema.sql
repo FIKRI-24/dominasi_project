@@ -2,8 +2,10 @@ CREATE TABLE IF NOT EXISTS packages (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   slug VARCHAR(50) UNIQUE NOT NULL,
   title VARCHAR(100) NOT NULL,
+  category VARCHAR(100) DEFAULT 'Teori Graf',
   icon VARCHAR(20) DEFAULT '📋',
   difficulty VARCHAR(20) DEFAULT 'Beginner',
+  target_questions INTEGER DEFAULT 10,
   description TEXT,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );

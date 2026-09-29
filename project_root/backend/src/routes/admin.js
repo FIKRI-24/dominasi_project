@@ -5,9 +5,23 @@ const {
   createQuestion,
   updateQuestion,
   deleteQuestion,
-  analyzeGraph
+  analyzeGraph,
+  createPackage,
+  updatePackage,
+  deletePackage
 } = require('../controllers/adminController');
 
+// ── CRUD PAKET ──
+// POST /api/admin/packages
+router.post('/packages', createPackage);
+
+// PUT /api/admin/packages/:id
+router.put('/packages/:id', updatePackage);
+
+// DELETE /api/admin/packages/:id
+router.delete('/packages/:id', deletePackage);
+
+// ── CRUD SOAL ──
 // GET /api/admin/questions?package_id=1
 router.get('/questions', getAllQuestionsAdmin);
 
