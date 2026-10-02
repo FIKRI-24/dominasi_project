@@ -44,15 +44,24 @@ const optionalAuth = (req, res, next) => {
 
 // Middleware khusus admin
 const requireAdmin = (req, res, next) => {
-  requireAuth(req, res, () => {
-    if (req.user && req.user.role === 'admin') {
-      next();
-    } else {
-      res.status(403).json({
+  if (!req.user) {
+    return requireAuth(req, res, () => {
+      if (req.user && req.user.role === 'admin') {
+        return next();
+      }
+      return res.status(403).json({
         success: false,
         message: 'Akses terlarang. Anda memerlukan hak akses Administrator untuk tindakan ini.'
       });
-    }
+    });
+  }
+
+  if (req.user.role === 'admin') {
+    return next();
+  }
+  return res.status(403).json({
+    success: false,
+    message: 'Akses terlarang. Anda memerlukan hak akses Administrator untuk tindakan ini.'
   });
 };
 

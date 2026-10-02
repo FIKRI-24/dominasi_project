@@ -21,8 +21,7 @@ import styles from './assets/latihan.module.css';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../context/AuthContext';
 import AuthModal from '../components/AuthModal';
-
-const API_BASE = 'http://localhost:5000/api';
+import { API_BASE } from '../config/api';
 
 // ── Komponen Kanvas Blueprint Graf Dinamis ──
 const BlueprintGraphCanvas = ({ graphData, fallbackPkgId, fallbackQIdx, questionText }) => {
@@ -362,11 +361,16 @@ const Latihan = () => {
   // Periksa jawaban via endpoint /submit (grading server anti-cheat)
   const handleCheckAnswer = async () => {
     if (selectedOption === null || isSubmitting) return;
+    const currentQ = activeQuestions[currentIndex];
+    if (!currentQ) return;
 
     try {
       setIsSubmitting(true);
       const payload = {
-        answers: { [currentIndex]: selectedOption }
+        answers: {
+          [currentQ.id]: selectedOption,
+          [currentIndex]: selectedOption
+        }
       };
 
       const headers = { 'Content-Type': 'application/json' };
@@ -380,8 +384,10 @@ const Latihan = () => {
       const data = await res.json();
       if (!data.success) throw new Error(data.message);
 
-      // Ambil hasil verifikasi untuk soal yang sedang aktif
-      const result = data.data.results[currentIndex] || data.data.results[0];
+      // Ambil hasil verifikasi untuk soal yang sedang aktif berdasarkan ID unik
+      const result = (data.data.results && data.data.results.find(r => r.question_id === currentQ.id))
+        || data.data.results[currentIndex]
+        || data.data.results[0];
       const isCorrect = result.is_correct;
 
       setUserAnswers((prev) => ({
@@ -405,12 +411,17 @@ const Latihan = () => {
   const finishQuizAndSaveAttempt = async () => {
     try {
       const allAnswers = {};
-      Object.entries(userAnswers).forEach(([qIdx, a]) => {
-        if (a.selected !== undefined && a.selected !== null) {
-          allAnswers[qIdx] = a.selected;
+      const currentQ = activeQuestions[currentIndex];
+
+      activeQuestions.forEach((q, idx) => {
+        const a = userAnswers[idx];
+        if (a && a.selected !== undefined && a.selected !== null) {
+          allAnswers[q.id] = a.selected;
+          allAnswers[idx] = a.selected;
         }
       });
-      if (selectedOption !== null) {
+      if (currentQ && selectedOption !== null) {
+        allAnswers[currentQ.id] = selectedOption;
         allAnswers[currentIndex] = selectedOption;
       }
 

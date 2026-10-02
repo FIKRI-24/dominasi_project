@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+import { useAuth } from '../context/AuthContext';
+import { API_BASE } from '../config/api';
 
-const API = 'http://localhost:5000/api';
+const API = API_BASE;
 
 const DIFF_COLORS = { 
   Beginner: { bg: '#064e3b', text: '#34d399', border: '#059669' }, 
@@ -161,7 +164,7 @@ const GraphCanvas = ({ value, onChange, onAutoAnalyze }) => {
 };
 
 // ── Modal / Form Manajemen Paket Latihan ──
-const PackageModal = ({ initial, onSave, onCancel }) => {
+const PackageModal = ({ initial, onSave, onCancel, token }) => {
   const [form, setForm] = useState(initial || {
     title: '',
     category: 'Representasi Matriks',
@@ -182,7 +185,10 @@ const PackageModal = ({ initial, onSave, onCancel }) => {
       const method = initial ? 'PUT' : 'POST';
       const res = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
         body: JSON.stringify(form)
       });
       const data = await res.json();
@@ -266,7 +272,7 @@ const PackageModal = ({ initial, onSave, onCancel }) => {
 };
 
 // ── Form Tambah / Edit Soal Terikat ke Paket ──
-const QuestionForm = ({ activePackage, initial, onSave, onCancel }) => {
+const QuestionForm = ({ activePackage, initial, onSave, onCancel, token }) => {
   const emptyForm = {
     package_id: activePackage.id,
     question_text: '',
@@ -285,7 +291,10 @@ const QuestionForm = ({ activePackage, initial, onSave, onCancel }) => {
     try {
       const res = await fetch(`${API}/admin/graph/analyze`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
         body: JSON.stringify(graphPayload)
       });
       const data = await res.json();
@@ -310,7 +319,14 @@ const QuestionForm = ({ activePackage, initial, onSave, onCancel }) => {
       };
       const url = initial ? `${API}/admin/questions/${initial.id}` : `${API}/admin/questions`;
       const method = initial ? 'PUT' : 'POST';
-      const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      const res = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify(payload)
+      });
       const data = await res.json();
       if (!data.success) throw new Error(data.message);
       onSave();
@@ -407,6 +423,9 @@ const QuestionForm = ({ activePackage, initial, onSave, onCancel }) => {
 
 // ── HALAMAN ADMIN UTAMA (Package-First Management) ──
 const Admin = () => {
+  const { user, token, isAdmin, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
+
   const [packages, setPackages] = useState([]);
   const [activePackage, setActivePackage] = useState(null); // Jika null: View 1 (List Paket). Jika terisi: View 2 (Soal Paket)
   const [questions, setQuestions] = useState([]);
@@ -443,11 +462,16 @@ const Admin = () => {
   };
 
   const fetchStudentsAndAttempts = async () => {
+    if (!token) return;
     try {
       setStudentsLoading(true);
       const [resUsers, resAttempts] = await Promise.all([
-        fetch(`${API}/admin/users`),
-        fetch(`${API}/admin/attempts`)
+        fetch(`${API}/admin/users`, {
+          headers: { Authorization: `Bearer ${token}` }
+        }),
+        fetch(`${API}/admin/attempts`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
       ]);
       const dataUsers = await resUsers.json();
       const dataAttempts = await resAttempts.json();
@@ -463,7 +487,11 @@ const Admin = () => {
   const fetchQuestionsForPackage = async (pkgId) => {
     try {
       setLoading(true);
-      const res = await fetch(`${API}/admin/questions?package_id=${pkgId}`);
+      const res = await fetch(`${API}/admin/questions?package_id=${pkgId}`, {
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        }
+      });
       const data = await res.json();
       if (!data.success) throw new Error(data.message);
       setQuestions(data.data);
@@ -476,8 +504,10 @@ const Admin = () => {
 
   useEffect(() => {
     fetchPackages();
-    fetchStudentsAndAttempts();
-  }, []);
+    if (token && isAdmin) {
+      fetchStudentsAndAttempts();
+    }
+  }, [token, isAdmin]);
 
   const handleOpenPackage = (pkg) => {
     setActivePackage(pkg);
@@ -496,7 +526,12 @@ const Admin = () => {
 
   const handleDeletePackage = async (pkgId) => {
     try {
-      await fetch(`${API}/admin/packages/${pkgId}`, { method: 'DELETE' });
+      await fetch(`${API}/admin/packages/${pkgId}`, {
+        method: 'DELETE',
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        }
+      });
       setDeletePackageConfirm(null);
       fetchPackages();
     } catch (e) {
@@ -506,7 +541,12 @@ const Admin = () => {
 
   const handleDeleteQuestion = async (qId) => {
     try {
-      await fetch(`${API}/admin/questions/${qId}`, { method: 'DELETE' });
+      await fetch(`${API}/admin/questions/${qId}`, {
+        method: 'DELETE',
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        }
+      });
       setDeleteQuestionConfirm(null);
       fetchQuestionsForPackage(activePackage.id);
       fetchPackages();
@@ -538,6 +578,37 @@ const Admin = () => {
     : packages;
 
   const totalQuestionsAll = packages.reduce((acc, p) => acc + (p.question_count || 0), 0);
+
+  if (authLoading) {
+    return (
+      <div style={{ minHeight: '100vh', background: '#060a12', color: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <p style={{ color: '#94a3b8' }}>Memverifikasi hak akses admin...</p>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <div style={{ minHeight: '100vh', background: '#060a12', color: '#f1f5f9', fontFamily: 'Inter, system-ui, sans-serif' }}>
+        <Navbar />
+        <div style={{ maxWidth: 520, margin: '80px auto', padding: '36px 28px', background: '#0f172a', border: '1px solid #1e293b', borderRadius: 12, textAlign: 'center', boxShadow: '0 8px 30px rgba(0,0,0,0.4)' }}>
+          <div style={{ fontSize: 44, marginBottom: 16 }}>🛡️</div>
+          <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 12, color: '#f8fafc' }}>Akses Khusus Administrator</h2>
+          <p style={{ color: '#94a3b8', fontSize: 14, lineHeight: 1.6, marginBottom: 24 }}>
+            Halaman ini dilindungi dan hanya dapat diakses oleh akun dengan hak istimewa <strong>Administrator</strong>. Silakan login dengan akun admin Anda untuk mengelola paket soal dan data evaluasi.
+          </p>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 12 }}>
+            <Link to="/login" style={{ padding: '10px 20px', background: '#2563eb', color: '#fff', borderRadius: 8, textDecoration: 'none', fontWeight: 600, fontSize: 13 }}>
+              Login sebagai Admin
+            </Link>
+            <Link to="/latihan" style={{ padding: '10px 20px', background: '#1e293b', color: '#94a3b8', borderRadius: 8, textDecoration: 'none', fontWeight: 600, fontSize: 13, border: '1px solid #334155' }}>
+              Ke Halaman Latihan
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ minHeight: '100vh', background: '#060a12', color: '#f1f5f9', fontFamily: 'Inter, system-ui, sans-serif' }}>
@@ -797,6 +868,7 @@ const Admin = () => {
                 initial={editingQuestion ? { ...editingQuestion, graph_data: editingQuestion.graph_data ? JSON.stringify(editingQuestion.graph_data) : '' } : null}
                 onSave={handleQuestionSaved}
                 onCancel={() => { setShowQuestionForm(false); setEditingQuestion(null); }}
+                token={token}
               />
             )}
 
@@ -1053,6 +1125,7 @@ const Admin = () => {
           initial={editingPackage}
           onSave={handlePackageSaved}
           onCancel={() => { setShowPackageModal(false); setEditingPackage(null); }}
+          token={token}
         />
       )}
     </div>

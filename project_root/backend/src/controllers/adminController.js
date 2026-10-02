@@ -14,13 +14,34 @@ const getAllQuestionsAdmin = (req, res, next) => {
       query += ' WHERE q.package_id = ?';
       params.push(package_id);
     }
-    query += ' ORDER BY q.package_id ASC, q.order_index ASC';
+    query += ' ORDER BY q.package_id ASC, q.order_index ASC, q.id ASC';
     const questions = db.prepare(query).all(...params);
-    const parsed = questions.map(q => ({
-      ...q,
-      options: JSON.parse(q.options),
-      graph_data: q.graph_data ? JSON.parse(q.graph_data) : null
-    }));
+
+    // 🛡️ Safe parse options & graph_data agar tidak crash jika ada format data yang anomali
+    const parsed = questions.map(q => {
+      let parsedOptions = [];
+      try {
+        parsedOptions = typeof q.options === 'string' ? JSON.parse(q.options) : (Array.isArray(q.options) ? q.options : []);
+      } catch (e) {
+        parsedOptions = [];
+      }
+
+      let parsedGraph = null;
+      if (q.has_diagram && q.graph_data) {
+        try {
+          parsedGraph = typeof q.graph_data === 'string' ? JSON.parse(q.graph_data) : q.graph_data;
+        } catch (e) {
+          parsedGraph = null;
+        }
+      }
+
+      return {
+        ...q,
+        options: parsedOptions,
+        graph_data: parsedGraph
+      };
+    });
+
     res.json({ success: true, data: parsed });
   } catch (err) { next(err); }
 };
@@ -29,11 +50,21 @@ const getAllQuestionsAdmin = (req, res, next) => {
 const createQuestion = (req, res, next) => {
   try {
     const { package_id, question_text, has_diagram, graph_data, options, correct_index, explanation, order_index } = req.body;
-    if (!package_id || !question_text || !options || correct_index === undefined || !explanation) {
-      return res.status(400).json({ success: false, message: 'Field wajib: package_id, question_text, options, correct_index, explanation' });
+    if (!package_id || !question_text || !question_text.trim() || !options || correct_index === undefined || !explanation || !explanation.trim()) {
+      return res.status(400).json({ success: false, message: 'Field wajib: package_id, question_text, options, correct_index, explanation tidak boleh kosong.' });
     }
     if (!Array.isArray(options) || options.length !== 4) {
       return res.status(400).json({ success: false, message: 'options harus array dengan tepat 4 elemen.' });
+    }
+
+    // 🛡️ Validasi bahwa setiap pilihan jawaban tidak boleh berupa string kosong
+    const cleanOptions = options.map(opt => typeof opt === 'string' ? opt.trim() : String(opt || '').trim());
+    if (cleanOptions.some(opt => opt.length === 0)) {
+      return res.status(400).json({ success: false, message: 'Setiap pilihan jawaban dari opsi 1 sampai 4 wajib diisi teks yang valid.' });
+    }
+
+    if (!Number.isInteger(correct_index) || correct_index < 0 || correct_index > 3) {
+      return res.status(400).json({ success: false, message: 'correct_index harus berupa integer antara 0 dan 3 (0=A, 1=B, 2=C, 3=D).' });
     }
     const pkg = db.prepare('SELECT id FROM packages WHERE id = ?').get(package_id);
     if (!pkg) return res.status(404).json({ success: false, message: 'Paket tidak ditemukan.' });
@@ -50,16 +81,24 @@ const createQuestion = (req, res, next) => {
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       package_id,
-      question_text,
+      question_text.trim(),
       has_diagram ? 1 : 0,
       graph_data ? JSON.stringify(graph_data) : null,
-      JSON.stringify(options),
+      JSON.stringify(cleanOptions),
       correct_index,
-      explanation,
+      explanation.trim(),
       calculatedOrder
     );
     const newQ = db.prepare('SELECT * FROM questions WHERE id = ?').get(result.lastInsertRowid);
-    res.status(201).json({ success: true, message: 'Soal berhasil dibuat.', data: { ...newQ, options: JSON.parse(newQ.options) } });
+    res.status(201).json({
+      success: true,
+      message: 'Soal berhasil dibuat.',
+      data: {
+        ...newQ,
+        options: cleanOptions,
+        graph_data: newQ.graph_data ? (typeof newQ.graph_data === 'string' ? JSON.parse(newQ.graph_data) : newQ.graph_data) : null
+      }
+    });
   } catch (err) { next(err); }
 };
 
@@ -71,20 +110,52 @@ const updateQuestion = (req, res, next) => {
     if (!existing) return res.status(404).json({ success: false, message: 'Soal tidak ditemukan.' });
 
     const { question_text, has_diagram, graph_data, options, correct_index, explanation, order_index } = req.body;
+
+    let cleanOptions = undefined;
+    if (options !== undefined) {
+      if (!Array.isArray(options) || options.length !== 4) {
+        return res.status(400).json({ success: false, message: 'options harus berupa array dengan tepat 4 elemen pilihan jawaban.' });
+      }
+      cleanOptions = options.map(opt => typeof opt === 'string' ? opt.trim() : String(opt || '').trim());
+      if (cleanOptions.some(opt => opt.length === 0)) {
+        return res.status(400).json({ success: false, message: 'Setiap pilihan jawaban dari opsi 1 sampai 4 wajib diisi teks yang valid.' });
+      }
+    }
+
+    if (correct_index !== undefined && (!Number.isInteger(correct_index) || correct_index < 0 || correct_index > 3)) {
+      return res.status(400).json({ success: false, message: 'correct_index harus berupa integer antara 0 dan 3 (0=A, 1=B, 2=C, 3=D).' });
+    }
+
     const updated = {
-      question_text: question_text ?? existing.question_text,
+      question_text: question_text !== undefined ? question_text.trim() : existing.question_text,
       has_diagram: has_diagram !== undefined ? (has_diagram ? 1 : 0) : existing.has_diagram,
       graph_data: graph_data !== undefined ? (graph_data ? JSON.stringify(graph_data) : null) : existing.graph_data,
-      options: options ? JSON.stringify(options) : existing.options,
+      options: cleanOptions ? JSON.stringify(cleanOptions) : existing.options,
       correct_index: correct_index !== undefined ? correct_index : existing.correct_index,
-      explanation: explanation ?? existing.explanation,
-      order_index: order_index !== undefined ? order_index : existing.order_index,
+      explanation: explanation !== undefined ? explanation.trim() : existing.explanation,
+      order_index: order_index !== undefined ? parseInt(order_index) : existing.order_index,
     };
     db.prepare(`
       UPDATE questions SET question_text=?, has_diagram=?, graph_data=?, options=?, correct_index=?, explanation=?, order_index=? WHERE id=?
     `).run(updated.question_text, updated.has_diagram, updated.graph_data, updated.options, updated.correct_index, updated.explanation, updated.order_index, id);
     const result = db.prepare('SELECT * FROM questions WHERE id = ?').get(id);
-    res.json({ success: true, message: 'Soal berhasil diupdate.', data: { ...result, options: JSON.parse(result.options) } });
+
+    let parsedOptions = [];
+    try {
+      parsedOptions = typeof result.options === 'string' ? JSON.parse(result.options) : result.options;
+    } catch (e) {
+      parsedOptions = [];
+    }
+
+    res.json({
+      success: true,
+      message: 'Soal berhasil diupdate.',
+      data: {
+        ...result,
+        options: parsedOptions,
+        graph_data: result.graph_data ? (typeof result.graph_data === 'string' ? JSON.parse(result.graph_data) : result.graph_data) : null
+      }
+    });
   } catch (err) { next(err); }
 };
 
@@ -104,21 +175,74 @@ const analyzeGraph = (req, res, next) => {
   try {
     const { nodes, edges } = req.body;
     if (!nodes || !edges || !Array.isArray(nodes) || !Array.isArray(edges)) {
-      return res.status(400).json({ success: false, message: 'Kirim { nodes: [{id},...], edges: [[u,v],...] }' });
+      return res.status(400).json({ success: false, message: 'Format data tidak valid. Kirim { nodes: [{id},...], edges: [[u,v],...] }' });
     }
 
-    // Build adjacency list
+    if (nodes.length === 0) {
+      return res.status(400).json({ success: false, message: 'Graf harus memiliki setidaknya 1 simpul.' });
+    }
+
+    // 🛡️ Batasan Pencegahan DoS: Maksimal 16 simpul untuk komputasi kombinatorial instan
+    const MAX_NODES = 16;
+    if (nodes.length > MAX_NODES) {
+      return res.status(400).json({
+        success: false,
+        message: `Jumlah simpul (${nodes.length}) melampaui batas aman maksimal (${MAX_NODES} simpul) untuk komputasi kombinatorial instan.`
+      });
+    }
+
+    // Validasi integritas simpul
+    const nodeIds = nodes.map(n => n?.id).filter(Boolean);
+    const nodeSet = new Set(nodeIds);
+
+    if (nodeIds.length !== nodes.length) {
+      return res.status(400).json({ success: false, message: 'Setiap elemen dalam nodes wajib memiliki properti id yang valid.' });
+    }
+    if (nodeSet.size !== nodes.length) {
+      return res.status(400).json({ success: false, message: 'Terdapat duplikasi ID simpul pada graf.' });
+    }
+
+    // Validasi dan sanitasi edges
+    const cleanEdges = [];
+    const edgeSet = new Set();
+
+    for (const edge of edges) {
+      if (!Array.isArray(edge) || edge.length < 2) {
+        return res.status(400).json({ success: false, message: 'Format sisi tidak valid. Setiap sisi harus berupa pasangan [u, v].' });
+      }
+      const [u, v] = edge;
+      if (!nodeSet.has(u) || !nodeSet.has(v)) {
+        return res.status(400).json({
+          success: false,
+          message: `Sisi [${u}, ${v}] tidak valid karena menghubungkan simpul yang tidak ada dalam daftar nodes.`
+        });
+      }
+      if (u === v) continue; // Abaikan self-loop
+
+      const edgeKey = u < v ? `${u}---${v}` : `${v}---${u}`;
+      if (!edgeSet.has(edgeKey)) {
+        edgeSet.add(edgeKey);
+        cleanEdges.push([u, v]);
+      }
+    }
+
+    // Inisialisasi adjacency list & Set tetangga
     const adj = {};
-    for (const node of nodes) adj[node.id] = [];
-    for (const [u, v] of edges) {
-      if (adj[u]) adj[u].push(v);
-      if (adj[v]) adj[v].push(u);
+    for (const id of nodeIds) adj[id] = [];
+    for (const [u, v] of cleanEdges) {
+      adj[u].push(v);
+      adj[v].push(u);
     }
 
-    // BFS distance
+    const adjSet = {};
+    for (const id of nodeIds) {
+      adjSet[id] = new Set(adj[id]);
+    }
+
+    // BFS distance untuk graf tak berbobot
     const bfs = (start) => {
       const dist = {};
-      for (const n of nodes) dist[n.id] = Infinity;
+      for (const id of nodeIds) dist[id] = Infinity;
       dist[start] = 0;
       const queue = [start];
       while (queue.length > 0) {
@@ -133,31 +257,43 @@ const analyzeGraph = (req, res, next) => {
       return dist;
     };
 
-    // Compute all BFS distances
+    // Hitung seluruh jarak antar simpul
     const allDist = {};
-    for (const node of nodes) allDist[node.id] = bfs(node.id);
+    for (const id of nodeIds) allDist[id] = bfs(id);
 
-    const nodeIds = nodes.map(n => n.id);
     const n = nodeIds.length;
 
+    // Cek keterhubungan graf
+    const isConnected = n > 0 && nodeIds.every(id => allDist[nodeIds[0]][id] !== Infinity);
+
     // --- Domination Number γ(G) ---
-    // Brute force for small graphs (n <= 20)
     let domNumber = n;
-    let domSet = nodeIds;
+    let domSet = [...nodeIds];
+
     const isDominating = (subset) => {
       const subSet = new Set(subset);
       for (const v of nodeIds) {
         if (subSet.has(v)) continue;
-        const dominated = (adj[v] || []).some(nb => subSet.has(nb));
-        if (!dominated) return false;
+        let hasDominator = false;
+        for (let i = 0; i < subset.length; i++) {
+          if (adjSet[v].has(subset[i])) {
+            hasDominator = true;
+            break;
+          }
+        }
+        if (!hasDominator) return false;
       }
       return true;
     };
+
     for (let size = 1; size <= n; size++) {
       let found = false;
       const combinations = (arr, k, start = 0, current = []) => {
         if (current.length === k) {
-          if (isDominating(current)) { domSet = [...current]; found = true; }
+          if (isDominating(current)) {
+            domSet = [...current];
+            found = true;
+          }
           return;
         }
         for (let i = start; i < arr.length && !found; i++) {
@@ -167,29 +303,43 @@ const analyzeGraph = (req, res, next) => {
         }
       };
       combinations(nodeIds, size);
-      if (found) { domNumber = size; break; }
+      if (found) {
+        domNumber = size;
+        break;
+      }
     }
 
     // --- Metric Dimension β(G) ---
-    const getDistVector = (subset, v) => subset.map(s => allDist[s][v]);
     const isResolving = (subset) => {
-      for (let i = 0; i < nodeIds.length; i++) {
-        for (let j = i + 1; j < nodeIds.length; j++) {
-          const vi = nodeIds[i], vj = nodeIds[j];
-          const di = getDistVector(subset, vi);
-          const dj = getDistVector(subset, vj);
-          if (di.every((d, k) => d === dj[k])) return false;
+      for (let i = 0; i < n; i++) {
+        const vi = nodeIds[i];
+        for (let j = i + 1; j < n; j++) {
+          const vj = nodeIds[j];
+          let distinguished = false;
+          for (let sIdx = 0; sIdx < subset.length; sIdx++) {
+            const s = subset[sIdx];
+            if (allDist[s][vi] !== allDist[s][vj]) {
+              distinguished = true;
+              break;
+            }
+          }
+          if (!distinguished) return false;
         }
       }
       return true;
     };
+
     let metricDim = n;
-    let resolveSet = nodeIds;
-    for (let size = 1; size < n; size++) {
+    let resolveSet = [...nodeIds];
+
+    for (let size = 1; size <= n; size++) {
       let found = false;
       const combinations = (arr, k, start = 0, current = []) => {
         if (current.length === k) {
-          if (isResolving(current)) { resolveSet = [...current]; found = true; }
+          if (isResolving(current)) {
+            resolveSet = [...current];
+            found = true;
+          }
           return;
         }
         for (let i = start; i < arr.length && !found; i++) {
@@ -199,22 +349,32 @@ const analyzeGraph = (req, res, next) => {
         }
       };
       combinations(nodeIds, size);
-      if (found) { metricDim = size; break; }
+      if (found) {
+        metricDim = size;
+        break;
+      }
     }
 
     // Diameter
     let diameter = 0;
-    for (const u of nodeIds) {
-      for (const v of nodeIds) {
-        if (allDist[u][v] !== Infinity && allDist[u][v] > diameter) diameter = allDist[u][v];
+    if (isConnected) {
+      for (const u of nodeIds) {
+        for (const v of nodeIds) {
+          if (allDist[u][v] !== Infinity && allDist[u][v] > diameter) {
+            diameter = allDist[u][v];
+          }
+        }
       }
+    } else {
+      diameter = 'Terputus (∞)';
     }
 
     res.json({
       success: true,
       data: {
         n: n,
-        m: edges.length,
+        m: cleanEdges.length,
+        is_connected: isConnected,
         diameter,
         domination_number: domNumber,
         domination_set: domSet,
@@ -309,17 +469,29 @@ const updatePackage = (req, res, next) => {
   } catch (err) { next(err); }
 };
 
-// DELETE package (cascade delete questions)
+// DELETE package (atomic cascade delete quiz_attempts, questions, and package)
 const deletePackage = (req, res, next) => {
   try {
     const { id } = req.params;
     const existing = db.prepare('SELECT * FROM packages WHERE id = ?').get(id);
     if (!existing) return res.status(404).json({ success: false, message: 'Paket tidak ditemukan.' });
 
-    db.prepare('DELETE FROM questions WHERE package_id = ?').run(id);
-    db.prepare('DELETE FROM packages WHERE id = ?').run(id);
+    // 🛡️ Transaksi atomik: Memastikan seluruh data relasi terhapus serentak (all-or-nothing)
+    const deleteTx = db.transaction((pkgId) => {
+      // 1. Hapus riwayat pengerjaan kuis siswa untuk paket ini
+      db.prepare('DELETE FROM quiz_attempts WHERE package_id = ?').run(pkgId);
+      // 2. Hapus seluruh butir soal dalam paket
+      db.prepare('DELETE FROM questions WHERE package_id = ?').run(pkgId);
+      // 3. Hapus entitas paket
+      db.prepare('DELETE FROM packages WHERE id = ?').run(pkgId);
+    });
 
-    res.json({ success: true, message: `Paket '${existing.title}' beserta seluruh soalnya berhasil dihapus.` });
+    deleteTx(id);
+
+    res.json({
+      success: true,
+      message: `Paket '${existing.title}' beserta seluruh soal dan riwayat evaluasinya berhasil dihapus secara permanen.`
+    });
   } catch (err) { next(err); }
 };
 

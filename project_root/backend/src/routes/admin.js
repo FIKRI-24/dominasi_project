@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const { requireAuth, requireAdmin } = require('../middleware/auth');
 const {
   getAllQuestionsAdmin,
   createQuestion,
@@ -12,6 +13,9 @@ const {
   getAllStudents,
   getAllAttempts
 } = require('../controllers/adminController');
+
+// 🛡️ Proteksi Akses Penuh: Semua rute admin wajib menyertakan Bearer Token valid & role 'admin'
+router.use(requireAuth, requireAdmin);
 
 // ── CRUD PAKET ──
 // POST /api/admin/packages

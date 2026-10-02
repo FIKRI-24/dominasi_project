@@ -14,14 +14,33 @@ const getQuestionsByPackage = (req, res, next) => {
       SELECT id, package_id, question_text, has_diagram, graph_data, options, order_index
       FROM questions
       WHERE package_id = ?
-      ORDER BY order_index ASC
+      ORDER BY order_index ASC, id ASC
     `).all(id);
 
-    // Parse options JSON string
-    const parsed = questions.map(q => ({
-      ...q,
-      options: JSON.parse(q.options)
-    }));
+    // Safe parse options & graph_data JSON string
+    const parsed = questions.map(q => {
+      let parsedOptions = [];
+      try {
+        parsedOptions = typeof q.options === 'string' ? JSON.parse(q.options) : (Array.isArray(q.options) ? q.options : []);
+      } catch (e) {
+        parsedOptions = [];
+      }
+
+      let parsedGraph = null;
+      if (q.has_diagram && q.graph_data) {
+        try {
+          parsedGraph = typeof q.graph_data === 'string' ? JSON.parse(q.graph_data) : q.graph_data;
+        } catch (e) {
+          parsedGraph = null;
+        }
+      }
+
+      return {
+        ...q,
+        options: parsedOptions,
+        graph_data: parsedGraph
+      };
+    });
 
     res.json({
       success: true,
@@ -41,8 +60,8 @@ const submitAnswers = (req, res, next) => {
     const { id } = req.params;
     const { answers, is_final } = req.body;
 
-    if (!answers || typeof answers !== 'object') {
-      return res.status(400).json({ success: false, message: 'Format jawaban tidak valid. Kirim { answers: { "0": 1, "1": 3, ... } }' });
+    if (!answers || typeof answers !== 'object' || Array.isArray(answers)) {
+      return res.status(400).json({ success: false, message: 'Format jawaban tidak valid. Kirim objek { answers: { "0": 1, ... } } atau { answers: { [question_id]: 1, ... } }' });
     }
 
     const pkg = db.prepare('SELECT * FROM packages WHERE id = ?').get(id);
@@ -52,28 +71,52 @@ const submitAnswers = (req, res, next) => {
 
     const questions = db.prepare(`
       SELECT id, question_text, options, correct_index, explanation, order_index
-      FROM questions WHERE package_id = ? ORDER BY order_index ASC
+      FROM questions WHERE package_id = ? ORDER BY order_index ASC, id ASC
     `).all(id);
 
+    const totalQuestions = questions.length;
+    if (totalQuestions === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Paket latihan ini belum memiliki butir soal untuk dikerjakan.'
+      });
+    }
+
     let correctCount = 0;
+    const normalizedAnswers = {};
+
     const results = questions.map((q, idx) => {
-      const userAnswer = answers[String(idx)];
-      const isCorrect = typeof userAnswer === 'number' && userAnswer === q.correct_index;
+      // Dukung pencocokan presisi via ID Soal (q.id) dan fallback ke array index (idx)
+      const rawAnswer = answers[String(q.id)] !== undefined ? answers[String(q.id)] : answers[String(idx)];
+      const userAnswer = typeof rawAnswer === 'number' && Number.isInteger(rawAnswer) ? rawAnswer : null;
+      
+      const isCorrect = userAnswer !== null && userAnswer === q.correct_index;
       if (isCorrect) correctCount++;
 
+      if (userAnswer !== null) {
+        normalizedAnswers[q.id] = userAnswer;
+      }
+
+      let parsedOptions = [];
+      try {
+        parsedOptions = typeof q.options === 'string' ? JSON.parse(q.options) : (Array.isArray(q.options) ? q.options : []);
+      } catch (e) {
+        parsedOptions = [];
+      }
+
       return {
+        question_id: q.id,
         index: idx,
         question_text: q.question_text,
-        options: JSON.parse(q.options),
-        user_answer: userAnswer !== undefined ? userAnswer : null,
+        options: parsedOptions,
+        user_answer: userAnswer,
         correct_index: q.correct_index,
         is_correct: isCorrect,
         explanation: q.explanation
       };
     });
 
-    const totalQuestions = questions.length;
-    const score = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
+    const score = Math.round((correctCount / totalQuestions) * 100);
     const wrongCount = totalQuestions - correctCount;
 
     // Rekam attempt ke basis data jika pengguna login dan ini adalah submit akhir
@@ -91,7 +134,7 @@ const submitAnswers = (req, res, next) => {
         totalQuestions,
         correctCount,
         wrongCount,
-        JSON.stringify(answers)
+        JSON.stringify(normalizedAnswers)
       );
       attemptId = insertAttempt.lastInsertRowid;
     }

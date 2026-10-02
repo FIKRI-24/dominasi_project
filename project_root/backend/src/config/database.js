@@ -77,12 +77,12 @@ try {
   console.error('Error seeding default admin:', e.message);
 }
 
-// Set initial categories if default is still unset or general
+// Inisialisasi kategori awal hanya jika kolom category masih kosong/belum diatur (NULL atau '')
 try {
-  db.prepare(`UPDATE packages SET category = 'Representasi Matriks', target_questions = 10 WHERE slug = 'dasar-graph-matrix' AND (category IS NULL OR category = 'Teori Graf')`).run();
-  db.prepare(`UPDATE packages SET category = 'Spektral Graf & Laplacian', target_questions = 10 WHERE slug = 'aplikasi-graph-matrix' AND (category IS NULL OR category = 'Teori Graf')`).run();
-  db.prepare(`UPDATE packages SET category = 'Dasar Bilangan Dominasi', target_questions = 10 WHERE slug = 'dasar-bilangan-dominasi' AND (category IS NULL OR category = 'Teori Graf')`).run();
-  db.prepare(`UPDATE packages SET category = 'Variasi Dominasi & Sensor', target_questions = 10 WHERE slug = 'aplikasi-variasi-dominasi' AND (category IS NULL OR category = 'Teori Graf')`).run();
+  db.prepare(`UPDATE packages SET category = 'Representasi Matriks', target_questions = 10 WHERE slug = 'dasar-graph-matrix' AND (category IS NULL OR category = '')`).run();
+  db.prepare(`UPDATE packages SET category = 'Spektral Graf & Laplacian', target_questions = 10 WHERE slug = 'aplikasi-graph-matrix' AND (category IS NULL OR category = '')`).run();
+  db.prepare(`UPDATE packages SET category = 'Dasar Bilangan Dominasi', target_questions = 10 WHERE slug = 'dasar-bilangan-dominasi' AND (category IS NULL OR category = '')`).run();
+  db.prepare(`UPDATE packages SET category = 'Variasi Dominasi & Sensor', target_questions = 10 WHERE slug = 'aplikasi-variasi-dominasi' AND (category IS NULL OR category = '')`).run();
 } catch (e) {}
 
 module.exports = db;

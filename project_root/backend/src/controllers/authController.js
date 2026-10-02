@@ -4,7 +4,7 @@ const db = require('../config/database');
 const { JWT_SECRET } = require('../middleware/auth');
 
 // POST /api/auth/register
-const register = (req, res, next) => {
+const register = async (req, res, next) => {
   try {
     const { name, email, password } = req.body;
 
@@ -14,12 +14,19 @@ const register = (req, res, next) => {
     if (!email || !email.trim()) {
       return res.status(400).json({ success: false, message: 'Alamat email wajib diisi.' });
     }
-    if (!password || password.length < 6) {
-      return res.status(400).json({ success: false, message: 'Kata sandi minimal 6 karakter.' });
-    }
 
     const cleanEmail = email.trim().toLowerCase();
     const cleanName = name.trim();
+
+    // 🛡️ Validasi Format Email Standar RFC
+    const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!EMAIL_REGEX.test(cleanEmail) || cleanEmail.length > 254) {
+      return res.status(400).json({ success: false, message: 'Format alamat email tidak valid.' });
+    }
+
+    if (!password || password.length < 6) {
+      return res.status(400).json({ success: false, message: 'Kata sandi minimal 6 karakter.' });
+    }
 
     // Cek apakah email sudah terdaftar
     const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(cleanEmail);
@@ -27,8 +34,8 @@ const register = (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Email tersebut sudah terdaftar. Silakan login atau gunakan email lain.' });
     }
 
-    // Hash password
-    const hashedPassword = bcrypt.hashSync(password, 10);
+    // Hash password secara asinkron (non-blocking event-loop)
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     const result = db.prepare(`
       INSERT INTO users (name, email, password, role)
@@ -55,7 +62,7 @@ const register = (req, res, next) => {
 };
 
 // POST /api/auth/login
-const login = (req, res, next) => {
+const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
@@ -64,13 +71,19 @@ const login = (req, res, next) => {
     }
 
     const cleanEmail = email.trim().toLowerCase();
+    const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!EMAIL_REGEX.test(cleanEmail)) {
+      return res.status(400).json({ success: false, message: 'Format alamat email tidak valid.' });
+    }
+
     const user = db.prepare('SELECT * FROM users WHERE email = ?').get(cleanEmail);
 
     if (!user) {
       return res.status(401).json({ success: false, message: 'Email atau kata sandi tidak cocok.' });
     }
 
-    const isMatch = bcrypt.compareSync(password, user.password);
+    // Verifikasi password secara asinkron (non-blocking)
+    const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({ success: false, message: 'Email atau kata sandi tidak cocok.' });
     }
