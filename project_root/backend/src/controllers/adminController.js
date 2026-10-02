@@ -323,6 +323,73 @@ const deletePackage = (req, res, next) => {
   } catch (err) { next(err); }
 };
 
+// ── MONITORING PELAJAR & REKAP EVALUASI ──
+// GET /api/admin/users
+const getAllStudents = (req, res, next) => {
+  try {
+    const students = db.prepare(`
+      SELECT 
+        u.id, u.name, u.email, u.role, u.created_at,
+        COUNT(qa.id) as attempts_count,
+        ROUND(AVG(qa.score), 1) as avg_score,
+        MAX(qa.score) as best_score,
+        MAX(qa.completed_at) as last_activity
+      FROM users u
+      LEFT JOIN quiz_attempts qa ON qa.user_id = u.id
+      WHERE u.role = 'student'
+      GROUP BY u.id
+      ORDER BY u.created_at DESC
+    `).all();
+
+    res.json({
+      success: true,
+      data: students
+    });
+  } catch (err) { next(err); }
+};
+
+// GET /api/admin/attempts
+const getAllAttempts = (req, res, next) => {
+  try {
+    const { package_id, user_id } = req.query;
+
+    let query = `
+      SELECT 
+        qa.id, qa.user_id, u.name as student_name, u.email as student_email,
+        qa.package_id, p.title as package_title, p.category as package_category,
+        qa.score, qa.total_questions, qa.correct_count, qa.wrong_count,
+        qa.completed_at
+      FROM quiz_attempts qa
+      JOIN users u ON u.id = qa.user_id
+      JOIN packages p ON p.id = qa.package_id
+    `;
+    const conditions = [];
+    const params = [];
+
+    if (package_id) {
+      conditions.push('qa.package_id = ?');
+      params.push(package_id);
+    }
+    if (user_id) {
+      conditions.push('qa.user_id = ?');
+      params.push(user_id);
+    }
+
+    if (conditions.length > 0) {
+      query += ' WHERE ' + conditions.join(' AND ');
+    }
+
+    query += ' ORDER BY qa.completed_at DESC LIMIT 100';
+
+    const attempts = db.prepare(query).all(...params);
+
+    res.json({
+      success: true,
+      data: attempts
+    });
+  } catch (err) { next(err); }
+};
+
 module.exports = {
   getAllQuestionsAdmin,
   createQuestion,
@@ -331,5 +398,7 @@ module.exports = {
   analyzeGraph,
   createPackage,
   updatePackage,
-  deletePackage
+  deletePackage,
+  getAllStudents,
+  getAllAttempts
 };

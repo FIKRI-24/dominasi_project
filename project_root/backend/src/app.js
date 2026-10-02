@@ -21,10 +21,12 @@ app.get('/api/health', (req, res) => {
 });
 
 const adminRouter = require('./routes/admin');
+const authRouter = require('./routes/auth');
 
 // Routes
 app.use('/api/packages', packagesRouter);
 app.use('/api/admin', adminRouter);
+app.use('/api/auth', authRouter);
 
 // 404 handler
 app.use((req, res) => {

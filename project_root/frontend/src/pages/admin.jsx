@@ -422,6 +422,12 @@ const Admin = () => {
   const [deleteQuestionConfirm, setDeleteQuestionConfirm] = useState(null);
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState('');
 
+  // Tab Admin (Manajemen Paket vs Rekapitulasi Pelajar)
+  const [adminTab, setAdminTab] = useState('packages'); // 'packages' | 'students'
+  const [students, setStudents] = useState([]);
+  const [attempts, setAttempts] = useState([]);
+  const [studentsLoading, setStudentsLoading] = useState(false);
+
   const fetchPackages = async () => {
     try {
       setLoading(true);
@@ -433,6 +439,24 @@ const Admin = () => {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchStudentsAndAttempts = async () => {
+    try {
+      setStudentsLoading(true);
+      const [resUsers, resAttempts] = await Promise.all([
+        fetch(`${API}/admin/users`),
+        fetch(`${API}/admin/attempts`)
+      ]);
+      const dataUsers = await resUsers.json();
+      const dataAttempts = await resAttempts.json();
+      if (dataUsers.success) setStudents(dataUsers.data);
+      if (dataAttempts.success) setAttempts(dataAttempts.data);
+    } catch (err) {
+      console.error('Error fetching students data:', err);
+    } finally {
+      setStudentsLoading(false);
     }
   };
 
@@ -452,6 +476,7 @@ const Admin = () => {
 
   useEffect(() => {
     fetchPackages();
+    fetchStudentsAndAttempts();
   }, []);
 
   const handleOpenPackage = (pkg) => {
@@ -520,9 +545,53 @@ const Admin = () => {
 
       <main style={{ maxWidth: 1160, margin: '0 auto', padding: '2rem 1.5rem' }}>
         
-        {/* ── JIKA DI VIEW 1: OVERVIEW PAKET LATIHAN ── */}
-        {!activePackage && (
+        {/* Tab Navigasi Admin */}
+        <div style={{ display: 'flex', gap: 10, marginBottom: 24, borderBottom: '1px solid #1e293b', paddingBottom: 14 }}>
+          <button
+            onClick={() => { setAdminTab('packages'); setActivePackage(null); }}
+            style={{
+              padding: '9px 18px',
+              borderRadius: 8,
+              border: 'none',
+              background: adminTab === 'packages' ? '#2563eb' : '#0f172a',
+              color: adminTab === 'packages' ? '#fff' : '#94a3b8',
+              cursor: 'pointer',
+              fontWeight: 600,
+              fontSize: 14,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              transition: 'all 0.15s ease'
+            }}
+          >
+            <span>📦 Manajemen Paket & Soal</span>
+          </button>
+          <button
+            onClick={() => { setAdminTab('students'); setActivePackage(null); fetchStudentsAndAttempts(); }}
+            style={{
+              padding: '9px 18px',
+              borderRadius: 8,
+              border: 'none',
+              background: adminTab === 'students' ? '#2563eb' : '#0f172a',
+              color: adminTab === 'students' ? '#fff' : '#94a3b8',
+              cursor: 'pointer',
+              fontWeight: 600,
+              fontSize: 14,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              transition: 'all 0.15s ease'
+            }}
+          >
+            <span>👥 Rekapitulasi Pelajar & Nilai ({attempts.length})</span>
+          </button>
+        </div>
+
+        {adminTab === 'packages' && (
           <>
+            {/* ── JIKA DI VIEW 1: OVERVIEW PAKET LATIHAN ── */}
+            {!activePackage && (
+              <>
             {/* Header Admin */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24, flexWrap: 'wrap', gap: 16 }}>
               <div>
@@ -828,7 +897,154 @@ const Admin = () => {
             )}
           </div>
         )}
+        </>
+        )}
 
+        {/* ── JIKA DI VIEW 2: REKAPITULASI PELAJAR & HASIL EVALUASI ── */}
+        {adminTab === 'students' && (
+          <div>
+            {/* Header Pelajar */}
+            <div style={{ marginBottom: 24 }}>
+              <h1 style={{ fontSize: 24, fontWeight: 700, margin: '0 0 6px 0', display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span>👥 Rekapitulasi Pelajar & Hasil Evaluasi</span>
+              </h1>
+              <p style={{ color: '#94a3b8', fontSize: 14, margin: 0 }}>
+                Pantau seluruh aktivitas latihan, rekam jejak nilai kuis, dan data pelajar terdaftar secara real-time.
+              </p>
+            </div>
+
+            {/* Statistik Ringkas Pelajar */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14, marginBottom: 28 }}>
+              <div style={{ background: '#0f172a', border: '1px solid #1e293b', borderRadius: 10, padding: 18 }}>
+                <span style={{ color: '#94a3b8', fontSize: 12, textTransform: 'uppercase', fontFamily: 'monospace' }}>Total Pelajar Terdaftar</span>
+                <div style={{ fontSize: 26, fontWeight: 700, color: '#f8fafc', marginTop: 4 }}>{students.length} Siswa</div>
+              </div>
+              <div style={{ background: '#0f172a', border: '1px solid #1e293b', borderRadius: 10, padding: 18 }}>
+                <span style={{ color: '#94a3b8', fontSize: 12, textTransform: 'uppercase', fontFamily: 'monospace' }}>Sesi Latihan Diselesaikan</span>
+                <div style={{ fontSize: 26, fontWeight: 700, color: '#38bdf8', marginTop: 4 }}>{attempts.length} Kali Selesai</div>
+              </div>
+              <div style={{ background: '#0f172a', border: '1px solid #1e293b', borderRadius: 10, padding: 18 }}>
+                <span style={{ color: '#94a3b8', fontSize: 12, textTransform: 'uppercase', fontFamily: 'monospace' }}>Rata-rata Skor Keseluruhan</span>
+                <div style={{ fontSize: 26, fontWeight: 700, color: '#34d399', marginTop: 4 }}>
+                  {attempts.length > 0 ? Math.round(attempts.reduce((a, c) => a + c.score, 0) / attempts.length) : 0}%
+                </div>
+              </div>
+            </div>
+
+            {/* Tabel 1: Log Pengerjaan Kuis Siswa Terbaru */}
+            <div style={{ background: '#0f172a', border: '1px solid #1e293b', borderRadius: 12, padding: 22, marginBottom: 28 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                <h3 style={{ fontSize: 17, fontWeight: 600, color: '#f8fafc', margin: 0 }}>
+                  📝 Log Riwayat Pengerjaan Kuis Terbaru
+                </h3>
+                <span style={{ fontSize: 12, color: '#64748b' }}>{attempts.length} Catatan Nilai</span>
+              </div>
+
+              {studentsLoading ? (
+                <div style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>⏳ Memuat data riwayat...</div>
+              ) : attempts.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '2.5rem', color: '#64748b', border: '1px dashed #1e293b', borderRadius: 8 }}>
+                  Belum ada siswa yang menyelesaikan latihan kuis.
+                </div>
+              ) : (
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: 13 }}>
+                    <thead>
+                      <tr style={{ borderBottom: '1px solid #1e293b', color: '#94a3b8' }}>
+                        <th style={{ padding: '10px 12px' }}>Waktu Selesai</th>
+                        <th style={{ padding: '10px 12px' }}>Nama Pelajar</th>
+                        <th style={{ padding: '10px 12px' }}>Modul Latihan</th>
+                        <th style={{ padding: '10px 12px' }}>Hasil Nilai</th>
+                        <th style={{ padding: '10px 12px' }}>Ketepatan</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {attempts.map(at => {
+                        const isPass = at.score >= 70;
+                        return (
+                          <tr key={at.id} style={{ borderBottom: '1px solid #1e293b' }}>
+                            <td style={{ padding: '12px', color: '#94a3b8', fontFamily: 'monospace' }}>
+                              {new Date(at.completed_at).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}
+                            </td>
+                            <td style={{ padding: '12px' }}>
+                              <strong style={{ color: '#f8fafc', display: 'block' }}>{at.student_name}</strong>
+                              <span style={{ color: '#64748b', fontSize: 11 }}>{at.student_email}</span>
+                            </td>
+                            <td style={{ padding: '12px' }}>
+                              <span style={{ color: '#38bdf8', fontWeight: 600 }}>{at.package_title}</span>
+                              <span style={{ display: 'block', fontSize: 11, color: '#64748b' }}>{at.package_category}</span>
+                            </td>
+                            <td style={{ padding: '12px' }}>
+                              <span style={{
+                                padding: '4px 10px',
+                                borderRadius: 12,
+                                fontSize: 12,
+                                fontWeight: 700,
+                                background: isPass ? 'rgba(16, 185, 129, 0.15)' : 'rgba(244, 63, 94, 0.15)',
+                                color: isPass ? '#34d399' : '#fb7185',
+                                border: `1px solid ${isPass ? 'rgba(16, 185, 129, 0.3)' : 'rgba(244, 63, 94, 0.3)'}`
+                              }}>
+                                {at.score}% ({isPass ? 'Lulus' : 'Remedial'})
+                              </span>
+                            </td>
+                            <td style={{ padding: '12px', color: '#94a3b8' }}>
+                              {at.correct_count} / {at.total_questions} Benar
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            {/* Tabel 2: Daftar Akun Pelajar Terdaftar */}
+            <div style={{ background: '#0f172a', border: '1px solid #1e293b', borderRadius: 12, padding: 22 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                <h3 style={{ fontSize: 17, fontWeight: 600, color: '#f8fafc', margin: 0 }}>
+                  🎓 Daftar Akun Pelajar Terdaftar
+                </h3>
+                <span style={{ fontSize: 12, color: '#64748b' }}>{students.length} Pelajar</span>
+              </div>
+
+              {students.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>Belum ada akun pelajar yang terdaftar.</div>
+              ) : (
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: 13 }}>
+                    <thead>
+                      <tr style={{ borderBottom: '1px solid #1e293b', color: '#94a3b8' }}>
+                        <th style={{ padding: '10px 12px' }}>Nama Pelajar</th>
+                        <th style={{ padding: '10px 12px' }}>Email</th>
+                        <th style={{ padding: '10px 12px' }}>Tanggal Bergabung</th>
+                        <th style={{ padding: '10px 12px' }}>Kuis Diselesaikan</th>
+                        <th style={{ padding: '10px 12px' }}>Rata-rata Nilai</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {students.map(std => (
+                        <tr key={std.id} style={{ borderBottom: '1px solid #1e293b' }}>
+                          <td style={{ padding: '12px', color: '#f8fafc', fontWeight: 600 }}>{std.name}</td>
+                          <td style={{ padding: '12px', color: '#94a3b8' }}>{std.email}</td>
+                          <td style={{ padding: '12px', color: '#64748b', fontFamily: 'monospace' }}>
+                            {new Date(std.created_at).toLocaleDateString('id-ID', { dateStyle: 'medium' })}
+                          </td>
+                          <td style={{ padding: '12px', color: '#38bdf8', fontWeight: 600 }}>
+                            {std.attempts_count || 0} Sesi
+                          </td>
+                          <td style={{ padding: '12px', color: (std.avg_score || 0) >= 70 ? '#34d399' : '#fde047', fontWeight: 700 }}>
+                            {std.avg_score !== null ? `${std.avg_score}%` : '-'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </main>
 
       {/* Modal Buat / Edit Paket */}

@@ -8,22 +8,23 @@ import Coba from './pages/coba';
 import Latihan from './pages/latihan';
 import Login from './pages/login';
 import Admin from './pages/admin';
-
-
+import { AuthProvider } from './context/AuthContext';
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Beranda />} />
-        <Route path="/materi" element={<Materi />} />
-        <Route path="/contoh" element={<Contoh />} />
-        <Route path="/coba" element={<Coba />} />
-        <Route path="/latihan" element={<Latihan />} />
-         <Route path="/login" element={<Login />} />
-         <Route path="/admin" element={<Admin />} />
-      </Routes>
-    </Router>
+    <AuthProvider>
+      <Router>
+        <Routes>
+          <Route path="/" element={<Beranda />} />
+          <Route path="/materi" element={<Materi />} />
+          <Route path="/contoh" element={<Contoh />} />
+          <Route path="/coba" element={<Coba />} />
+          <Route path="/latihan" element={<Latihan />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/admin" element={<Admin />} />
+        </Routes>
+      </Router>
+    </AuthProvider>
   );
 }
 

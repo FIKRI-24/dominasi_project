@@ -1,7 +1,6 @@
-// src/pages/Login.jsx
 import React, { useState } from 'react';
-import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import './assets/login.css';
 
 const Login = () => {
@@ -10,6 +9,7 @@ const Login = () => {
   const [pesan, setPesan] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -17,22 +17,17 @@ const Login = () => {
     setPesan('');
 
     try {
-      const res = await axios.post('http://localhost:3000/users/login', {
-        email,
-        password,
-      }, {
-        withCredentials: true 
-      });
-
-      setPesan(res.data.message || 'Login berhasil');
-      setTimeout(() => navigate('/'), 1000);
+      const user = await login(email, password);
+      setPesan(`Login berhasil! Selamat datang, ${user.name}.`);
+      setTimeout(() => {
+        if (user.role === 'admin') {
+          navigate('/admin');
+        } else {
+          navigate('/latihan');
+        }
+      }, 700);
     } catch (err) {
-      if (!err.response) {
-        // Server backend tidak aktif (mode offline/demo)
-        setPesan('Fitur Demo: Server akun belum dihubungkan. Anda tetap dapat menjelajahi seluruh materi, contoh, dan lab graf secara bebas.');
-      } else {
-        setPesan(err.response?.data?.message || 'Login gagal. Periksa kembali email dan kata sandi Anda.');
-      }
+      setPesan(err.message || 'Login gagal. Periksa kembali email dan kata sandi Anda.');
     } finally {
       setIsLoading(false);
     }

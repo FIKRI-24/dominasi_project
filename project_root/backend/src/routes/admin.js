@@ -8,7 +8,9 @@ const {
   analyzeGraph,
   createPackage,
   updatePackage,
-  deletePackage
+  deletePackage,
+  getAllStudents,
+  getAllAttempts
 } = require('../controllers/adminController');
 
 // ── CRUD PAKET ──
@@ -36,5 +38,12 @@ router.delete('/questions/:id', deleteQuestion);
 
 // POST /api/admin/graph/analyze
 router.post('/graph/analyze', analyzeGraph);
+
+// ── MONITORING PELAJAR & REKAP EVALUASI ──
+// GET /api/admin/users
+router.get('/users', getAllStudents);
+
+// GET /api/admin/attempts
+router.get('/attempts', getAllAttempts);
 
 module.exports = router;

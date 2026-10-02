@@ -35,11 +35,11 @@ const getQuestionsByPackage = (req, res, next) => {
   }
 };
 
-// POST submit answers — grading engine
+// POST submit answers — grading engine & persistent attempt recording
 const submitAnswers = (req, res, next) => {
   try {
     const { id } = req.params;
-    const { answers } = req.body;
+    const { answers, is_final } = req.body;
 
     if (!answers || typeof answers !== 'object') {
       return res.status(400).json({ success: false, message: 'Format jawaban tidak valid. Kirim { answers: { "0": 1, "1": 3, ... } }' });
@@ -74,6 +74,27 @@ const submitAnswers = (req, res, next) => {
 
     const totalQuestions = questions.length;
     const score = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
+    const wrongCount = totalQuestions - correctCount;
+
+    // Rekam attempt ke basis data jika pengguna login dan ini adalah submit akhir
+    let attemptId = null;
+    const shouldRecordAttempt = req.user && (is_final || Object.keys(answers).length >= totalQuestions);
+
+    if (shouldRecordAttempt) {
+      const insertAttempt = db.prepare(`
+        INSERT INTO quiz_attempts (user_id, package_id, score, total_questions, correct_count, wrong_count, answers_json)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+      `).run(
+        req.user.id,
+        parseInt(id),
+        score,
+        totalQuestions,
+        correctCount,
+        wrongCount,
+        JSON.stringify(answers)
+      );
+      attemptId = insertAttempt.lastInsertRowid;
+    }
 
     res.json({
       success: true,
@@ -82,8 +103,11 @@ const submitAnswers = (req, res, next) => {
         package_title: pkg.title,
         total_questions: totalQuestions,
         correct_count: correctCount,
-        wrong_count: totalQuestions - correctCount,
+        wrong_count: wrongCount,
         score,
+        attempt_id: attemptId,
+        is_saved: !!attemptId,
+        user: req.user ? { id: req.user.id, name: req.user.name } : null,
         results
       }
     });
