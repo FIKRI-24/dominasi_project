@@ -1,0 +1,277 @@
+/* StepByStepSolver.css - Desain Modern & Edukatif untuk Visualizer Langkah */
+
+.step-solver-panel {
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 14px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.5rem;
+  color: #f1f5f9;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
+  animation: fadeInDown 0.3s ease-out;
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.step-solver-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #1e293b;
+  padding-bottom: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+.step-solver-title-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.step-badge {
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  letter-spacing: 0.05em;
+  box-shadow: 0 0 10px rgba(37, 99, 235, 0.4);
+}
+
+.step-badge.domination {
+  background: linear-gradient(135deg, #059669, #10b981);
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+}
+
+.step-solver-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.step-close-btn {
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #94a3b8;
+  border-radius: 8px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.step-close-btn:hover {
+  background: #ef4444;
+  color: #ffffff;
+  border-color: #dc2626;
+}
+
+/* Stepper Progress Bar */
+.stepper-progress-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.stepper-dot {
+  flex: 1;
+  height: 6px;
+  background: #334155;
+  border-radius: 9999px;
+  transition: all 0.3s;
+  cursor: pointer;
+}
+
+.stepper-dot.active {
+  background: #38bdf8;
+  box-shadow: 0 0 8px #38bdf8;
+}
+
+.stepper-dot.completed {
+  background: #10b981;
+}
+
+/* Narrative Body */
+.step-body-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+@media (max-width: 900px) {
+  .step-body-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.step-narrative-card {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 10px;
+  padding: 1rem 1.15rem;
+}
+
+.step-narrative-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: #38bdf8;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.step-narrative-title.domination {
+  color: #34d399;
+}
+
+.step-narrative-desc {
+  font-size: 0.88rem;
+  color: #cbd5e1;
+  line-height: 1.6;
+  margin-bottom: 0.75rem;
+  white-space: pre-line;
+}
+
+.step-highlight-box {
+  background: rgba(37, 99, 235, 0.1);
+  border-left: 3px solid #3b82f6;
+  padding: 0.6rem 0.85rem;
+  border-radius: 0 6px 6px 0;
+  font-size: 0.82rem;
+  color: #93c5fd;
+}
+
+.step-highlight-box.domination {
+  background: rgba(16, 185, 129, 0.1);
+  border-left-color: #10b981;
+  color: #6ee7b7;
+}
+
+/* Right side Mini Live Table */
+.step-table-card {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  overflow-x: auto;
+  max-height: 220px;
+}
+
+.step-table-card h4 {
+  font-size: 0.82rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.step-mini-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  font-family: 'Fira Code', monospace;
+}
+
+.step-mini-table th,
+.step-mini-table td {
+  padding: 0.35rem 0.5rem;
+  text-align: center;
+  border-bottom: 1px solid #334155;
+}
+
+.step-mini-table th {
+  background: #0f172a;
+  color: #cbd5e1;
+  font-weight: 600;
+}
+
+.step-mini-table tr.collision-row {
+  background: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+}
+
+.step-mini-table tr.unique-row {
+  background: rgba(16, 185, 129, 0.1);
+  color: #a7f3d0;
+}
+
+/* Player Controls Bar */
+.step-player-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  background: #0b1120;
+  border: 1px solid #1e293b;
+  padding: 0.65rem 1rem;
+  border-radius: 10px;
+}
+
+.step-player-btns {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.step-ctrl-btn {
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #f1f5f9;
+  padding: 0.45rem 0.85rem;
+  border-radius: 7px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: all 0.2s;
+}
+
+.step-ctrl-btn:hover:not(:disabled) {
+  background: #2563eb;
+  border-color: #3b82f6;
+  color: #ffffff;
+}
+
+.step-ctrl-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.step-ctrl-btn.primary {
+  background: #2563eb;
+  border-color: #3b82f6;
+}
+
+.step-ctrl-btn.primary:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.step-counter {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.step-counter strong {
+  color: #f8fafc;
+}

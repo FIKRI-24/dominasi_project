@@ -17,9 +17,11 @@ import {
   faShieldAlt,
   faSearch,
   faArrowsAlt,
-  faRedo
+  faRedo,
+  faPlay
 } from '@fortawesome/free-solid-svg-icons';
 import Navbar from '../components/Navbar';
+import StepByStepSolver from '../components/StepByStepSolver';
 import './assets/coba.css';
 
 // Debounce utility function
@@ -245,6 +247,7 @@ const Coba = () => {
   const [activeTab, setActiveTab] = useState('panduan');
   const [showInfoPanel, setShowInfoPanel] = useState(true);
   const [activeMode, setActiveMode] = useState('metric'); // 'metric' | 'domination'
+  const [showStepSolver, setShowStepSolver] = useState(false);
 
   // Graph state & canvas transform
   const [currentGraph, setCurrentGraph] = useState('GAMBAR_II1');
@@ -1038,6 +1041,29 @@ const Coba = () => {
               <button onClick={showSolution} className="action-btn action-btn-solusi">
                 <FontAwesomeIcon icon={faLightbulb} /> Solusi
               </button>
+              <button
+                onClick={() => {
+                  if (!showStepSolver) resetSelection();
+                  setShowStepSolver(prev => !prev);
+                }}
+                className={`action-btn ${showStepSolver ? 'active' : ''}`}
+                style={{
+                  gridColumn: '1 / -1',
+                  background: showStepSolver ? '#0284c7' : 'linear-gradient(135deg, #1e40af, #2563eb)',
+                  color: '#ffffff',
+                  fontWeight: '700',
+                  marginTop: '0.35rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.5rem',
+                  boxShadow: showStepSolver ? '0 0 12px rgba(2, 132, 199, 0.5)' : 'none'
+                }}
+                title="Buka panduan langkah penyelesaian interaktif"
+              >
+                <FontAwesomeIcon icon={faPlay} />
+                <span>{showStepSolver ? 'Tutup Simulator Langkah' : '▶ Panduan Langkah (Step-by-Step)'}</span>
+              </button>
             </div>
             
             <div className="zoom-controls">
@@ -1097,6 +1123,22 @@ const Coba = () => {
 
         {/* Right Side: Interactive Canvas Visualizer */}
         <div className="coba-canvas-card">
+          {showStepSolver && (
+            <StepByStepSolver
+              graph={GRAPHS[currentGraph]}
+              mode={activeMode}
+              bfs={bfs}
+              onStepChange={({ selectedNodes: sNodes, highlightedNodes: hNodes }) => {
+                setSelectedNodes(new Set(sNodes));
+                setHighlightedNodes(new Set(hNodes));
+              }}
+              onClose={() => {
+                setShowStepSolver(false);
+                resetSelection();
+              }}
+            />
+          )}
+
           <div className="canvas-header-bar">
             <div className="canvas-hint">
               <FontAwesomeIcon icon={faArrowsAlt} style={{ color: 'var(--primary)' }} />
