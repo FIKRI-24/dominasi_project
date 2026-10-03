@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE } from '../config/api';
@@ -37,13 +37,19 @@ const GraphCanvas = ({ value, onChange, onAutoAnalyze }) => {
         const parsed = typeof value === 'string' ? JSON.parse(value) : value;
         if (parsed.nodes) setNodes(parsed.nodes);
         if (parsed.edges) setEdges(parsed.edges);
-      } catch (e) {}
+      } catch {
+        // Abaikan parse error jika JSON belum valid
+      }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
 
   useEffect(() => {
     const graphJson = JSON.stringify({ viewBox: { width: 320, height: 200 }, nodes, edges });
-    onChange(graphJson);
+    onChangeRef.current(graphJson);
   }, [nodes, edges]);
 
   const draw = () => {
@@ -423,8 +429,7 @@ const QuestionForm = ({ activePackage, initial, onSave, onCancel, token }) => {
 
 // ── HALAMAN ADMIN UTAMA (Package-First Management) ──
 const Admin = () => {
-  const { user, token, isAdmin, loading: authLoading } = useAuth();
-  const navigate = useNavigate();
+  const { token, isAdmin, loading: authLoading } = useAuth();
 
   const [packages, setPackages] = useState([]);
   const [activePackage, setActivePackage] = useState(null); // Jika null: View 1 (List Paket). Jika terisi: View 2 (Soal Paket)
@@ -447,7 +452,7 @@ const Admin = () => {
   const [attempts, setAttempts] = useState([]);
   const [studentsLoading, setStudentsLoading] = useState(false);
 
-  const fetchPackages = async () => {
+  const fetchPackages = useCallback(async () => {
     try {
       setLoading(true);
       const res = await fetch(`${API}/packages`);
@@ -459,9 +464,9 @@ const Admin = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const fetchStudentsAndAttempts = async () => {
+  const fetchStudentsAndAttempts = useCallback(async () => {
     if (!token) return;
     try {
       setStudentsLoading(true);
@@ -482,7 +487,7 @@ const Admin = () => {
     } finally {
       setStudentsLoading(false);
     }
-  };
+  }, [token]);
 
   const fetchQuestionsForPackage = async (pkgId) => {
     try {
@@ -507,7 +512,7 @@ const Admin = () => {
     if (token && isAdmin) {
       fetchStudentsAndAttempts();
     }
-  }, [token, isAdmin]);
+  }, [token, isAdmin, fetchPackages, fetchStudentsAndAttempts]);
 
   const handleOpenPackage = (pkg) => {
     setActivePackage(pkg);
@@ -657,6 +662,13 @@ const Admin = () => {
             <span>👥 Rekapitulasi Pelajar & Nilai ({attempts.length})</span>
           </button>
         </div>
+
+        {error && (
+          <div style={{ background: '#450a0a', border: '1px solid #dc2626', color: '#fca5a5', padding: '10px 14px', borderRadius: 8, marginBottom: 18, fontSize: 13, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span>⚠️ {error}</span>
+            <button onClick={() => setError(null)} style={{ background: 'transparent', border: 'none', color: '#fca5a5', cursor: 'pointer', fontWeight: 'bold' }}>✕</button>
+          </div>
+        )}
 
         {adminTab === 'packages' && (
           <>

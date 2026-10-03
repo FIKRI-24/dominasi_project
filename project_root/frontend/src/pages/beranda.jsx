@@ -1,173 +1,400 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+  faBook,
+  faProjectDiagram,
+  faFlask,
+  faTasks,
+  faShieldAlt,
+  faCompass,
+  faArrowRight,
+  faCheckCircle,
+  faExclamationTriangle,
+  faRedo,
+  faLightbulb
+} from '@fortawesome/free-solid-svg-icons';
 import Navbar from '../components/Navbar';
 import './assets/beranda.css';
 
-// --- Custom SVG Icon Library ---
-const Icon = ({ icon }) => {
-    const icons = {
-        'arrow-right': <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />,
-        'book-open': <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />,
-        'gamepad': <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />,
-        'pencil-ruler': <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />,
-        'chevron-right': <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />,
-    };
-    return (
-        <svg xmlns="http://www.w3.org/2000/svg" className="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            {icons[icon]}
-        </svg>
-    );
+// Data graf demonstrasi interaktif untuk Hero Section
+const DEMO_GRAPH = {
+  nodes: [
+    { id: 'v1', x: 190, y: 50, label: 'v1' },
+    { id: 'v2', x: 80, y: 120, label: 'v2' },
+    { id: 'v3', x: 120, y: 200, label: 'v3' },
+    { id: 'v4', x: 260, y: 200, label: 'v4' },
+    { id: 'v5', x: 300, y: 120, label: 'v5' }
+  ],
+  edges: [
+    ['v1', 'v2'], ['v2', 'v3'], ['v3', 'v4'], ['v4', 'v5'], ['v5', 'v1'],
+    ['v1', 'v3'], ['v1', 'v4']
+  ],
+  adjacency: {
+    v1: ['v1', 'v2', 'v3', 'v4', 'v5'],
+    v2: ['v2', 'v1', 'v3'],
+    v3: ['v3', 'v2', 'v4', 'v1'],
+    v4: ['v4', 'v3', 'v5', 'v1'],
+    v5: ['v5', 'v4', 'v1']
+  }
 };
 
-const featureList = [
-    {
-        icon: 'book-open',
-        title: 'Materi Terstruktur',
-        description: 'Pelajari konsep graf, himpunan pembeda, bilangan dominasi, hingga karakterisasi penempatan sensor jaringan secara mendalam.',
-        link: '/materi',
-        linkText: 'Pelajari Materi'
-    },
-    {
-        icon: 'gamepad',
-        title: 'Galeri & Contoh Graf',
-        description: 'Jelajahi visualisasi berbagai variasi graf standar, bintang, siklus, bipartit, pohon, beserta kebutuhan sensor navigasinya.',
-        link: '/contoh',
-        linkText: 'Lihat Galeri'
-    },
-    {
-        icon: 'pencil-ruler',
-        title: 'Lab Eksperimen Graf',
-        description: 'Uji coba langsung penempatan patokan sensor pembeda pada simpul graf interaktif dan dapatkan evaluasi otomatis.',
-        link: '/coba',
-        linkText: 'Coba Lab Graf'
-    },
-    {
-        icon: 'chevron-right',
-        title: 'Latihan Soal & Kuis',
-        description: 'Asah dan uji pemahaman Anda dengan paket kuis bertingkat dari dasar hingga tingkat lanjut lengkap dengan evaluasi skor.',
-        link: '/latihan',
-        linkText: 'Mulai Latihan'
-    }
-];
-
 const Beranda = () => {
-    const canvasRef = useRef(null);
+  // State himpunan sensor yang dipilih di simulasi hero
+  const [selectedSensors, setSelectedSensors] = useState(['v1']);
 
-    // --- Hero Background Animation Effect ---
-    useEffect(() => {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-        const ctx = canvas.getContext('2d');
-        let animationFrameId;
-        
-        const resizeCanvas = () => {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        };
-        resizeCanvas();
-
-        const particles = [];
-        const particleCount = Math.floor(canvas.width / 40);
-
-        for (let i = 0; i < particleCount; i++) {
-            particles.push({
-                x: Math.random() * canvas.width,
-                y: Math.random() * canvas.height,
-                vx: (Math.random() - 0.5) * 0.5,
-                vy: (Math.random() - 0.5) * 0.5,
-                radius: 1.5 + Math.random() * 1.5
-            });
-        }
-
-        const draw = () => {
-            if (!ctx) return;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
-            
-            particles.forEach(p => {
-                p.x += p.vx;
-                p.y += p.vy;
-
-                if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
-                if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
-
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-                ctx.fill();
-            });
-
-            for (let i = 0; i < particles.length; i++) {
-                for (let j = i + 1; j < particles.length; j++) {
-                    const dist = Math.hypot(particles[i].x - particles[j].x, particles[i].y - particles[j].y);
-                    if (dist < 120) {
-                        ctx.beginPath();
-                        ctx.moveTo(particles[i].x, particles[i].y);
-                        ctx.lineTo(particles[j].x, particles[j].y);
-                        ctx.stroke();
-                    }
-                }
-            }
-            animationFrameId = requestAnimationFrame(draw);
-        };
-
-        draw();
-
-        window.addEventListener('resize', resizeCanvas);
-
-        return () => {
-            window.removeEventListener('resize', resizeCanvas);
-            cancelAnimationFrame(animationFrameId);
-        };
-    }, []);
-
-    return (
-        <div className="beranda-container">
-            <Navbar />
-
-            {/* Hero Section */}
-            <section className="hero">
-                <canvas ref={canvasRef} id="hero-canvas"></canvas>
-                <div className="hero-content">
-                    <h1 className="hero-title">Selamat Datang di Pembelajaran Teori Graf</h1>
-                    <p className="hero-subtitle">Jelajahi dunia simpul dan sisi melalui materi, contoh, dan visualisasi yang interaktif dan menyenangkan.</p>
-                    <div className="hero-buttons">
-                        <Link to="/materi" className="hero-button primary">
-                            Mulai Belajar <Icon icon="arrow-right" />
-                        </Link>
-                        <Link to="/coba" className="hero-button secondary">
-                            Coba Editor Graf
-                        </Link>
-                    </div>
-                </div>
-            </section>
-
-            {/* Features Section */}
-            <section className="features">
-                <div className="features-container">
-                    <h2 className="section-title">Fitur Pembelajaran Interaktif</h2>
-                    <p className="section-subtitle">
-                        Pilih modul belajar yang Anda inginkan untuk memahami teori graf dan penempatan sensor secara menyeluruh.
-                    </p>
-                    <div className="features-grid">
-                        {featureList.map((item, index) => (
-                            <div key={index} className="feature-card">
-                                <div className="feature-icon-wrapper">
-                                    <Icon icon={item.icon} />
-                                </div>
-                                <h3 className="feature-title">{item.title}</h3>
-                                <p className="feature-description">{item.description}</p>
-                                <Link to={item.link} className="feature-link">
-                                    <span>{item.linkText}</span>
-                                    <Icon icon="arrow-right" />
-                                </Link>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </section>
-        </div>
+  // Toggle simpul sebagai sensor
+  const toggleSensor = (nodeId) => {
+    setSelectedSensors((prev) =>
+      prev.includes(nodeId)
+        ? prev.filter((id) => id !== nodeId)
+        : [...prev, nodeId]
     );
+  };
+
+  const resetSensors = () => {
+    setSelectedSensors(['v1']);
+  };
+
+  // Hitung simpul yang terawasi/terdominasi
+  const monitoredNodes = useMemo(() => {
+    const set = new Set();
+    selectedSensors.forEach((sId) => {
+      const neighbors = DEMO_GRAPH.adjacency[sId] || [];
+      neighbors.forEach((nId) => set.add(nId));
+    });
+    return set;
+  }, [selectedSensors]);
+
+  const isFullyDominated = monitoredNodes.size === DEMO_GRAPH.nodes.length;
+
+  return (
+    <div className="berandaContainer">
+      <Navbar />
+
+      {/* ==================================================================
+          1. HERO SECTION (Consistent Royal-Blue Theme matching Materi, Contoh, Coba)
+          ================================================================== */}
+      <div className="heroWrapper">
+        <section className="heroSection">
+          <div className="heroGrid">
+            {/* Kolom Kiri: Headline & Value Proposition */}
+            <div className="heroContent">
+              <div className="heroEyebrow">
+                <FontAwesomeIcon icon={faProjectDiagram} />
+                <span>Laboratorium Interaktif Riset Graf & Jaringan</span>
+              </div>
+
+              <h1 className="heroTitle">
+                Eksplorasi Simpul, Sisi, dan{' '}
+                <span className="heroTitleHighlight">Sensor Dominasi-Lokasi</span>
+              </h1>
+
+              <p className="heroSubtitle">
+                Media pembelajaran interaktif berbasis web untuk memahami konsep teori graf, himpunan pembeda metrik,
+                bilangan dominasi, serta optimalisasi penempatan sensor navigasi jaringan secara presisi.
+              </p>
+
+              <div className="heroActions">
+                <Link to="/materi" className="primaryCta" title="Buka kurikulum materi teori graf">
+                  <span>Mulai Belajar Materi</span>
+                  <FontAwesomeIcon icon={faArrowRight} />
+                </Link>
+                <Link to="/coba" className="secondaryCta" title="Buka laboratorium uji coba graf">
+                  <FontAwesomeIcon icon={faFlask} />
+                  <span>Buka Lab Graf</span>
+                </Link>
+              </div>
+
+              <div className="heroHighlights">
+                <div className="highlightItem">
+                  <FontAwesomeIcon icon={faCheckCircle} className="highlightIcon" />
+                  <span>14 Bab Teori Komprehensif</span>
+                </div>
+                <div className="highlightItem">
+                  <FontAwesomeIcon icon={faCheckCircle} className="highlightIcon" />
+                  <span>Evaluasi Matriks Graf Otomatis</span>
+                </div>
+                <div className="highlightItem">
+                  <FontAwesomeIcon icon={faCheckCircle} className="highlightIcon" />
+                  <span>Kuis & Uji Skor Interaktif</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Kolom Kanan: Frosted White Interactive Graph Card */}
+            <div className="heroWidgetWrapper">
+              <div className="interactiveGraphCard">
+                <div className="widgetHeader">
+                  <div className="widgetTitleGroup">
+                    <h3 className="widgetTitle">Simulasi Interaktif Sensor Graf G</h3>
+                    <p className="widgetSubtitle">Klik pada simpul untuk memasang atau mencabut sensor</p>
+                  </div>
+                  <span className="widgetBadge">Klik & Uji</span>
+                </div>
+
+                {/* Area SVG Graf */}
+                <div className="graphCanvasContainer">
+                  <svg viewBox="0 0 380 250" className="interactiveSvg">
+                    {/* Garis Sisi Graf */}
+                    {DEMO_GRAPH.edges.map(([uId, vId], idx) => {
+                      const u = DEMO_GRAPH.nodes.find((n) => n.id === uId);
+                      const v = DEMO_GRAPH.nodes.find((n) => n.id === vId);
+                      const isMonitoredEdge =
+                        selectedSensors.includes(uId) || selectedSensors.includes(vId);
+
+                      return (
+                        <line
+                          key={`edge-${idx}`}
+                          x1={u.x}
+                          y1={u.y}
+                          x2={v.x}
+                          y2={v.y}
+                          className={isMonitoredEdge ? 'graphEdgeMonitored' : 'graphEdge'}
+                        />
+                      );
+                    })}
+
+                    {/* Simpul Graf Interaktif */}
+                    {DEMO_GRAPH.nodes.map((node) => {
+                      const isSensor = selectedSensors.includes(node.id);
+                      const isMonitored = monitoredNodes.has(node.id);
+
+                      // Skema warna simpul pada kartu graf putih
+                      let fillColor = '#ffffff';
+                      let strokeColor = '#94a3b8';
+                      let strokeWidth = 2.5;
+                      let textColor = '#475569';
+
+                      if (isSensor) {
+                        fillColor = '#1e40af';
+                        strokeColor = '#3b82f6';
+                        strokeWidth = 3.5;
+                        textColor = '#ffffff';
+                      } else if (isMonitored) {
+                        fillColor = '#eff6ff';
+                        strokeColor = '#2563eb';
+                        strokeWidth = 2.5;
+                        textColor = '#1e40af';
+                      }
+
+                      return (
+                        <g
+                          key={node.id}
+                          className="interactiveNode"
+                          onClick={() => toggleSensor(node.id)}
+                        >
+                          {/* Aura glow untuk sensor aktif */}
+                          {isSensor && (
+                            <circle
+                              cx={node.x}
+                              cy={node.y}
+                              r={26}
+                              fill="#3b82f6"
+                              opacity={0.18}
+                            />
+                          )}
+                          <circle
+                            cx={node.x}
+                            cy={node.y}
+                            r={18}
+                            fill={fillColor}
+                            stroke={strokeColor}
+                            strokeWidth={strokeWidth}
+                            className="nodeCircle"
+                          />
+                          <text
+                            x={node.x}
+                            y={node.y + 4}
+                            textAnchor="middle"
+                            fill={textColor}
+                            className="nodeLabel"
+                          >
+                            {node.label}
+                          </text>
+                        </g>
+                      );
+                    })}
+                  </svg>
+                </div>
+
+                {/* Status & Kontrol Widget */}
+                <div className="widgetFooter">
+                  <div className="statusRow">
+                    <div className={`statusIndicator ${isFullyDominated ? 'success' : 'warning'}`}>
+                      <FontAwesomeIcon
+                        icon={isFullyDominated ? faCheckCircle : faExclamationTriangle}
+                      />
+                      <span>
+                        {isFullyDominated
+                          ? 'Seluruh Graf Terdominasi (Aman)'
+                          : `${DEMO_GRAPH.nodes.length - monitoredNodes.size} Simpul Belum Terawasi`}
+                      </span>
+                    </div>
+
+                    <span className="sensorSetPill">
+                      S = &#123;{selectedSensors.length > 0 ? selectedSensors.join(', ') : '∅'}&#125;
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={resetSensors}
+                    className="resetBtn"
+                    title="Kembalikan ke konfigurasi dominasi optimal"
+                  >
+                    <FontAwesomeIcon icon={faRedo} style={{ marginRight: '4px' }} />
+                    Kembalikan ke S = &#123;v1&#125; (Optimal γ=1)
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      {/* ==================================================================
+          2. CONCEPTS SECTION (Fondasi Teori Graf)
+          ================================================================== */}
+      <section className="conceptsSection">
+        <div className="sectionHeader">
+          <span className="sectionEyebrow">Prinsip Keilmuan</span>
+          <h2 className="sectionHeading">Fondasi Teori Graf yang Dipelajari</h2>
+          <p className="sectionDescription">
+            Memahami bagaimana matematika diskrit diaplikasikan untuk menyelesaikan masalah nyata dalam
+            keamanan sistem dan penempatan sensor jaringan komputer.
+          </p>
+        </div>
+
+        <div className="conceptsGrid">
+          <div className="conceptCard">
+            <div className="conceptIconWrapper">
+              <FontAwesomeIcon icon={faShieldAlt} />
+            </div>
+            <h3 className="conceptTitle">1. Himpunan Penjaga (Dominasi)</h3>
+            <p className="conceptDescription">
+              Menjamin setiap simpul yang tidak ditempati sensor tetap berada tepat di dekat (radius jarak d ≤ 1)
+              dari minimal satu sensor pengawas.
+            </p>
+          </div>
+
+          <div className="conceptCard">
+            <div className="conceptIconWrapper">
+              <FontAwesomeIcon icon={faCompass} />
+            </div>
+            <h3 className="conceptTitle">2. Landmark Navigasi (Pembeda)</h3>
+            <p className="conceptDescription">
+              Memberikan koordinat vektor jarak unik bagi setiap simpul di graf, sehingga posisi setiap titik dapat
+              dikenali secara akurat melalui pembacaan sensor.
+            </p>
+          </div>
+
+          <div className="conceptCard">
+            <div className="conceptIconWrapper">
+              <FontAwesomeIcon icon={faLightbulb} />
+            </div>
+            <h3 className="conceptTitle">3. Sensor Super (Dominasi-Lokasi)</h3>
+            <p className="conceptDescription">
+              Kombinasi efisien antara daya proteksi dominasi dan identifikasi posisi metrik untuk deteksi gangguan
+              titik jaringan secara instan dan hemat sumber daya.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ==================================================================
+          3. FEATURES SECTION (4 Core Modules)
+          ================================================================== */}
+      <section className="featuresSection">
+        <div className="sectionHeader">
+          <span className="sectionEyebrow">Eksplorasi Modul</span>
+          <h2 className="sectionHeading">Akses Modul Pembelajaran Interaktif</h2>
+          <p className="sectionDescription">
+            Jelajahi materi, telusuri galeri graf, jalankan lab eksperimen, dan uji kemampuan pemahaman Anda.
+          </p>
+        </div>
+
+        <div className="featuresGrid">
+          <Link to="/materi" className="featureCard">
+            <div className="featureCardHeader">
+              <span className="featureBadge">Modul 01</span>
+              <div className="featureIconWrapper">
+                <FontAwesomeIcon icon={faBook} />
+              </div>
+            </div>
+            <h3 className="featureTitle">Materi Terstruktur</h3>
+            <p className="featureDescription">
+              14 bab pembelajaran komprehensif mulai dari definisi dasar graf hingga teorema karakterisasi
+              pohon dan graf unisiklik.
+            </p>
+            <div className="featureLinkAction">
+              <span>Buka Materi</span>
+              <FontAwesomeIcon icon={faArrowRight} />
+            </div>
+          </Link>
+
+          <Link to="/contoh" className="featureCard">
+            <div className="featureCardHeader">
+              <span className="featureBadge">Modul 02</span>
+              <div className="featureIconWrapper">
+                <FontAwesomeIcon icon={faProjectDiagram} />
+              </div>
+            </div>
+            <h3 className="featureTitle">Galeri Contoh Graf</h3>
+            <p className="featureDescription">
+              Visualisasi siap pakai aneka famili graf: lintasan, siklus, bintang, pohon, bipartit lengkap,
+              hingga operasi korona.
+            </p>
+            <div className="featureLinkAction">
+              <span>Lihat Galeri</span>
+              <FontAwesomeIcon icon={faArrowRight} />
+            </div>
+          </Link>
+
+          <Link to="/coba" className="featureCard">
+            <div className="featureCardHeader">
+              <span className="featureBadge">Modul 03</span>
+              <div className="featureIconWrapper">
+                <FontAwesomeIcon icon={faFlask} />
+              </div>
+            </div>
+            <h3 className="featureTitle">Lab Eksperimen Graf</h3>
+            <p className="featureDescription">
+              Uji coba mandiri penempatan sensor pada graf interaktif dan dapatkan evaluasi bilangan dominasi
+              serta pembeda secara instan.
+            </p>
+            <div className="featureLinkAction">
+              <span>Buka Laboratorium</span>
+              <FontAwesomeIcon icon={faArrowRight} />
+            </div>
+          </Link>
+
+          <Link to="/latihan" className="featureCard">
+            <div className="featureCardHeader">
+              <span className="featureBadge">Modul 04</span>
+              <div className="featureIconWrapper">
+                <FontAwesomeIcon icon={faTasks} />
+              </div>
+            </div>
+            <h3 className="featureTitle">Latihan Soal & Kuis</h3>
+            <p className="featureDescription">
+              Paket latihan bertingkat lengkap dengan blueprint graf dinamis, pembahasan bertahap, dan kalkulasi
+              skor evaluasi.
+            </p>
+            <div className="featureLinkAction">
+              <span>Mulai Latihan</span>
+              <FontAwesomeIcon icon={faArrowRight} />
+            </div>
+          </Link>
+        </div>
+      </section>
+
+      {/* ==================================================================
+          4. ACADEMIC FOOTER DENGAN LOGO RESMI UPGRISBA
+          ================================================================== */}
+      <Footer />
+    </div>
+  );
 };
 
 export default Beranda;

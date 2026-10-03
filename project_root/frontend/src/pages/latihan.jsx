@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faArrowLeft,
   faRedo,
   faCheck,
   faTimes,
-  faLayerGroup,
   faChevronRight,
   faCompass,
   faLightbulb,
@@ -19,12 +18,13 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import styles from './assets/latihan.module.css';
 import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
 import { useAuth } from '../context/AuthContext';
 import AuthModal from '../components/AuthModal';
 import { API_BASE } from '../config/api';
 
 // ── Komponen Kanvas Blueprint Graf Dinamis ──
-const BlueprintGraphCanvas = ({ graphData, fallbackPkgId, fallbackQIdx, questionText }) => {
+const BlueprintGraphCanvas = ({ graphData, fallbackPkgId, fallbackQIdx }) => {
   const [hoveredNode, setHoveredNode] = useState(null);
 
   // Parse data graf jika tersedia
@@ -33,7 +33,7 @@ const BlueprintGraphCanvas = ({ graphData, fallbackPkgId, fallbackQIdx, question
     try {
       if (typeof graphData === 'string') return JSON.parse(graphData);
       if (typeof graphData === 'object') return graphData;
-    } catch (e) {
+    } catch {
       return null;
     }
     return null;
@@ -464,6 +464,19 @@ const Latihan = () => {
   };
 
   // Dukungan Keyboard Shortcut (Tactile & Cepat)
+  const handlersRef = useRef({
+    handleSelectOption,
+    handleCheckAnswer,
+    handleNextQuestion,
+    handleJumpToQuestion
+  });
+  handlersRef.current = {
+    handleSelectOption,
+    handleCheckAnswer,
+    handleNextQuestion,
+    handleJumpToQuestion
+  };
+
   useEffect(() => {
     if (!selectedPackage || showResults || activeQuestions.length === 0) return;
 
@@ -475,25 +488,25 @@ const Latihan = () => {
       const isCurrentChecked = userAnswers[currentIndex]?.is_checked;
 
       if (!isCurrentChecked) {
-        if (key === 'A' || key === '1') handleSelectOption(0);
-        else if (key === 'B' || key === '2') handleSelectOption(1);
-        else if (key === 'C' || key === '3') handleSelectOption(2);
-        else if (key === 'D' || key === '4') handleSelectOption(3);
+        if (key === 'A' || key === '1') handlersRef.current.handleSelectOption(0);
+        else if (key === 'B' || key === '2') handlersRef.current.handleSelectOption(1);
+        else if (key === 'C' || key === '3') handlersRef.current.handleSelectOption(2);
+        else if (key === 'D' || key === '4') handlersRef.current.handleSelectOption(3);
       }
 
       if (e.key === 'Enter') {
         e.preventDefault();
         if (!isCurrentChecked && selectedOption !== null) {
-          handleCheckAnswer();
+          handlersRef.current.handleCheckAnswer();
         } else if (isCurrentChecked) {
-          handleNextQuestion();
+          handlersRef.current.handleNextQuestion();
         }
       }
 
       if (e.key === 'ArrowLeft' && currentIndex > 0) {
-        handleJumpToQuestion(currentIndex - 1);
+        handlersRef.current.handleJumpToQuestion(currentIndex - 1);
       } else if (e.key === 'ArrowRight' && currentIndex < activeQuestions.length - 1) {
-        handleJumpToQuestion(currentIndex + 1);
+        handlersRef.current.handleJumpToQuestion(currentIndex + 1);
       }
     };
 
@@ -1082,6 +1095,9 @@ const Latihan = () => {
       <main className={styles.workbenchContent}>
         {!selectedPackage ? renderCatalog() : showResults ? renderEvaluationReport() : renderWorkbench()}
       </main>
+
+      {/* Official Academic Footer */}
+      <Footer />
 
       <AuthModal
         isOpen={showAuthModal}

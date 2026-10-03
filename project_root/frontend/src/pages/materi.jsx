@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faBrain, faNetworkWired, faRoute, faShieldAlt,
@@ -55,7 +56,7 @@ const DominasiDiagram = () => (
         y="25" 
         width="600" 
         height="135" 
-        rx="67.5" 
+        rx="8" 
         fill="#f0f7ff" 
         stroke="#93c5fd" 
         strokeWidth="1.5" 
@@ -80,7 +81,7 @@ const DominasiDiagram = () => (
         <circle cx="0" cy="0" r="28" fill="#ffffff" stroke="#10b981" strokeWidth="3" filter="url(#softShadow)" />
         <text x="0" y="7" textAnchor="middle" fill="#0f172a" fontSize="20" fontWeight="800" fontFamily="Outfit, sans-serif">A</text>
         {/* Badge Label */}
-        <rect x="-48" y="38" width="96" height="24" rx="12" fill="#d1fae5" stroke="#10b981" strokeWidth="1" />
+        <rect x="-48" y="38" width="96" height="24" rx="4" fill="#d1fae5" stroke="#10b981" strokeWidth="1" />
         <text x="0" y="54" textAnchor="middle" fill="#065f46" fontSize="11" fontWeight="700">✓ Terpantau</text>
         {/* Keterangan Jarak */}
         <text x="0" y="76" textAnchor="middle" fill="#64748b" fontSize="11" fontWeight="600">d(A, B) = 1</text>
@@ -93,7 +94,7 @@ const DominasiDiagram = () => (
         <circle cx="0" cy="0" r="32" fill="#1e40af" stroke="#ffffff" strokeWidth="3.5" filter="url(#softShadow)" />
         <text x="0" y="8" textAnchor="middle" fill="#ffffff" fontSize="22" fontWeight="800" fontFamily="Outfit, sans-serif">B</text>
         {/* Badge Pos Penjaga */}
-        <rect x="-62" y="38" width="124" height="26" rx="13" fill="#1e40af" filter="url(#softShadow)" />
+        <rect x="-62" y="38" width="124" height="26" rx="4" fill="#1e40af" filter="url(#softShadow)" />
         <text x="0" y="55" textAnchor="middle" fill="#ffffff" fontSize="11" fontWeight="800" letterSpacing="0.02em">🛡️ Pos Penjaga</text>
         {/* Keterangan Titik Pusat */}
         <text x="0" y="77" textAnchor="middle" fill="#1e40af" fontSize="11" fontWeight="700">Pusat S = {"{B}"}</text>
@@ -104,7 +105,7 @@ const DominasiDiagram = () => (
         <circle cx="0" cy="0" r="28" fill="#ffffff" stroke="#10b981" strokeWidth="3" filter="url(#softShadow)" />
         <text x="0" y="7" textAnchor="middle" fill="#0f172a" fontSize="20" fontWeight="800" fontFamily="Outfit, sans-serif">C</text>
         {/* Badge Label */}
-        <rect x="-48" y="38" width="96" height="24" rx="12" fill="#d1fae5" stroke="#10b981" strokeWidth="1" />
+        <rect x="-48" y="38" width="96" height="24" rx="4" fill="#d1fae5" stroke="#10b981" strokeWidth="1" />
         <text x="0" y="54" textAnchor="middle" fill="#065f46" fontSize="11" fontWeight="700">✓ Terpantau</text>
         {/* Keterangan Jarak */}
         <text x="0" y="76" textAnchor="middle" fill="#64748b" fontSize="11" fontWeight="600">d(C, B) = 1</text>
@@ -148,7 +149,7 @@ const LandmarkDiagram = () => (
         y="25" 
         width="680" 
         height="135" 
-        rx="20" 
+        rx="8" 
         fill="#f0f9ff" 
         stroke="#bae6fd" 
         strokeWidth="1.5" 
@@ -169,7 +170,7 @@ const LandmarkDiagram = () => (
         <circle cx="0" cy="0" r="44" fill="url(#landmarkGlow)" />
         <circle cx="0" cy="0" r="30" fill="#0284c7" stroke="#ffffff" strokeWidth="3.5" filter="url(#softShadowLandmark)" />
         <text x="0" y="8" textAnchor="middle" fill="#ffffff" fontSize="20" fontWeight="800" fontFamily="Outfit, sans-serif">A</text>
-        <rect x="-52" y="38" width="104" height="24" rx="12" fill="#0284c7" />
+        <rect x="-52" y="38" width="104" height="24" rx="4" fill="#0284c7" />
         <text x="0" y="54" textAnchor="middle" fill="#ffffff" fontSize="11" fontWeight="700">🎯 Patokan 1</text>
         <text x="0" y="76" textAnchor="middle" fill="#0369a1" fontSize="11" fontWeight="700">r(A|W) = (0, 3)</text>
       </g>
@@ -178,7 +179,7 @@ const LandmarkDiagram = () => (
       <g transform="translate(290, 102)">
         <circle cx="0" cy="0" r="28" fill="#ffffff" stroke="#64748b" strokeWidth="3" filter="url(#softShadowLandmark)" />
         <text x="0" y="7" textAnchor="middle" fill="#0f172a" fontSize="20" fontWeight="800" fontFamily="Outfit, sans-serif">B</text>
-        <rect x="-48" y="38" width="96" height="24" rx="12" fill="#e2e8f0" />
+        <rect x="-48" y="38" width="96" height="24" rx="4" fill="#e2e8f0" />
         <text x="0" y="54" textAnchor="middle" fill="#334155" fontSize="11" fontWeight="600">Titik Ruang</text>
         <text x="0" y="76" textAnchor="middle" fill="#0284c7" fontSize="11" fontWeight="700">r(B|W) = (1, 2)</text>
       </g>
@@ -187,7 +188,7 @@ const LandmarkDiagram = () => (
       <g transform="translate(470, 102)">
         <circle cx="0" cy="0" r="28" fill="#ffffff" stroke="#64748b" strokeWidth="3" filter="url(#softShadowLandmark)" />
         <text x="0" y="7" textAnchor="middle" fill="#0f172a" fontSize="20" fontWeight="800" fontFamily="Outfit, sans-serif">C</text>
-        <rect x="-48" y="38" width="96" height="24" rx="12" fill="#e2e8f0" />
+        <rect x="-48" y="38" width="96" height="24" rx="4" fill="#e2e8f0" />
         <text x="0" y="54" textAnchor="middle" fill="#334155" fontSize="11" fontWeight="600">Titik Ruang</text>
         <text x="0" y="76" textAnchor="middle" fill="#0284c7" fontSize="11" fontWeight="700">r(C|W) = (2, 1)</text>
       </g>
@@ -197,7 +198,7 @@ const LandmarkDiagram = () => (
         <circle cx="0" cy="0" r="44" fill="url(#landmarkGlow)" />
         <circle cx="0" cy="0" r="30" fill="#0284c7" stroke="#ffffff" strokeWidth="3.5" filter="url(#softShadowLandmark)" />
         <text x="0" y="8" textAnchor="middle" fill="#ffffff" fontSize="20" fontWeight="800" fontFamily="Outfit, sans-serif">D</text>
-        <rect x="-52" y="38" width="104" height="24" rx="12" fill="#0284c7" />
+        <rect x="-52" y="38" width="104" height="24" rx="4" fill="#0284c7" />
         <text x="0" y="54" textAnchor="middle" fill="#ffffff" fontSize="11" fontWeight="700">🎯 Patokan 2</text>
         <text x="0" y="76" textAnchor="middle" fill="#0369a1" fontSize="11" fontWeight="700">r(D|W) = (3, 0)</text>
       </g>
@@ -291,9 +292,15 @@ const Materi = () => {
       {/* Hero Section */}
       <section className="materi-hero">
         <div className="container">
-          <h1 className="materi-title">Karakterisasi Penempatan Sensor Super pada Jaringan</h1>
+          <div className="materi-hero-eyebrow">
+            <FontAwesomeIcon icon={faBrain} />
+            <span>Kurikulum Teori Graf & Teorema Sensor</span>
+          </div>
+          <h1 className="materi-title">
+            Karakterisasi Penempatan <span className="materi-title-highlight">Sensor Super</span>
+          </h1>
           <p className="materi-subtitle">
-            Panduan belajar interaktif dan terstruktur mengenai Dominating Sets, Resolving Sets, dan Metric Locating-Dominating Sets
+            Panduan belajar interaktif dan terstruktur mengenai Dominating Sets, Resolving Sets, dan Metric Locating-Dominating Sets pada jaringan graf
           </p>
         </div>
       </section>
@@ -1020,6 +1027,9 @@ const Materi = () => {
           
         </main>
       </div>
+
+      {/* Official Academic Footer */}
+      <Footer />
     </div>
   );
 };

@@ -1,12 +1,20 @@
-// src/components/Navbar.jsx
 import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { 
-  faProjectDiagram, faHome, faBook, faPlayCircle, faPenFancy, faTasks, 
-  faBars, faTimes, faUser, faSignOutAlt, faSignInAlt, faUserShield 
+import {
+  faProjectDiagram,
+  faHome,
+  faBook,
+  faPlayCircle,
+  faPenFancy,
+  faTasks,
+  faBars,
+  faTimes,
+  faSignOutAlt,
+  faSignInAlt,
+  faUserShield
 } from '@fortawesome/free-solid-svg-icons';
-import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import styles from './Navbar.module.css'; 
+import { NavLink, useLocation } from 'react-router-dom';
+import styles from './Navbar.module.css';
 import { useAuth } from '../context/AuthContext';
 import AuthModal from './AuthModal';
 
@@ -14,19 +22,25 @@ const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const location = useLocation();
-  const navigate = useNavigate();
   const { user, isAuthenticated, logout } = useAuth();
 
-  // Tutup menu saat berpindah halaman
+  // Tutup menu saat rute berpindah
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [location]);
 
-  // Cegah scroll saat menu mobile terbuka
+  // Cegah scroll bodi saat menu mobile drawer terbuka
   useEffect(() => {
     document.body.style.overflow = isMobileMenuOpen ? 'hidden' : 'unset';
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && isMobileMenuOpen) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
     return () => {
-      document.body.style.overflow = 'unset'; 
+      document.body.style.overflow = 'unset';
+      window.removeEventListener('keydown', handleKeyDown);
     };
   }, [isMobileMenuOpen]);
 
@@ -38,180 +52,189 @@ const Navbar = () => {
     { path: '/latihan', icon: faTasks, label: 'Latihan' }
   ];
 
-  const getLinkClassName = ({ isActive }) => 
+  const getLinkClassName = ({ isActive }) =>
     isActive ? `${styles.navLink} ${styles.navLinkActive}` : styles.navLink;
 
-  const getMobileLinkClassName = ({ isActive }) =>
-    isActive ? `${styles.mobileLink} ${styles.mobileLinkActive}` : styles.mobileLink;
+  const getDrawerLinkClassName = ({ isActive }) =>
+    isActive ? `${styles.drawerNavLink} ${styles.drawerNavLinkActive}` : styles.drawerNavLink;
+
+  const userInitial = user?.name ? user.name.trim().charAt(0).toUpperCase() : 'U';
 
   return (
     <>
-      <nav className={styles.navbar}>
-        <NavLink className={styles.navBrand} to="/">
-          <FontAwesomeIcon icon={faProjectDiagram} className={styles.brandIcon} />
-          <span className={styles.brandText}>GraphTheory</span>
-        </NavLink>
+      <header className={styles.navbarContainer}>
+        <div className={styles.navbarInner}>
+          {/* Brand Identity */}
+          <NavLink className={styles.navBrand} to="/" title="Halaman Utama GraphTheory">
+            <div className={styles.brandLogo} aria-hidden="true">
+              <FontAwesomeIcon icon={faProjectDiagram} />
+            </div>
+            <div className={styles.brandInfo}>
+              <span className={styles.brandText}>GraphTheory</span>
+              <span className={styles.brandTag}>Dominasi Lab</span>
+            </div>
+          </NavLink>
 
-        {/* Desktop Menu */}
-        <div className={styles.navMenu}>
-          {menuItems.map(item => (
-            <NavLink key={item.path} to={item.path} className={getLinkClassName}>
-              <FontAwesomeIcon icon={item.icon} size="sm" />
-              <span>{item.label}</span>
-            </NavLink>
-          ))}
+          {/* Desktop Navigation Menu (Segmented Control) */}
+          <nav className={styles.navMenu} aria-label="Navigasi Utama">
+            {menuItems.map((item) => (
+              <NavLink key={item.path} to={item.path} className={getLinkClassName}>
+                <FontAwesomeIcon icon={item.icon} className={styles.navIcon} />
+                <span>{item.label}</span>
+              </NavLink>
+            ))}
+          </nav>
 
-          {/* Area Akun Pengguna */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginLeft: '12px', borderLeft: '1px solid #e2e8f0', paddingLeft: '14px' }}>
+          {/* Desktop Right Side / User Auth */}
+          <div className={styles.navActions}>
             {isAuthenticated ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <>
                 {user.role === 'admin' && (
                   <NavLink
                     to="/admin"
-                    title="Buka Dashboard Admin"
-                    style={{
-                      background: '#1e3a8a',
-                      color: '#93c5fd',
-                      fontSize: '0.75rem',
-                      fontWeight: 700,
-                      padding: '4px 8px',
-                      borderRadius: '6px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '4px'
-                    }}
+                    title="Buka Dashboard Panel Admin"
+                    className={styles.adminBadge}
                   >
                     <FontAwesomeIcon icon={faUserShield} />
                     <span>Admin</span>
                   </NavLink>
                 )}
 
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    fontSize: '0.88rem',
-                    fontWeight: 600,
-                    color: '#1e293b',
-                    background: '#f1f5f9',
-                    padding: '4px 10px',
-                    borderRadius: '20px',
-                    border: '1px solid #e2e8f0'
-                  }}
-                >
-                  <FontAwesomeIcon icon={faUser} style={{ color: '#1e40af', fontSize: '0.8rem' }} />
-                  <span style={{ maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {user.name.split(' ')[0]}
-                  </span>
+                <div className={styles.userPill} title={`Masuk sebagai: ${user.name}`}>
+                  <div className={styles.userAvatar}>{userInitial}</div>
+                  <span className={styles.userName}>{user.name.split(' ')[0]}</span>
                 </div>
 
                 <button
+                  type="button"
                   onClick={logout}
+                  className={styles.logoutBtn}
                   title="Keluar dari Akun"
-                  style={{
-                    background: 'transparent',
-                    border: '1px solid #cbd5e1',
-                    borderRadius: '6px',
-                    color: '#64748b',
-                    cursor: 'pointer',
-                    padding: '5px 10px',
-                    fontSize: '0.82rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '5px',
-                    transition: 'all 0.15s ease'
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor = '#ef4444'; e.currentTarget.style.color = '#ef4444'; }}
-                  onMouseLeave={e => { e.currentTarget.style.borderColor = '#cbd5e1'; e.currentTarget.style.color = '#64748b'; }}
+                  aria-label="Keluar dari Akun"
                 >
                   <FontAwesomeIcon icon={faSignOutAlt} />
                   <span>Keluar</span>
                 </button>
-              </div>
+              </>
             ) : (
               <button
+                type="button"
                 onClick={() => setIsAuthModalOpen(true)}
-                style={{
-                  background: '#1e40af',
-                  color: '#ffffff',
-                  border: 'none',
-                  borderRadius: '8px',
-                  padding: '6px 14px',
-                  fontSize: '0.85rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  boxShadow: '0 1px 3px rgba(30, 64, 175, 0.2)',
-                  transition: 'background 0.15s ease'
-                }}
+                className={styles.loginBtn}
+                title="Buka dialog Masuk / Daftar Akun"
               >
                 <FontAwesomeIcon icon={faSignInAlt} />
                 <span>Masuk / Daftar</span>
               </button>
             )}
           </div>
+
+          {/* Mobile Hamburger Button */}
+          <button
+            type="button"
+            className={styles.hamburger}
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label={isMobileMenuOpen ? 'Tutup navigasi mobile' : 'Buka navigasi mobile'}
+            aria-expanded={isMobileMenuOpen}
+          >
+            <FontAwesomeIcon icon={isMobileMenuOpen ? faTimes : faBars} />
+          </button>
+        </div>
+      </header>
+
+      {/* Mobile Drawer Backdrop */}
+      <div
+        className={`${styles.mobileBackdrop} ${isMobileMenuOpen ? styles.active : ''}`}
+        onClick={() => setIsMobileMenuOpen(false)}
+        aria-hidden="true"
+      />
+
+      {/* Mobile Navigation Slide-in Drawer */}
+      <aside
+        className={`${styles.mobileDrawer} ${isMobileMenuOpen ? styles.active : ''}`}
+        aria-label="Menu navigasi mobile"
+      >
+        <div className={styles.drawerHeader}>
+          <div className={styles.navBrand}>
+            <div className={styles.brandLogo}>
+              <FontAwesomeIcon icon={faProjectDiagram} />
+            </div>
+            <div className={styles.brandInfo}>
+              <span className={styles.brandText}>GraphTheory</span>
+              <span className={styles.brandTag}>Dominasi Lab</span>
+            </div>
+          </div>
+          <button
+            type="button"
+            className={styles.drawerCloseBtn}
+            onClick={() => setIsMobileMenuOpen(false)}
+            aria-label="Tutup menu"
+          >
+            <FontAwesomeIcon icon={faTimes} />
+          </button>
         </div>
 
-        {/* Hamburger Button */}
-        <button
-          className={styles.hamburger}
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          aria-label="Toggle menu"
-        >
-          <FontAwesomeIcon icon={isMobileMenuOpen ? faTimes : faBars} size="lg" />
-        </button>
-      </nav>
-
-      {/* Mobile Menu Overlay */}
-      <div className={`${styles.mobileMenuOverlay} ${isMobileMenuOpen ? styles.active : ''}`}>
-        <div className={styles.mobileMenuItems}>
-          {menuItems.map((item, index) => (
+        <nav className={styles.drawerNavList}>
+          {menuItems.map((item) => (
             <NavLink
               key={item.path}
               to={item.path}
-              className={getMobileLinkClassName}
-              style={{ animationDelay: `${index * 0.05}s` }}
+              className={getDrawerLinkClassName}
             >
               <FontAwesomeIcon icon={item.icon} fixedWidth />
               <span>{item.label}</span>
             </NavLink>
           ))}
+        </nav>
 
-          {/* Mobile Auth Button */}
-          <div style={{ marginTop: '16px', padding: '0 16px' }}>
-            {isAuthenticated ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <div style={{ color: '#1e293b', fontSize: '0.95rem', fontWeight: 600 }}>
-                  👤 Masuk sebagai: {user.name} ({user.role})
+        {/* Mobile Drawer Auth Footer */}
+        <div className={styles.drawerAuthSection}>
+          {isAuthenticated ? (
+            <>
+              <div className={styles.drawerUserCard}>
+                <div className={styles.drawerUserAvatar}>{userInitial}</div>
+                <div className={styles.drawerUserInfo}>
+                  <span className={styles.drawerUserName}>{user.name}</span>
+                  <span className={styles.drawerUserRole}>Peran: {user.role}</span>
                 </div>
-                {user.role === 'admin' && (
-                  <NavLink to="/admin" style={{ padding: '8px', background: '#1e3a8a', color: '#fff', borderRadius: '6px', textAlign: 'center', textDecoration: 'none', fontWeight: 600 }}>
-                    🛡️ Buka Panel Admin
-                  </NavLink>
-                )}
-                <button
-                  onClick={logout}
-                  style={{ width: '100%', padding: '10px', background: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c', borderRadius: '6px', cursor: 'pointer', fontWeight: 600 }}
-                >
-                  Keluar Akun
-                </button>
               </div>
-            ) : (
-              <button
-                onClick={() => { setIsMobileMenuOpen(false); setIsAuthModalOpen(true); }}
-                style={{ width: '100%', padding: '12px', background: '#1e40af', border: 'none', color: '#fff', borderRadius: '8px', cursor: 'pointer', fontWeight: 700 }}
-              >
-                Masuk / Daftar Akun
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
 
-      {/* Auth Modal Global */}
+              {user.role === 'admin' && (
+                <NavLink
+                  to="/admin"
+                  className={styles.drawerAdminLink}
+                >
+                  <FontAwesomeIcon icon={faUserShield} />
+                  <span>Buka Panel Admin</span>
+                </NavLink>
+              )}
+
+              <button
+                type="button"
+                onClick={logout}
+                className={styles.drawerLogoutBtn}
+              >
+                <FontAwesomeIcon icon={faSignOutAlt} />
+                <span>Keluar dari Akun</span>
+              </button>
+            </>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                setIsMobileMenuOpen(false);
+                setIsAuthModalOpen(true);
+              }}
+              className={styles.drawerLoginBtn}
+            >
+              <FontAwesomeIcon icon={faSignInAlt} />
+              <span>Masuk / Daftar Akun</span>
+            </button>
+          )}
+        </div>
+      </aside>
+
+      {/* Global Auth Modal */}
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}

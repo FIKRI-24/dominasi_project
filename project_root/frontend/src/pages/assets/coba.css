@@ -1,104 +1,143 @@
-/* Custom Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap');
+/* ==========================================================================
+   LAB EKSPERIMEN GRAF STYLESHEET (coba.css)
+   Clean, human-crafted, high-contrast, production-ready research workbench
+   Strict anti-slop standards: Royal-Blue Hero, Light Workbench & UPGRISBA Footer
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap');
 
 :root {
-  /* Colors aligned with Beranda, Materi, and Contoh */
-  --primary: #1e40af;
-  --primary-hover: #1d4ed8;
-  --primary-light: #eff6ff;
-  --secondary: #3b82f6;
-  --accent: #38bdf8;
-  --accent-light: #f0f9ff;
-  --dark: #1e1e24;
-  --dark-gray: #27272a;
-  --light: #f8f9fa;
-  --border: #e5e7eb;
-  --text: #4b5563;
-  --text-dark: #1e1e24;
-  --text-light: #6b7280;
-  --success: #10b981;
-  --success-light: #d1fae5;
-  --warning: #f59e0b;
-  --warning-light: #fef3c7;
-  --error: #ef4444;
-  --error-light: #fee2e2;
-  
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  --shadow-premium: 0 20px 25px -5px rgba(30, 64, 175, 0.05), 0 8px 10px -6px rgba(30, 64, 175, 0.05);
-  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Brand Theme: Royal Blue (Consistent with Beranda, Materi, & Contoh) */
+  --coba-primary: #1e40af;
+  --coba-primary-hover: #1d4ed8;
+  --coba-primary-light: #eff6ff;
+  --coba-secondary: #2563eb;
+  --coba-accent: #38bdf8;
+  --coba-accent-light: #f0f9ff;
+
+  /* Domain Semantic Colors */
+  --coba-metric: #0284c7;
+  --coba-metric-light: #f0f9ff;
+  --coba-metric-border: #bae6fd;
+  --coba-domination: #059669;
+  --coba-domination-light: #ecfdf5;
+  --coba-domination-border: #a7f3d0;
+
+  /* Status Colors */
+  --coba-success: #10b981;
+  --coba-success-light: #f0fdf4;
+  --coba-warning: #f59e0b;
+  --coba-warning-light: #fffbeb;
+  --coba-error: #ef4444;
+  --coba-error-light: #fef2f2;
+
+  /* Neutrals & Surfaces */
+  --coba-bg: #f8fafc;
+  --coba-surface: #ffffff;
+  --coba-surface-alt: #f1f5f9;
+  --coba-border: #e2e8f0;
+  --coba-border-hover: #cbd5e1;
+  --coba-text-dark: #0f172a;
+  --coba-text: #334155;
+  --coba-text-muted: #64748b;
+
+  /* Shadows */
+  --coba-shadow-xs: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
+  --coba-shadow-sm: 0 1px 3px 0 rgba(15, 23, 42, 0.08), 0 1px 2px -1px rgba(15, 23, 42, 0.06);
+  --coba-shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.08), 0 2px 4px -2px rgba(15, 23, 42, 0.06);
+  --coba-shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.04);
 }
 
+/* ==========================================================================
+   PAGE CONTAINER
+   ========================================================================== */
 .cobaPage {
-  font-family: 'Inter', sans-serif;
-  background-color: var(--light);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: var(--coba-bg);
   min-height: 100vh;
-  color: var(--text);
+  color: var(--coba-text);
   line-height: 1.6;
+  display: flex;
+  flex-direction: column;
 }
 
-/* Hero Section */
+/* ==========================================================================
+   1. HERO BANNER (Standardized Royal-Blue Theme matching Beranda)
+   ========================================================================== */
 .coba-hero {
-  background: linear-gradient(135deg, var(--primary), #3730a3);
+  background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 50%, #2563eb 100%);
   color: #ffffff;
-  padding: 4.5rem 0 3.5rem;
-  text-align: center;
   position: relative;
   overflow: hidden;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  margin-bottom: 2.5rem;
+  padding: 3.5rem 1.5rem 4rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  margin-bottom: 2rem;
 }
 
 .coba-hero::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-                    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-  background-size: 30px 30px;
-  z-index: 1;
+  inset: 0;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.12) 1.2px, transparent 1.2px);
+  background-size: 24px 24px;
+  pointer-events: none;
 }
 
 .coba-hero .container {
   position: relative;
   z-index: 2;
-  max-width: 800px;
+  max-width: 900px;
   margin: 0 auto;
-  padding: 0 1.5rem;
+  text-align: center;
+}
+
+.coba-hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #93c5fd;
+  margin-bottom: 0.75rem;
 }
 
 .coba-title {
   font-family: 'Outfit', sans-serif;
-  font-size: clamp(2rem, 3.8vw, 2.8rem);
+  font-size: clamp(2.1rem, 3.8vw, 3rem);
   font-weight: 800;
-  line-height: 1.25;
-  letter-spacing: -0.02em;
-  margin-bottom: 0.75rem;
-  background: linear-gradient(135deg, #ffffff 40%, #c7d2fe 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+  color: #ffffff;
+  margin: 0 0 1rem 0;
+}
+
+.coba-title-highlight {
+  color: #93c5fd;
 }
 
 .coba-subtitle {
   font-size: clamp(0.95rem, 1.8vw, 1.1rem);
-  color: #c7d2fe;
-  opacity: 0.95;
-  max-width: 600px;
+  color: #dbeafe;
+  line-height: 1.6;
+  max-width: 680px;
   margin: 0 auto;
 }
 
-/* Page Layout */
+/* ==========================================================================
+   2. MAIN WORKBENCH LAYOUT
+   ========================================================================== */
 .coba-layout-grid {
   display: grid;
-  grid-template-columns: 350px 1fr;
-  gap: 2rem;
-  max-width: 1300px;
-  margin: 0 auto 3rem;
+  grid-template-columns: 360px 1fr;
+  gap: 1.75rem;
+  max-width: 1360px;
+  width: 100%;
+  margin: 0 auto 2.5rem;
   padding: 0 1.5rem;
+  box-sizing: border-box;
+  align-items: start;
 }
 
 @media (max-width: 1024px) {
@@ -108,309 +147,605 @@
   }
 }
 
-/* Left Sidebar Controls */
+/* ==========================================================================
+   3. SIDEBAR CONTROLS & CARDS
+   ========================================================================== */
 .coba-sidebar {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1.25rem;
 }
 
-/* Cards style inside sidebar */
 .sidebar-card {
-  background: #ffffff;
-  padding: 1.5rem;
+  background: var(--coba-surface);
+  border: 1px solid var(--coba-border);
   border-radius: 16px;
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-sm);
-  transition: var(--transition);
+  padding: 1.35rem;
+  box-shadow: var(--coba-shadow-sm);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.sidebar-card h3 {
-  font-family: 'Outfit', sans-serif;
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: var(--text-dark);
+.sidebar-card:hover {
+  border-color: var(--coba-border-hover);
+}
+
+.sidebar-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 0.5rem;
 }
 
-.sidebar-card p {
-  font-size: 0.85rem;
-  color: var(--text-light);
-  margin: 0;
-}
-
-/* Custom Select Styling */
-.select-wrapper {
-  margin-top: 0.25rem;
-}
-
-.coba-select {
-  width: 100%;
-  padding: 0.8rem 1rem;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  font-size: 0.9rem;
-  font-weight: 500;
-  background-color: #fafafa;
-  color: var(--text-dark);
-  outline: none;
-  cursor: pointer;
-  transition: var(--transition);
-}
-
-.coba-select:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.12);
-}
-
-/* Target Box styling */
-.target-box {
-  margin-top: 1rem;
-  background-color: var(--accent-light);
-  border: 1px solid rgba(30, 64, 175, 0.15);
-  padding: 0.85rem 1rem;
-  border-radius: 8px;
-}
-
-.target-title {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.85rem;
+.sidebar-card-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.1rem;
   font-weight: 700;
-  color: var(--primary);
-  text-transform: uppercase;
-  margin-bottom: 0.35rem;
+  color: var(--coba-text-dark);
+  margin: 0 0 0.85rem 0;
 }
 
-.target-item {
-  font-size: 0.85rem;
-  color: var(--text-dark);
-  margin-bottom: 0.25rem;
-}
-
-.target-item:last-child {
+.sidebar-card-header .sidebar-card-title {
   margin-bottom: 0;
 }
 
-/* Buttons actions */
-.actions-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.5rem;
-}
-
-.action-btn {
-  padding: 0.8rem 0.5rem;
-  border-radius: 12px;
+.sidebar-card-desc {
   font-size: 0.85rem;
-  font-weight: 700;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
-  transition: var(--transition);
-  border: 1px solid var(--border);
+  color: var(--coba-text-muted);
+  margin: 0 0 0.85rem 0;
+  line-height: 1.5;
 }
 
-.action-btn-reset {
-  background-color: #fafafa;
-  color: var(--text-dark);
-}
-
-.action-btn-reset:hover {
-  background-color: #f3f4f6;
-  border-color: #d1d5db;
-}
-
-.action-btn-cek {
-  background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
-  color: #ffffff;
-  border: none;
-  box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);
-}
-
-.action-btn-cek:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 14px rgba(16, 185, 129, 0.3);
-}
-
-.action-btn-solusi {
-  background: linear-gradient(135deg, var(--warning) 0%, #d97706 100%);
-  color: #ffffff;
-  border: none;
-  box-shadow: 0 4px 10px rgba(245, 158, 11 0.2);
-}
-
-.action-btn-solusi:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 14px rgba(245, 158, 11, 0.3);
-}
-
-/* Zoom controls */
-.zoom-controls {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--border);
-}
-
-.zoom-btn {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: 1px solid var(--border);
-  background: #ffffff;
-  color: var(--text-dark);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: var(--transition);
-  outline: none;
-}
-
-.zoom-btn:hover {
-  background-color: var(--primary-light);
-  color: var(--primary);
-  border-color: var(--primary);
-}
-
-.zoom-indicator {
-  padding: 0.2rem 0.6rem;
-  border-radius: 20px;
-  background-color: #fafafa;
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--text);
-  border: 1px solid var(--border);
-}
-
-/* Selected Nodes list */
-.selected-nodes-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  margin-top: 0.5rem;
-}
-
-.selected-node-badge {
-  display: inline-block;
-  padding: 0.25rem 0.6rem;
-  border-radius: 6px;
-  font-weight: 700;
+.sidebar-field-label {
+  display: block;
   font-size: 0.75rem;
-  background: var(--primary);
-  color: #ffffff;
-  box-shadow: var(--shadow-sm);
-  font-family: monospace;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--coba-text-muted);
+  margin-bottom: 0.45rem;
 }
 
-/* Mode Selector Tabs */
+/* Mode Switcher Segmented Control */
 .mode-toggle-group {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.5rem;
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
+  background: var(--coba-surface-alt);
+  padding: 0.35rem;
+  border-radius: 12px;
+  border: 1px solid var(--coba-border);
 }
 
 .mode-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.45rem;
+  gap: 0.5rem;
   padding: 0.65rem 0.5rem;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   font-weight: 600;
-  border-radius: 10px;
-  border: 1.5px solid var(--border);
-  background: #ffffff;
-  color: var(--text);
+  border-radius: 9px;
+  border: none;
+  background: transparent;
+  color: var(--coba-text-muted);
   cursor: pointer;
-  transition: var(--transition);
+  transition: all 0.2s ease;
+  user-select: none;
 }
 
 .mode-btn:hover {
-  border-color: var(--primary);
-  color: var(--primary);
+  color: var(--coba-text-dark);
+  background-color: rgba(255, 255, 255, 0.6);
 }
 
-.mode-btn.active {
-  background: var(--primary);
-  color: #ffffff;
-  border-color: var(--primary);
-  box-shadow: 0 4px 12px rgba(30, 64, 175, 0.25);
+.mode-btn.active.active-metric {
+  background: #ffffff;
+  color: var(--coba-metric);
+  font-weight: 700;
+  box-shadow: var(--coba-shadow-sm);
+  border: 1px solid rgba(2, 132, 199, 0.2);
 }
 
-/* Canvas Viewport */
-.coba-canvas-card {
-  flex-grow: 1;
-  min-width: 0;
+.mode-btn.active.active-domination {
+  background: #ffffff;
+  color: var(--coba-domination);
+  font-weight: 700;
+  box-shadow: var(--coba-shadow-sm);
+  border: 1px solid rgba(5, 150, 105, 0.2);
+}
+
+/* Graph Selector Dropdown */
+.select-wrapper {
+  position: relative;
+  margin-bottom: 1rem;
+}
+
+.coba-select {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1.5px solid var(--coba-border);
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  background-color: #ffffff;
+  color: var(--coba-text-dark);
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23475569'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.85rem center;
+  background-size: 1rem;
+}
+
+.coba-select:focus {
+  border-color: var(--coba-primary);
+  box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.12);
+}
+
+/* Telemetry Target Instrument */
+.target-telemetry {
+  margin-top: 1rem;
+  background: #ffffff;
+  border: 1px solid var(--coba-border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.target-telemetry-header {
+  padding: 0.6rem 0.85rem;
+  background: var(--coba-surface-alt);
+  border-bottom: 1px solid var(--coba-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.telemetry-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--coba-text-muted);
+}
+
+.telemetry-rows {
   display: flex;
   flex-direction: column;
+}
+
+.telemetry-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 0.95rem;
+  border-bottom: 1px solid var(--coba-border);
   background: #ffffff;
-  border-radius: 20px;
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-premium);
+  transition: all 0.2s ease;
+}
+
+.telemetry-row:last-child {
+  border-bottom: none;
+}
+
+.telemetry-row.active-metric {
+  background-color: var(--coba-metric-light);
+}
+
+.telemetry-row.active-domination {
+  background-color: var(--coba-domination-light);
+}
+
+.telemetry-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.telemetry-label {
+  font-size: 0.825rem;
+  font-weight: 600;
+  color: var(--coba-text-dark);
+}
+
+.telemetry-row.active-metric .telemetry-label {
+  color: #0369a1;
+  font-weight: 700;
+}
+
+.telemetry-row.active-domination .telemetry-label {
+  color: #065f46;
+  font-weight: 700;
+}
+
+.telemetry-subtext {
+  font-size: 0.72rem;
+  color: var(--coba-text-muted);
+}
+
+.telemetry-row.active-metric .telemetry-subtext {
+  color: #0284c7;
+  font-weight: 600;
+}
+
+.telemetry-row.active-domination .telemetry-subtext {
+  color: #059669;
+  font-weight: 600;
+}
+
+.telemetry-val {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+}
+
+.telemetry-num {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--coba-text-dark);
+  line-height: 1;
+}
+
+.telemetry-row.active-metric .telemetry-num {
+  color: var(--coba-metric);
+}
+
+.telemetry-row.active-domination .telemetry-num {
+  color: var(--coba-domination);
+}
+
+.telemetry-unit {
+  font-size: 0.75rem;
+  color: var(--coba-text-muted);
+  font-weight: 500;
+}
+
+.telemetry-row.active-metric .telemetry-unit {
+  color: #0369a1;
+  font-weight: 600;
+}
+
+.telemetry-row.active-domination .telemetry-unit {
+  color: #065f46;
+  font-weight: 600;
+}
+
+/* Action Control Buttons */
+.actions-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.action-btn {
+  padding: 0.7rem 0.5rem;
+  border-radius: 10px;
+  font-size: 0.825rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  transition: all 0.2s ease;
+  user-select: none;
+  border: 1px solid transparent;
+}
+
+.action-btn:active {
+  transform: scale(0.98);
+}
+
+.action-btn-reset {
+  background-color: var(--coba-surface-alt);
+  color: var(--coba-text-dark);
+  border-color: var(--coba-border);
+}
+
+.action-btn-reset:hover {
+  background-color: #e2e8f0;
+  border-color: #cbd5e1;
+}
+
+.action-btn-cek {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.25);
+}
+
+.action-btn-cek:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  box-shadow: 0 4px 10px rgba(16, 185, 129, 0.35);
+}
+
+.action-btn-solusi {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(245, 158, 11, 0.25);
+}
+
+.action-btn-solusi:hover {
+  background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+  box-shadow: 0 4px 10px rgba(245, 158, 11, 0.35);
+}
+
+/* Step-by-Step Interactive Solver Button */
+.action-btn-step {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+  background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(30, 64, 175, 0.2);
+  margin-bottom: 0.85rem;
+}
+
+.action-btn-step:hover {
+  background: linear-gradient(135deg, #1d4ed8 0%, #1d4ed8 100%);
+  box-shadow: 0 4px 10px rgba(30, 64, 175, 0.3);
+}
+
+.action-btn-step.active {
+  background: #0284c7;
+  box-shadow: 0 0 12px rgba(2, 132, 199, 0.4);
+}
+
+/* Zoom Toolbar */
+.zoom-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--coba-border);
+}
+
+.zoom-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--coba-text-muted);
+}
+
+.zoom-btn-group {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.zoom-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid var(--coba-border);
+  background: #ffffff;
+  color: var(--coba-text);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  transition: all 0.2s ease;
+}
+
+.zoom-btn:hover {
+  background-color: var(--coba-primary-light);
+  color: var(--coba-primary);
+  border-color: var(--coba-primary);
+}
+
+.zoom-indicator {
+  padding: 0.25rem 0.65rem;
+  border-radius: 6px;
+  background-color: var(--coba-surface-alt);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--coba-text-dark);
+  border: 1px solid var(--coba-border);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.zoom-indicator:hover {
+  background-color: #e2e8f0;
+}
+
+/* Selected Nodes Badges & Counter */
+.count-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  letter-spacing: 0.02em;
+}
+
+.count-badge.metric {
+  background-color: var(--coba-metric-light);
+  color: var(--coba-metric);
+  border: 1px solid var(--coba-metric-border);
+}
+
+.count-badge.domination {
+  background-color: var(--coba-domination-light);
+  color: var(--coba-domination);
+  border: 1px solid var(--coba-domination-border);
+}
+
+.selected-nodes-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.selected-node-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.55rem;
+  border-radius: 4px;
+  font-weight: 700;
+  font-size: 0.8rem;
+  font-family: 'Fira Code', monospace;
+  color: #ffffff;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.selected-node-badge.metric {
+  background-color: var(--coba-primary);
+}
+
+.selected-node-badge.metric:hover {
+  background-color: #dc2626;
+}
+
+.selected-node-badge.domination {
+  background-color: var(--coba-domination);
+}
+
+.selected-node-badge.domination:hover {
+  background-color: #dc2626;
+}
+
+.badge-remove-icon {
+  font-size: 0.7rem;
+  opacity: 0.8;
+}
+
+.selected-nodes-empty {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  background-color: var(--coba-surface-alt);
+  padding: 0.75rem 0.85rem;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  color: var(--coba-text-muted);
+  line-height: 1.5;
+}
+
+.selected-nodes-empty svg {
+  color: var(--coba-primary);
+  margin-top: 0.15rem;
+  flex-shrink: 0;
+}
+
+/* ==========================================================================
+   4. CANVAS VISUALIZER COLUMN
+   ========================================================================== */
+.coba-canvas-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  min-width: 0;
+}
+
+.coba-canvas-card {
+  background: var(--coba-surface);
+  border-radius: 18px;
+  border: 1px solid var(--coba-border);
+  box-shadow: var(--coba-shadow-md);
   overflow: hidden;
-  height: 520px;
-  position: relative;
+  display: flex;
+  flex-direction: column;
+  transition: border-color 0.2s ease;
 }
 
 .canvas-header-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.75rem 1.25rem;
-  background: #f8fafc;
-  border-bottom: 1px solid var(--border);
-  font-size: 0.82rem;
-  color: var(--text-light);
+  padding: 0.85rem 1.25rem;
+  background: #ffffff;
+  border-bottom: 1px solid var(--coba-border);
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.canvas-graph-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.canvas-graph-name {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--coba-text-dark);
+}
+
+.canvas-meta-pill,
+.canvas-meta-tag {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  background-color: var(--coba-primary-light);
+  color: var(--coba-primary);
+  border: 1px solid rgba(30, 64, 175, 0.2);
 }
 
 .canvas-hint {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.45rem;
+  font-size: 0.8rem;
+  color: var(--coba-text-muted);
+}
+
+.canvas-hint svg {
+  color: var(--coba-primary);
 }
 
 .canvas-reset-view-btn {
   background: #ffffff;
-  border: 1px solid var(--border);
-  color: var(--text);
-  padding: 0.25rem 0.65rem;
+  border: 1px solid var(--coba-border);
+  color: var(--coba-text);
+  padding: 0.35rem 0.75rem;
   border-radius: 6px;
-  font-size: 0.75rem;
+  font-size: 0.78rem;
   font-weight: 600;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  transition: var(--transition);
+  gap: 0.4rem;
+  transition: all 0.2s ease;
 }
 
 .canvas-reset-view-btn:hover {
-  border-color: var(--primary);
-  color: var(--primary);
-  background: var(--primary-light);
+  border-color: var(--coba-primary);
+  color: var(--coba-primary);
+  background-color: var(--coba-primary-light);
 }
 
 .coba-canvas-wrapper {
-  flex-grow: 1;
   position: relative;
-  min-height: 300px;
+  width: 100%;
+  height: 520px;
+  background-color: #fafbfc;
+  background-image: radial-gradient(var(--coba-border) 1px, transparent 1px);
+  background-size: 20px 20px;
   overflow: hidden;
 }
 
 .coba-canvas {
-  cursor: grab;
   width: 100%;
   height: 100%;
   display: block;
+  cursor: grab;
   user-select: none;
   touch-action: none;
 }
@@ -419,42 +754,46 @@
   cursor: grabbing;
 }
 
-/* Feedback Alert Callout */
+/* ==========================================================================
+   5. DYNAMIC FEEDBACK CARD & TABLES
+   ========================================================================== */
 .coba-feedback-wrapper {
-  max-width: 1300px;
-  margin: 0 auto 2.5rem;
+  max-width: 1360px;
+  width: 100%;
+  margin: 0 auto 2rem;
   padding: 0 1.5rem;
+  box-sizing: border-box;
 }
 
 .coba-feedback-card {
   padding: 1.5rem;
   border-radius: 16px;
-  box-shadow: var(--shadow-md);
-  transition: var(--transition);
-  border: 1px solid var(--border);
+  border: 1px solid var(--coba-border);
+  box-shadow: var(--coba-shadow-sm);
+  transition: all 0.2s ease;
 }
 
 .feedback-correct {
-  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
-  border-color: rgba(16, 185, 129, 0.2);
-  color: #15803d;
+  background-color: var(--coba-success-light);
+  border-color: #86efac;
+  color: #166534;
 }
 
 .feedback-incorrect {
-  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
-  border-color: rgba(239, 68, 68, 0.2);
+  background-color: var(--coba-error-light);
+  border-color: #fca5a5;
   color: #991b1b;
 }
 
 .feedback-partial {
-  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
-  border-color: rgba(245, 158, 11, 0.2);
+  background-color: var(--coba-warning-light);
+  border-color: #fde68a;
   color: #92400e;
 }
 
 .feedback-info {
-  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-  border-color: rgba(30, 64, 175, 0.2);
+  background-color: var(--coba-primary-light);
+  border-color: #bfdbfe;
   color: #1e40af;
 }
 
@@ -469,7 +808,7 @@
 .feedback-header h3 {
   margin: 0;
   font-family: 'Outfit', sans-serif;
-  font-size: 1.25rem;
+  font-size: 1.15rem;
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -477,49 +816,50 @@
 }
 
 .feedback-toggle-btn {
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--text);
-  padding: 0.4rem 0.85rem;
-  border-radius: 20px;
+  background: #ffffff;
+  border: 1px solid currentColor;
+  color: inherit;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 0.4rem;
   font-size: 0.8rem;
   font-weight: 600;
-  background-color: #ffffff;
-  transition: var(--transition);
+  transition: opacity 0.2s ease;
 }
 
 .feedback-toggle-btn:hover {
-  background-color: var(--light);
+  opacity: 0.85;
 }
 
 .feedback-body {
   border-top: 1px solid rgba(0, 0, 0, 0.08);
   margin-top: 1rem;
-  padding-top: 1rem;
+  padding-top: 1.25rem;
 }
 
 .feedback-explanation {
   white-space: pre-wrap;
-  line-height: 1.6;
-  font-size: 0.9rem;
-  color: var(--text-dark);
+  line-height: 1.65;
+  font-size: 0.925rem;
+  color: var(--coba-text-dark);
+  margin: 0 0 1.25rem 0;
 }
 
+/* Solution Box */
 .solution-box {
-  margin-top: 1.5rem;
-  padding: 1.25rem;
   background: #ffffff;
   border-radius: 12px;
-  border: 1px solid rgba(16, 185, 129, 0.15);
-  box-shadow: var(--shadow-sm);
+  padding: 1.15rem 1.25rem;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  box-shadow: var(--coba-shadow-xs);
+  margin-bottom: 1.25rem;
 }
 
 .solution-box h4 {
-  margin: 0 0 0.75rem 0;
+  margin: 0 0 0.65rem 0;
   color: #15803d;
   font-family: 'Outfit', sans-serif;
   font-size: 0.95rem;
@@ -529,21 +869,20 @@
 .solution-badge-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem;
+  gap: 0.45rem;
 }
 
 .solution-badge {
   display: inline-block;
-  padding: 0.25rem 0.6rem;
+  padding: 0.25rem 0.65rem;
   border-radius: 6px;
   font-weight: 700;
-  font-size: 0.75rem;
-  background: var(--success);
+  font-size: 0.8rem;
+  font-family: 'Fira Code', monospace;
   color: #ffffff;
-  font-family: monospace;
 }
 
-/* Distance Table Styling */
+/* Data Tables */
 .table-section {
   margin-top: 1.5rem;
 }
@@ -552,312 +891,435 @@
   font-family: 'Outfit', sans-serif;
   font-size: 1rem;
   font-weight: 700;
-  color: var(--text-dark);
-  margin-bottom: 0.25rem;
+  color: var(--coba-text-dark);
+  margin: 0 0 0.35rem 0;
 }
 
 .table-subtitle {
-  font-size: 0.8rem;
-  margin-bottom: 1rem;
-  color: var(--text-light);
+  font-size: 0.825rem;
+  margin: 0 0 0.85rem 0;
+  color: var(--coba-text-muted);
 }
 
 .table-responsive-wrapper {
   overflow-x: auto;
-  border: 1px solid var(--border);
+  border: 1px solid var(--coba-border);
   border-radius: 12px;
-  box-shadow: var(--shadow-sm);
   background: #ffffff;
+  box-shadow: var(--coba-shadow-xs);
 }
 
 .distance-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.85rem;
+  text-align: left;
 }
 
 .distance-table th {
-  padding: 0.75rem 0.5rem;
+  padding: 0.75rem 1rem;
   text-align: center;
-  border: 1px solid var(--border);
-  background: #fafafa;
+  border: 1px solid var(--coba-border);
+  background: #f8fafc;
   font-weight: 700;
-  color: var(--text-dark);
+  color: var(--coba-text-dark);
+  white-space: nowrap;
 }
 
 .distance-table td {
-  padding: 0.75rem 0.5rem;
+  padding: 0.7rem 1rem;
   text-align: center;
-  border: 1px solid var(--border);
-  color: var(--text);
+  border: 1px solid var(--coba-border);
+  color: var(--coba-text);
+}
+
+.distance-table tr:hover {
+  background-color: #f8fafc;
 }
 
 .distance-table tr.selected-row {
-  background-color: var(--primary-light);
+  background-color: var(--coba-primary-light);
+}
+
+.distance-table tr.row-uncovered {
+  background-color: #fef2f2;
 }
 
 .node-badge-small {
   display: inline-block;
-  padding: 0.2rem 0.5rem;
+  padding: 0.2rem 0.55rem;
   border-radius: 4px;
   font-weight: 700;
   font-size: 0.75rem;
-  background: #cbd5e1;
-  color: var(--text-dark);
-  font-family: monospace;
+  background: #e2e8f0;
+  color: var(--coba-text-dark);
+  font-family: 'Fira Code', monospace;
 }
 
 .node-badge-small.selected-node {
-  background-color: var(--primary);
+  background-color: var(--coba-primary);
   color: #ffffff;
+}
+
+.status-tag {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.status-tag.status-covered {
+  background-color: #dcfce7;
+  color: #15803d;
+  border: 1px solid #86efac;
+}
+
+.status-tag.status-uncovered {
+  background-color: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fca5a5;
 }
 
 .representation-code {
   background: #f1f5f9;
-  padding: 0.25rem 0.5rem;
+  padding: 0.25rem 0.6rem;
   border-radius: 4px;
   font-family: 'Fira Code', monospace;
   font-size: 0.8rem;
-  font-weight: 500;
-  color: var(--primary);
+  font-weight: 600;
+  color: var(--coba-primary);
+  border: 1px solid var(--coba-border);
 }
 
-/* Accordion Information Panel */
+/* ==========================================================================
+   6. BOTTOM CONCEPTS ACCORDION PANEL
+   ========================================================================== */
 .info-accordion-card {
   background: #ffffff;
-  border-radius: 20px;
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-sm);
+  border-radius: 18px;
+  border: 1px solid var(--coba-border);
+  box-shadow: var(--coba-shadow-sm);
   overflow: hidden;
-  max-width: 1300px;
-  margin: 0 auto 5rem;
+  max-width: 1360px;
+  width: 100%;
+  margin: 0 auto 3.5rem;
+  box-sizing: border-box;
 }
 
 .info-accordion-header {
+  width: 100%;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.25rem 1.5rem;
-  background: #fafafa;
+  padding: 1.15rem 1.5rem;
+  background: #ffffff;
   cursor: pointer;
-  border-bottom: 1px solid var(--border);
-  transition: var(--transition);
+  border: none;
+  transition: background-color 0.2s ease;
+  text-align: left;
 }
 
 .info-accordion-header:hover {
-  background: var(--light);
+  background: #f8fafc;
 }
 
-.info-accordion-header h3 {
-  margin: 0;
+.info-accordion-title-wrap {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  color: var(--text-dark);
+  gap: 0.65rem;
+}
+
+.info-accordion-icon {
+  color: var(--coba-primary);
+  font-size: 1.1rem;
+}
+
+.info-accordion-title {
+  margin: 0;
   font-family: 'Outfit', sans-serif;
   font-size: 1.15rem;
   font-weight: 700;
+  color: var(--coba-text-dark);
 }
 
 .info-accordion-toggle {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--text-light);
-  font-size: 1.1rem;
-  transition: var(--transition);
+  color: var(--coba-text-muted);
+  font-size: 1rem;
 }
 
-/* Tabs inside accordion */
+.accordion-body-wrapper {
+  border-top: 1px solid var(--coba-border);
+}
+
 .accordion-tabs-bar {
   display: flex;
-  background: #f1f5f9;
-  padding: 0.4rem;
+  background: var(--coba-surface-alt);
+  padding: 0.4rem 0.5rem;
   gap: 0.4rem;
+  border-bottom: 1px solid var(--coba-border);
+  overflow-x: auto;
 }
 
 .accordion-tab-btn {
   flex: 1;
-  padding: 0.75rem 1rem;
+  padding: 0.65rem 1rem;
   font-size: 0.85rem;
-  font-weight: 700;
+  font-weight: 600;
   border: none;
   background: transparent;
-  color: var(--text);
+  color: var(--coba-text-muted);
   cursor: pointer;
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  transition: var(--transition);
+  transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
 .accordion-tab-btn:hover {
-  background-color: rgba(255, 255, 255, 0.5);
-  color: var(--text-dark);
+  background-color: rgba(255, 255, 255, 0.6);
+  color: var(--coba-text-dark);
 }
 
 .accordion-tab-btn.active {
-  background: var(--primary);
-  color: #ffffff;
-  box-shadow: var(--shadow-sm);
+  background: #ffffff;
+  color: var(--coba-primary);
+  font-weight: 700;
+  box-shadow: var(--coba-shadow-xs);
 }
 
-.accordion-body-content {
-  padding: 1.5rem;
+.accordion-content-body {
+  padding: 1.75rem 1.5rem;
 }
 
-/* Steps grid inside Panduan */
-.steps-grid {
+.tab-pane-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--coba-text-dark);
+  margin: 0 0 1.25rem 0;
+}
+
+/* Steps Cards Grid inside Tab 1 */
+.steps-cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.25rem;
 }
 
-.step-card {
-  background: #fafafa;
-  padding: 1.5rem;
+.step-craft-card {
+  background: #f8fafc;
+  border: 1px solid var(--coba-border);
   border-radius: 12px;
-  border: 1px solid var(--border);
-  position: relative;
-  transition: var(--transition);
+  padding: 1.25rem;
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  transition: all 0.2s ease;
 }
 
-.step-card:hover {
+.step-craft-card:hover {
+  background: #ffffff;
+  border-color: var(--coba-border-hover);
+  box-shadow: var(--coba-shadow-sm);
   transform: translateY(-2px);
-  border-color: var(--primary);
 }
 
-.step-number {
-  position: absolute;
-  top: -15px;
-  left: -15px;
-  background: linear-gradient(135deg, var(--primary) 0%, #2563eb 100%);
-  color: white;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
+.step-craft-number {
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, var(--coba-primary) 0%, #2563eb 100%);
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 0.85rem;
+  font-family: 'Fira Code', monospace;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.1rem;
-  font-weight: 800;
-  border: 3px solid white;
-  box-shadow: 0 4px 6px rgba(30, 64, 175, 0.2);
+  flex-shrink: 0;
 }
 
-.step-card h4 {
-  margin-top: 0.75rem;
-  margin-bottom: 0.5rem;
+.step-craft-content h5 {
+  margin: 0 0 0.35rem 0;
   font-family: 'Outfit', sans-serif;
+  font-size: 0.95rem;
   font-weight: 700;
-  color: var(--text-dark);
+  color: var(--coba-text-dark);
 }
 
-.step-card p {
-  color: var(--text);
-  line-height: 1.6;
-  font-size: 0.85rem;
+.step-craft-content p {
   margin: 0;
-}
-
-/* Visual tip callout */
-.visual-tip-box {
-  margin-top: 1.75rem;
-  padding: 1.25rem;
-  background: var(--accent-light);
-  border-radius: 10px;
-  border: 1px solid rgba(56, 189, 248, 0.2);
-}
-
-.visual-tip-box h4 {
-  margin: 0 0 0.5rem 0;
-  color: #0369a1;
-  font-family: 'Outfit', sans-serif;
-  font-weight: 700;
-  font-size: 0.9rem;
-}
-
-.visual-tip-box ul {
-  margin: 0;
-  padding-left: 1.25rem;
-  line-height: 1.8;
   font-size: 0.85rem;
-  color: #0369a1;
+  color: var(--coba-text);
+  line-height: 1.55;
 }
 
-/* Theory box cards */
-.theory-card {
-  margin-bottom: 1.5rem;
+/* Theory Definition Cards inside Tab 2 */
+.theory-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+.theory-craft-card {
+  background: #ffffff;
+  border: 1px solid var(--coba-border);
+  border-radius: 14px;
   padding: 1.5rem;
-  background: #fafafa;
-  border-radius: 12px;
-  border: 1px solid var(--border);
+  position: relative;
+  box-shadow: var(--coba-shadow-xs);
 }
 
-.theory-card h4 {
-  color: var(--primary);
-  font-family: 'Outfit', sans-serif;
-  font-size: 1.05rem;
+.theory-badge {
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.725rem;
   font-weight: 700;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-  padding-bottom: 0.4rem;
-  margin-top: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
   margin-bottom: 0.75rem;
 }
 
-.theory-card p {
-  line-height: 1.6;
-  color: var(--text);
-  margin-bottom: 0.5rem;
-  font-size: 0.9rem;
+.theory-badge.domination {
+  background-color: var(--coba-domination-light);
+  color: var(--coba-domination);
+  border: 1px solid var(--coba-domination-border);
 }
 
-.theory-card .example-text {
-  font-size: 0.8rem;
-  font-style: italic;
-  color: var(--text-light);
-  margin-top: 0.5rem;
+.theory-badge.metric {
+  background-color: var(--coba-metric-light);
+  color: var(--coba-metric);
+  border: 1px solid var(--coba-metric-border);
 }
 
-/* Theorem card items */
-.theorem-card {
-  margin-bottom: 1.25rem;
-  padding: 1.25rem;
-  background: #fafafa;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  transition: var(--transition);
-}
-
-.theorem-card.highlighted-theorem {
-  background: var(--warning-light);
-  border-color: #fde047;
-}
-
-.theorem-card h5 {
+.theory-craft-card h5 {
   margin: 0 0 0.5rem 0;
   font-family: 'Outfit', sans-serif;
+  font-size: 1.05rem;
   font-weight: 700;
-  font-size: 0.95rem;
-  color: var(--text-dark);
+  color: var(--coba-text-dark);
 }
 
-.theorem-card.highlighted-theorem h5 {
-  color: #92400e;
-}
-
-.theorem-card p {
-  font-size: 0.85rem;
+.theory-craft-card p {
+  margin: 0 0 1rem 0;
+  font-size: 0.875rem;
+  color: var(--coba-text);
   line-height: 1.6;
-  margin: 0 0 0.5rem 0;
 }
 
-.theorem-card .formula-text {
-  font-family: 'Fira Code', monospace;
-  font-weight: 700;
-  color: var(--primary);
+.theory-param {
+  background: #f8fafc;
+  padding: 0.65rem 0.85rem;
+  border-radius: 8px;
+  border: 1px solid var(--coba-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.825rem;
+  color: var(--coba-text-dark);
+}
+
+.theory-param strong {
+  color: var(--coba-primary);
+}
+
+/* Theorems Grid inside Tab 3 */
+.theorems-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.25rem;
+}
+
+.theorem-craft-card {
+  background: #ffffff;
+  border: 1px solid var(--coba-border);
+  border-radius: 12px;
+  padding: 1.35rem;
+  box-shadow: var(--coba-shadow-xs);
+  transition: all 0.2s ease;
+}
+
+.theorem-craft-card:hover {
+  border-color: var(--coba-border-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--coba-shadow-sm);
+}
+
+.theorem-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.65rem;
+}
+
+.theorem-header h5 {
+  margin: 0;
+  font-family: 'Outfit', sans-serif;
   font-size: 0.95rem;
-  margin: 0.5rem 0 0 0;
+  font-weight: 700;
+  color: var(--coba-text-dark);
+}
+
+.theorem-family-tag {
+  font-size: 0.7rem;
+  font-weight: 600;
+  background-color: var(--coba-primary-light);
+  color: var(--coba-primary);
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid rgba(30, 64, 175, 0.15);
+}
+
+.theorem-craft-card p {
+  margin: 0 0 1rem 0;
+  font-size: 0.85rem;
+  color: var(--coba-text);
+  line-height: 1.55;
+}
+
+.theorem-formulas {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.formula-chip {
+  background: #f8fafc;
+  border: 1px solid var(--coba-border);
+  padding: 0.35rem 0.65rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  color: var(--coba-text-dark);
+}
+
+/* ==========================================================================
+   7. RESPONSIVE BREAKPOINTS
+   ========================================================================== */
+@media (max-width: 768px) {
+  .coba-hero {
+    padding: 2.75rem 1.25rem 3rem;
+  }
+
+  .coba-canvas-wrapper {
+    height: 400px;
+  }
+
+  .canvas-header-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.65rem;
+  }
+
+  .canvas-reset-view-btn {
+    align-self: flex-end;
+  }
+
+  .actions-grid {
+    grid-template-columns: 1fr;
+  }
 }

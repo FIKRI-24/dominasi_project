@@ -11,16 +11,17 @@ import {
   faCheck,
   faTimes,
   faInfoCircle,
-  faBullseye,
   faChevronDown,
   faChevronUp,
   faShieldAlt,
   faSearch,
   faArrowsAlt,
   faRedo,
-  faPlay
+  faPlay,
+  faFlask
 } from '@fortawesome/free-solid-svg-icons';
 import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
 import StepByStepSolver from '../components/StepByStepSolver';
 import './assets/coba.css';
 
@@ -954,9 +955,15 @@ const Coba = () => {
       {/* Hero Section */}
       <section className="coba-hero">
         <div className="container">
-          <h1 className="coba-title">Lab Eksperimen Graf</h1>
+          <div className="coba-hero-eyebrow">
+            <FontAwesomeIcon icon={faFlask} />
+            <span>Laboratorium Graf Interaktif</span>
+          </div>
+          <h1 className="coba-title">
+            Lab Eksperimen <span className="coba-title-highlight">Teori Graf</span>
+          </h1>
           <p className="coba-subtitle">
-            Simulasikan penempatan sensor secara langsung pada simpul graf interaktif untuk menguji Himpunan Dominasi (Penjaga) dan Dimensi Metrik (Pembeda)
+            Simulasikan penempatan sensor secara langsung pada simpul graf interaktif untuk menguji Himpunan Dominasi (Penjaga) dan Dimensi Metrik (Pembeda).
           </p>
         </div>
       </section>
@@ -965,23 +972,25 @@ const Coba = () => {
       <div className="coba-layout-grid">
         
         {/* Left Side: Sidebar Controls */}
-        <div className="coba-sidebar">
+        <aside className="coba-sidebar">
           
           {/* Card 1: Mode Switcher & Selector */}
           <div className="sidebar-card">
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '700', fontSize: '0.82rem', letterSpacing: '0.05em' }}>
+            <label className="sidebar-field-label">
               MODE EKSPERIMEN
             </label>
             <div className="mode-toggle-group">
               <button
-                className={`mode-btn ${activeMode === 'metric' ? 'active' : ''}`}
+                type="button"
+                className={`mode-btn ${activeMode === 'metric' ? 'active active-metric' : ''}`}
                 onClick={() => handleModeChange('metric')}
               >
                 <FontAwesomeIcon icon={faSearch} />
                 <span>Pembeda (β)</span>
               </button>
               <button
-                className={`mode-btn ${activeMode === 'domination' ? 'active' : ''}`}
+                type="button"
+                className={`mode-btn ${activeMode === 'domination' ? 'active active-domination' : ''}`}
                 onClick={() => handleModeChange('domination')}
               >
                 <FontAwesomeIcon icon={faShieldAlt} />
@@ -989,7 +998,7 @@ const Coba = () => {
               </button>
             </div>
 
-            <label htmlFor="graph-type" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '700', fontSize: '0.82rem', letterSpacing: '0.05em' }}>
+            <label htmlFor="graph-type" className="sidebar-field-label">
               PILIH STRUKTUR JARINGAN
             </label>
             <div className="select-wrapper">
@@ -1015,83 +1024,118 @@ const Coba = () => {
               </select>
             </div>
             
-            <div className="target-box">
-              <div className="target-title">
-                <FontAwesomeIcon icon={faBullseye} /> Target Uji:
+            <div className="target-telemetry">
+              <div className="target-telemetry-header">
+                <span className="telemetry-title">Target Teoretis Graf</span>
               </div>
-              <div className="target-item" style={{ fontWeight: activeMode === 'metric' ? '700' : '400', color: activeMode === 'metric' ? 'var(--primary)' : 'inherit' }}>
-                • Dimensi Metrik β(G) = <strong>{GRAPHS[currentGraph].metricDimension}</strong> patokan {activeMode === 'metric' && '👈 (Target Aktif)'}
-              </div>
-              <div className="target-item" style={{ fontWeight: activeMode === 'domination' ? '700' : '400', color: activeMode === 'domination' ? '#047857' : 'inherit' }}>
-                • Bilangan Dominasi γ(G) = <strong>{GRAPHS[currentGraph].dominationNumber}</strong> penjaga {activeMode === 'domination' && '👈 (Target Aktif)'}
+              <div className="telemetry-rows">
+                <div className={`telemetry-row ${activeMode === 'metric' ? 'active-metric' : ''}`}>
+                  <div className="telemetry-info">
+                    <span className="telemetry-label">Dimensi Metrik β(G)</span>
+                    <span className="telemetry-subtext">
+                      {activeMode === 'metric' ? 'Sedang Diuji (Mode Aktif)' : 'Batas Minimum Patokan'}
+                    </span>
+                  </div>
+                  <div className="telemetry-val">
+                    <span className="telemetry-num">{GRAPHS[currentGraph].metricDimension}</span>
+                    <span className="telemetry-unit">patokan</span>
+                  </div>
+                </div>
+
+                <div className={`telemetry-row ${activeMode === 'domination' ? 'active-domination' : ''}`}>
+                  <div className="telemetry-info">
+                    <span className="telemetry-label">Bilangan Dominasi γ(G)</span>
+                    <span className="telemetry-subtext">
+                      {activeMode === 'domination' ? 'Sedang Diuji (Mode Aktif)' : 'Batas Minimum Penjaga'}
+                    </span>
+                  </div>
+                  <div className="telemetry-val">
+                    <span className="telemetry-num">{GRAPHS[currentGraph].dominationNumber}</span>
+                    <span className="telemetry-unit">penjaga</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
           
           {/* Card 2: Interactive Controls */}
           <div className="sidebar-card">
-            <h3 style={{ marginBottom: '1rem' }}>Kontrol Eksperimen</h3>
+            <h3 className="sidebar-card-title">Kontrol Eksperimen</h3>
             <div className="actions-grid">
-              <button onClick={resetSelection} className="action-btn action-btn-reset">
-                <FontAwesomeIcon icon={faEraser} /> Reset
-              </button>
-              <button onClick={checkAnswer} className="action-btn action-btn-cek">
-                <FontAwesomeIcon icon={faCheck} /> Cek
-              </button>
-              <button onClick={showSolution} className="action-btn action-btn-solusi">
-                <FontAwesomeIcon icon={faLightbulb} /> Solusi
-              </button>
-              <button
-                onClick={() => {
-                  if (!showStepSolver) resetSelection();
-                  setShowStepSolver(prev => !prev);
-                }}
-                className={`action-btn ${showStepSolver ? 'active' : ''}`}
-                style={{
-                  gridColumn: '1 / -1',
-                  background: showStepSolver ? '#0284c7' : 'linear-gradient(135deg, #1e40af, #2563eb)',
-                  color: '#ffffff',
-                  fontWeight: '700',
-                  marginTop: '0.35rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '0.5rem',
-                  boxShadow: showStepSolver ? '0 0 12px rgba(2, 132, 199, 0.5)' : 'none'
-                }}
-                title="Buka panduan langkah penyelesaian interaktif"
+              <button 
+                type="button" 
+                onClick={resetSelection} 
+                className="action-btn action-btn-reset" 
+                title="Hapus seluruh pilihan simpul"
               >
-                <FontAwesomeIcon icon={faPlay} />
-                <span>{showStepSolver ? 'Tutup Simulator Langkah' : '▶ Panduan Langkah (Step-by-Step)'}</span>
-              </button>
-            </div>
-            
-            <div className="zoom-controls">
-              <button onClick={zoomOut} className="zoom-btn" title="Perkecil (-)">
-                <FontAwesomeIcon icon={faMinus} />
+                <FontAwesomeIcon icon={faEraser} />
+                <span>Reset</span>
               </button>
               <button 
-                onClick={resetView} 
-                className="zoom-indicator" 
-                title="Klik untuk reset zoom & posisi (100%)"
-                style={{ background: 'none', border: 'none', cursor: 'pointer', font: 'inherit', color: 'inherit' }}
+                type="button" 
+                onClick={checkAnswer} 
+                className="action-btn action-btn-cek" 
+                title="Cek apakah pilihan simpul sudah memenuhi syarat"
               >
-                {Math.round(zoom * 100)}%
+                <FontAwesomeIcon icon={faCheck} />
+                <span>Cek</span>
               </button>
-              <button onClick={zoomIn} className="zoom-btn" title="Perbesar (+)">
-                <FontAwesomeIcon icon={faPlus} />
+              <button 
+                type="button" 
+                onClick={showSolution} 
+                className="action-btn action-btn-solusi" 
+                title="Tampilkan contoh himpunan penyelesaian optimal"
+              >
+                <FontAwesomeIcon icon={faLightbulb} />
+                <span>Solusi</span>
               </button>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                if (!showStepSolver) resetSelection();
+                setShowStepSolver(prev => !prev);
+              }}
+              className={`action-btn-step ${showStepSolver ? 'active' : ''}`}
+              title="Buka panduan langkah penyelesaian interaktif"
+            >
+              <FontAwesomeIcon icon={faPlay} />
+              <span>{showStepSolver ? 'Tutup Simulator Langkah' : 'Simulator Langkah (Step-by-Step)'}</span>
+            </button>
+            
+            <div className="zoom-controls">
+              <span className="zoom-label">Skala Tampilan:</span>
+              <div className="zoom-btn-group">
+                <button type="button" onClick={zoomOut} className="zoom-btn" title="Perkecil (-)">
+                  <FontAwesomeIcon icon={faMinus} />
+                </button>
+                <button 
+                  type="button"
+                  onClick={resetView} 
+                  className="zoom-indicator" 
+                  title="Klik untuk reset zoom & posisi (100%)"
+                >
+                  {Math.round(zoom * 100)}%
+                </button>
+                <button type="button" onClick={zoomIn} className="zoom-btn" title="Perbesar (+)">
+                  <FontAwesomeIcon icon={faPlus} />
+                </button>
+              </div>
             </div>
           </div>
           
           {/* Card 3: Selected Nodes */}
           <div className="sidebar-card">
-            <h3>
-              {activeMode === 'metric' 
-                ? `Patokan Navigasi Anda (${selectedNodes.size})` 
-                : `Pos Penjaga Dominasi (${selectedNodes.size})`}
-            </h3>
-            <p style={{ marginBottom: '0.75rem', fontSize: '0.85rem' }}>
+            <div className="sidebar-card-header">
+              <h3 className="sidebar-card-title">
+                {activeMode === 'metric' ? 'Patokan Metrik' : 'Pos Penjaga Dominasi'}
+              </h3>
+              <span className={`count-badge ${activeMode === 'domination' ? 'domination' : 'metric'}`}>
+                {selectedNodes.size} Terpilih
+              </span>
+            </div>
+            <p className="sidebar-card-desc">
               {activeMode === 'metric'
                 ? 'Simpul yang Anda tandai sebagai patokan koordinat metrik:'
                 : 'Simpul yang Anda tugaskan sebagai penjaga/sensor pemantau:'}
@@ -1103,26 +1147,30 @@ const Coba = () => {
                   const bNum = parseInt(b.replace(/\D/g, '')) || 0;
                   return aNum - bNum;
                 }).map(node => (
-                  <span 
+                  <button 
+                    type="button"
                     key={node} 
-                    className="selected-node-badge"
-                    style={{ background: activeMode === 'domination' ? '#10b981' : 'var(--primary)' }}
+                    className={`selected-node-badge ${activeMode === 'domination' ? 'domination' : 'metric'}`}
+                    onClick={() => toggleNodeSelection(node)}
+                    title={`Klik untuk melepas simpul ${node}`}
                   >
-                    {node}
-                  </span>
+                    <span>{node}</span>
+                    <FontAwesomeIcon icon={faTimes} className="badge-remove-icon" />
+                  </button>
                 ))}
               </div>
             ) : (
-              <p style={{ color: 'var(--text-light)', fontStyle: 'italic', fontSize: '0.8rem' }}>
-                Belum ada. Silakan klik bulatan simpul di area kanan.
-              </p>
+              <div className="selected-nodes-empty">
+                <FontAwesomeIcon icon={faInfoCircle} />
+                <span>Belum ada simpul dipilih. Silakan klik bulatan simpul pada kanvas.</span>
+              </div>
             )}
           </div>
 
-        </div>
+        </aside>
 
         {/* Right Side: Interactive Canvas Visualizer */}
-        <div className="coba-canvas-card">
+        <div className="coba-canvas-column">
           {showStepSolver && (
             <StepByStepSolver
               graph={GRAPHS[currentGraph]}
@@ -1139,36 +1187,45 @@ const Coba = () => {
             />
           )}
 
-          <div className="canvas-header-bar">
-            <div className="canvas-hint">
-              <FontAwesomeIcon icon={faArrowsAlt} style={{ color: 'var(--primary)' }} />
-              <span>
-                {activeMode === 'metric'
-                  ? 'Klik simpul untuk memilih patokan. Geser canvas untuk memindahkan.'
-                  : 'Klik simpul untuk menaruh penjaga. Geser canvas untuk memindahkan.'}
-              </span>
+          <div className="coba-canvas-card">
+            <div className="canvas-header-bar">
+              <div className="canvas-graph-meta">
+                <span className="canvas-graph-name">{GRAPHS[currentGraph].name}</span>
+                <span className="canvas-meta-tag">
+                  {GRAPHS[currentGraph].nodes.length} Simpul • {GRAPHS[currentGraph].edges.length} Sisi
+                </span>
+              </div>
+              <div className="canvas-hint">
+                <FontAwesomeIcon icon={faArrowsAlt} />
+                <span>
+                  {activeMode === 'metric'
+                    ? 'Klik simpul untuk memilih patokan • Geser kanvas untuk navigasi'
+                    : 'Klik simpul untuk menaruh penjaga • Geser kanvas untuk navigasi'}
+                </span>
+              </div>
+              <button 
+                type="button"
+                onClick={resetView} 
+                className="canvas-reset-view-btn"
+                title="Kembalikan posisi dan zoom ke tampilan awal"
+              >
+                <FontAwesomeIcon icon={faRedo} />
+                <span>Reset Posisi</span>
+              </button>
             </div>
-            <button 
-              onClick={resetView} 
-              className="canvas-reset-view-btn"
-              title="Kembalikan posisi dan zoom ke tampilan awal"
-            >
-              <FontAwesomeIcon icon={faRedo} />
-              <span>Reset Posisi</span>
-            </button>
-          </div>
 
-          <div className="coba-canvas-wrapper">
-            <canvas
-              ref={canvasRef}
-              onMouseDown={handleMouseDown}
-              onMouseMove={handleMouseMove}
-              onMouseUp={handleMouseUp}
-              onTouchStart={handleTouchStart}
-              onTouchMove={handleTouchMove}
-              onTouchEnd={handleTouchEnd}
-              className="coba-canvas"
-            />
+            <div className="coba-canvas-wrapper">
+              <canvas
+                ref={canvasRef}
+                onMouseDown={handleMouseDown}
+                onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+                className="coba-canvas"
+              />
+            </div>
           </div>
         </div>
 
@@ -1187,6 +1244,7 @@ const Coba = () => {
                 {feedback.message}
               </h3>
               <button 
+                type="button"
                 onClick={() => setShowExplanation(!showExplanation)}
                 className="feedback-toggle-btn"
               >
@@ -1200,7 +1258,7 @@ const Coba = () => {
             
             {showExplanation && (
               <div className="feedback-body">
-                <p className="feedback-explanation" style={{ whiteSpace: 'pre-line' }}>{feedback.explanation}</p>
+                <p className="feedback-explanation">{feedback.explanation}</p>
                 
                 {feedback.correctAnswer.length > 0 && (
                   <div className="solution-box">
@@ -1214,7 +1272,7 @@ const Coba = () => {
                         <span 
                           key={`sol-${node}`} 
                           className="solution-badge"
-                          style={{ background: activeMode === 'domination' ? '#047857' : 'var(--primary)' }}
+                          style={{ background: activeMode === 'domination' ? '#047857' : 'var(--coba-primary)' }}
                         >
                           {node}
                         </span>
@@ -1242,28 +1300,17 @@ const Coba = () => {
                         </thead>
                         <tbody>
                           {feedback.dominationReport.map(row => (
-                            <tr key={row.node} style={{ background: row.isCovered ? 'transparent' : '#fef2f2' }}>
+                            <tr key={row.node} className={row.isCovered ? 'row-covered' : 'row-uncovered'}>
                               <td>
-                                <span className={`node-badge-small ${selectedNodes.has(row.node) ? 'selected-node' : ''}`} style={{
-                                  background: selectedNodes.has(row.node) ? '#10b981' : 'transparent',
-                                  color: selectedNodes.has(row.node) ? '#ffffff' : 'inherit'
-                                }}>
+                                <span className={`node-badge-small ${selectedNodes.has(row.node) ? 'selected-node' : ''}`}>
                                   {row.node}
                                 </span>
                               </td>
                               <td>{row.status}</td>
                               <td>{row.guard}</td>
                               <td>
-                                <span style={{
-                                  padding: '3px 10px',
-                                  borderRadius: '12px',
-                                  fontSize: '0.75rem',
-                                  fontWeight: '600',
-                                  backgroundColor: row.isCovered ? '#d1fae5' : '#fee2e2',
-                                  color: row.isCovered ? '#047857' : '#b91c1c',
-                                  display: 'inline-block'
-                                }}>
-                                  {row.isCovered ? '✓ Terawasi' : '✗ Tidak Terawasi'}
+                                <span className={`status-tag ${row.isCovered ? 'status-covered' : 'status-uncovered'}`}>
+                                  {row.isCovered ? '✓ Terawasi' : '✗ Belum Terawasi'}
                                 </span>
                               </td>
                             </tr>
@@ -1326,88 +1373,165 @@ const Coba = () => {
       )}
 
       {/* Bottom Concepts Panel (Accordion) */}
-      <div className="info-accordion-card">
-        <div 
+      <section className="info-accordion-card">
+        <button 
+          type="button"
           onClick={() => setShowInfoPanel(!showInfoPanel)}
           className="info-accordion-header"
+          aria-expanded={showInfoPanel}
         >
-          <h3>
-            <FontAwesomeIcon icon={faInfoCircle} />
-            Konsep & Teorema Teori Graf
-          </h3>
-          <button className="info-accordion-toggle">
+          <div className="info-accordion-title-wrap">
+            <FontAwesomeIcon icon={faInfoCircle} className="info-accordion-icon" />
+            <h3 className="info-accordion-title">Konsep Teori & Teorema Graf</h3>
+          </div>
+          <div className="info-accordion-toggle">
             <FontAwesomeIcon icon={showInfoPanel ? faChevronUp : faChevronDown} />
-          </button>
-        </div>
+          </div>
+        </button>
         
         {showInfoPanel && (
-          <>
+          <div className="accordion-body-wrapper">
             <div className="accordion-tabs-bar">
               <button 
+                type="button"
                 onClick={() => setActiveTab('panduan')}
                 className={`accordion-tab-btn ${activeTab === 'panduan' ? 'active' : ''}`}
               >
-                <FontAwesomeIcon icon={faQuestionCircle} /> Cara Bereksperimen
+                <FontAwesomeIcon icon={faQuestionCircle} />
+                <span>Cara Bereksperimen</span>
               </button>
               <button 
+                type="button"
                 onClick={() => setActiveTab('teori')}
                 className={`accordion-tab-btn ${activeTab === 'teori' ? 'active' : ''}`}
               >
-                <FontAwesomeIcon icon={faBook} /> Definisi Istilah
+                <FontAwesomeIcon icon={faBook} />
+                <span>Definisi Istilah</span>
               </button>
               <button 
+                type="button"
                 onClick={() => setActiveTab('teorema')}
                 className={`accordion-tab-btn ${activeTab === 'teorema' ? 'active' : ''}`}
               >
-                <FontAwesomeIcon icon={faCogs} /> Teorema Kunci
+                <FontAwesomeIcon icon={faCogs} />
+                <span>Teorema Kunci</span>
               </button>
             </div>
             
             <div className="accordion-content-body">
               {activeTab === 'panduan' && (
-                <div>
-                  <h4 style={{ margin: '0 0 0.5rem', color: 'var(--text-dark)' }}>Panduan Penggunaan Lab Graf</h4>
-                  <ul style={{ paddingLeft: '1.25rem', margin: 0, lineHeight: 1.8, fontSize: '0.9rem' }}>
-                    <li><strong>Pilih Mode:</strong> Gunakan tombol <em>Pembeda (β)</em> untuk menguji navigasi koordinat metrik, atau <em>Dominasi (γ)</em> untuk menguji pengawasan keamanan jaringan.</li>
-                    <li><strong>Pilih Struktur Graf:</strong> Pilih salah satu jenis graf melalui dropdown di panel kiri.</li>
-                    <li><strong>Tandai Simpul:</strong> Klik langsung pada lingkaran simpul di area kanvas untuk memilih atau membatalkan pilihan.</li>
-                    <li><strong>Geser & Perbesar:</strong> Geser (*drag*) kanvas ke mana saja untuk meninjau bagian graf yang tertutup, dan gunakan tombol zoom (+ / -) untuk mengatur ukuran.</li>
-                    <li><strong>Cek Hasil:</strong> Klik tombol <em>Cek</em> untuk memeriksa apakah pilihan Anda sudah optimal atau terdapat simpul yang belum memenuhi kriteria.</li>
-                  </ul>
+                <div className="tab-pane">
+                  <h4 className="tab-pane-title">Panduan Penggunaan Lab Graf Interaktif</h4>
+                  <div className="steps-cards-grid">
+                    <div className="step-craft-card">
+                      <div className="step-craft-number">1</div>
+                      <div className="step-craft-content">
+                        <h5>Pilih Mode Eksperimen</h5>
+                        <p>Pilih <strong>Pembeda (β)</strong> untuk menguji keunikan koordinat vektor jarak simpul, atau <strong>Dominasi (γ)</strong> untuk penempatan pos pengawas keamanan jaringan.</p>
+                      </div>
+                    </div>
+                    <div className="step-craft-card">
+                      <div className="step-craft-number">2</div>
+                      <div className="step-craft-content">
+                        <h5>Pilih Struktur Graf</h5>
+                        <p>Gunakan menu pilihan untuk memilih graf standar atau keluarga graf khusus seperti Lintasan P₈, Siklus C₈, Bintang K₁,₇, hingga Graf Roda W₆.</p>
+                      </div>
+                    </div>
+                    <div className="step-craft-card">
+                      <div className="step-craft-number">3</div>
+                      <div className="step-craft-content">
+                        <h5>Pilih Simpul pada Kanvas</h5>
+                        <p>Klik langsung pada lingkaran simpul di kanvas visual. Geser (*drag*) dan atur skala (*zoom*) untuk meneliti hubungan ketetanggaan.</p>
+                      </div>
+                    </div>
+                    <div className="step-craft-card">
+                      <div className="step-craft-number">4</div>
+                      <div className="step-craft-content">
+                        <h5>Periksa dan Analisis</h5>
+                        <p>Tekan tombol <strong>Cek</strong> untuk memeriksa keterpenuhan syarat, atau buka <strong>Simulator Langkah</strong> untuk animasi pemantauan tahap demi tahap.</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
               
               {activeTab === 'teori' && (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
-                  <div style={{ background: '#f8fafc', padding: '1rem', borderRadius: '10px', border: '1px solid var(--border)' }}>
-                    <h5 style={{ margin: '0 0 0.5rem', color: 'var(--primary)', fontWeight: 700 }}>Himpunan Dominasi (Dominating Set)</h5>
-                    <p style={{ margin: 0, fontSize: '0.85rem', lineHeight: 1.6 }}>
-                      Himpunan simpul S sedemikian sehingga setiap simpul di luar S bertetangga langsung dengan minimal satu simpul di S. Ukuran minimumnya disebut <strong>Bilangan Dominasi γ(G)</strong>.
-                    </p>
-                  </div>
-                  <div style={{ background: '#f8fafc', padding: '1rem', borderRadius: '10px', border: '1px solid var(--border)' }}>
-                    <h5 style={{ margin: '0 0 0.5rem', color: 'var(--primary)', fontWeight: 700 }}>Himpunan Pembeda (Resolving Set)</h5>
-                    <p style={{ margin: 0, fontSize: '0.85rem', lineHeight: 1.6 }}>
-                      Himpunan patokan W sedemikian sehingga setiap simpul di graf memiliki vektor jarak koordinat yang unik terhadap W. Ukuran minimumnya disebut <strong>Dimensi Metrik β(G)</strong>.
-                    </p>
+                <div className="tab-pane">
+                  <h4 className="tab-pane-title">Definisi Parameter Graf</h4>
+                  <div className="theory-cards-grid">
+                    <div className="theory-craft-card">
+                      <div className="theory-badge domination">Dominasi</div>
+                      <h5>Himpunan Dominasi (Dominating Set)</h5>
+                      <p>
+                        Himpunan simpul S ⊆ V(G) sedemikian rupa sehingga setiap simpul di luar S bertetangga langsung dengan sekurang-kurangnya satu simpul di S.
+                      </p>
+                      <div className="theory-param">
+                        <span>Parameter Minimum:</span>
+                        <strong>Bilangan Dominasi γ(G)</strong>
+                      </div>
+                    </div>
+                    <div className="theory-craft-card">
+                      <div className="theory-badge metric">Metrik</div>
+                      <h5>Himpunan Pembeda (Resolving Set)</h5>
+                      <p>
+                        Himpunan patokan W = {'{w₁, w₂, ..., wₖ}'} ⊆ V(G) sedemikian rupa sehingga untuk setiap dua simpul berbeda u, v ∈ V(G), berlaku r(u|W) ≠ r(v|W).
+                      </p>
+                      <div className="theory-param">
+                        <span>Parameter Minimum:</span>
+                        <strong>Dimensi Metrik β(G)</strong>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
               
               {activeTab === 'teorema' && (
-                <div>
-                  <h4 style={{ margin: '0 0 0.5rem', color: 'var(--text-dark)' }}>Teorema Karakterisasi Penting</h4>
-                  <ul style={{ paddingLeft: '1.25rem', margin: 0, lineHeight: 1.8, fontSize: '0.9rem' }}>
-                    <li><strong>Graf Lintasan Pₙ:</strong> β(Pₙ) = 1 (cukup 1 simpul ujung), sedangkan γ(Pₙ) = ⌈n/3⌉.</li>
-                    <li><strong>Graf Lengkap Kₙ:</strong> γ(Kₙ) = 1 (1 simpul terhubung ke semua), sedangkan β(Kₙ) = n - 1 (hampir semua simpul harus jadi patokan).</li>
-                    <li><strong>Graf Bintang K₁,ₙ:</strong> γ(K₁,ₙ) = 1 (cukup pusat c), sedangkan β(K₁,ₙ) = n - 1 (seluruh daun kecuali 1 harus jadi patokan).</li>
-                  </ul>
+                <div className="tab-pane">
+                  <h4 className="tab-pane-title">Teorema Karakterisasi Keluarga Graf</h4>
+                  <div className="theorems-grid">
+                    <div className="theorem-craft-card">
+                      <div className="theorem-header">
+                        <h5>Graf Lintasan Pₙ (n ≥ 3)</h5>
+                        <span className="theorem-family-tag">Lintasan</span>
+                      </div>
+                      <p>Cukup 1 simpul ujung untuk membedakan seluruh titik lain secara berurutan, sedangkan pengawasan memerlukan pembagian kelipatan 3.</p>
+                      <div className="theorem-formulas">
+                        <span className="formula-chip">Dimensi Metrik: β(Pₙ) = 1</span>
+                        <span className="formula-chip">Bilangan Dominasi: γ(Pₙ) = ⌈n/3⌉</span>
+                      </div>
+                    </div>
+                    <div className="theorem-craft-card">
+                      <div className="theorem-header">
+                        <h5>Graf Lengkap Kₙ (n ≥ 3)</h5>
+                        <span className="theorem-family-tag">Lengkap</span>
+                      </div>
+                      <p>Satu simpul terhubung ke semua titik (mendominasi instan), tetapi seluruh simpul berjarak 1 sama lain sehingga hampir semua simpul harus jadi patokan.</p>
+                      <div className="theorem-formulas">
+                        <span className="formula-chip">Dimensi Metrik: β(Kₙ) = n - 1</span>
+                        <span className="formula-chip">Bilangan Dominasi: γ(Kₙ) = 1</span>
+                      </div>
+                    </div>
+                    <div className="theorem-craft-card">
+                      <div className="theorem-header">
+                        <h5>Graf Bintang K₁,ₙ₋₁</h5>
+                        <span className="theorem-family-tag">Bintang</span>
+                      </div>
+                      <p>Simpul pusat tunggal mengawasi semua daun, tetapi seluruh daun berjarak 2 satu sama lain sehingga n-2 daun harus dijadikan patokan koordinat.</p>
+                      <div className="theorem-formulas">
+                        <span className="formula-chip">Dimensi Metrik: β(K₁,ₙ₋₁) = n - 2</span>
+                        <span className="formula-chip">Bilangan Dominasi: γ(K₁,ₙ₋₁) = 1</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
-          </>
+          </div>
         )}
-      </div>
+      </section>
+
+      {/* Official Academic Footer */}
+      <Footer />
     </div>
   );
 };
